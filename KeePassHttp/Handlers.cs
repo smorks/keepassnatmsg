@@ -1,4 +1,5 @@
-﻿using System.Security.Cryptography;
+﻿/*
+using System.Security.Cryptography;
 using System.Windows.Forms;
 using System.Collections.Generic;
 using System.Linq;
@@ -21,7 +22,7 @@ using KeePassLib.Cryptography;
 using KeePass.Util.Spr;
 
 namespace KeePassHttp {
-    public sealed partial class KeePassHttpExt : Plugin
+    public sealed class KeePassHttpExt2 : Plugin
     {
         private string GetHost(string uri)
         {
@@ -828,3 +829,4 @@ namespace KeePassHttp {
         }
     }
 }
+*/

@@ -33,7 +33,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="KeePass">
-      <HintPath>C:\Program Files (x86)\KeePass Password Safe 2\KeePass.exe</HintPath>
+      <HintPath>..\..\..\..\apps\keepass\KeePass.exe</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="Newtonsoft.Json">
@@ -55,6 +55,7 @@
     <Compile Include="AccessControlForm.Designer.cs">
       <DependentUpon>AccessControlForm.cs</DependentUpon>
     </Compile>
+    <Compile Include="EntryConfig.cs" />
     <Compile Include="ConfigOpt.cs" />
     <Compile Include="OptionsForm.cs">
       <SubType>Form</SubType>
@@ -67,7 +68,6 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
-    <Compile Include="Protocol.cs" />
     <Compile Include="Handlers.cs" />
     <Compile Include="ConfirmAssociationForm.cs">
       <SubType>Form</SubType>
@@ -77,10 +77,16 @@
     </Compile>
     <Compile Include="KeePassHttp.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Protocol\Actions.cs" />
+    <Compile Include="Protocol\Action\JsonBase.cs" />
+    <Compile Include="Protocol\Action\Request.cs" />
+    <Compile Include="Protocol\Action\Response.cs" />
+    <Compile Include="Protocol\Crypto\Nacl.cs" />
+    <Compile Include="Protocol\Crypto\Helper.cs" />
+    <Compile Include="Protocol\EntrySearch.cs" />
+    <Compile Include="Protocol\Handlers.cs" />
+    <Compile Include="Protocol\Crypto\KeyPair.cs" />
     <Compile Include="PwEntryDatabase.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <WCFMetadata Include="Service References\" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="AccessControlForm.resx">

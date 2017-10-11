@@ -1,0 +1,151 @@
+﻿
+using KeePassHttp.Protocol.Action;
+using KeePassHttp.Protocol.Crypto;
+using KeePassLib;
+using KeePassLib.Collections;
+using KeePassLib.Security;
+using Newtonsoft.Json.Linq;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+
+namespace KeePassHttp.Protocol
+{
+    public sealed class Handlers
+    {
+        private Helper _crypto;
+        private KeePassHttpExt _ext;
+        private Dictionary<string, RequestHandler> _handlers;
+
+        public delegate Response RequestHandler(Request req);
+
+        public Handlers(KeePassHttpExt ext)
+        {
+            _crypto = new Helper();
+            _ext = ext;
+        }
+
+        public void Initialize()
+        {
+            _handlers = new Dictionary<string, RequestHandler>();
+            _handlers.Add(Actions.GET_DATABASE_HASH, GetDatabaseHash);
+            _handlers.Add(Actions.TEST_ASSOCIATE, TestAssociate);
+            _handlers.Add(Actions.ASSOCIATE, Associate);
+            _handlers.Add(Actions.CHANGE_PUBLIC_KEYS, ChangePublicKeys);
+            _handlers.Add(Actions.GET_LOGINS, GetLogins);
+        }
+
+        public RequestHandler GetHandler(string action) => _handlers[action];
+
+        /*
+        private void LoadKeyPair()
+        {
+            var entry = _ext.GetConfigEntry(false);
+            if (entry != null)
+            {
+                if (!entry.Strings.Exists(KeePassHttpExt.KEEPASSHTTP_KEYPAIR_NAME))
+                {
+                    var kp = _crypto.GenerateKeyPair();
+                    entry.Strings.Set(KeePassHttpExt.KEEPASSHTTP_KEYPAIR_NAME, new ProtectedString(true, kp.ToBase64()));
+                    entry.Touch(true);
+                    _ext.UpdateUI(entry.ParentGroup);
+                }
+                else
+                {
+                    var str = entry.Strings.ReadSafe(KeePassHttpExt.KEEPASSHTTP_KEYPAIR_NAME);
+                    _crypto.SetKeyPair(KeyPair.FromBase64(str));
+                }
+            }
+        }
+        */
+
+        private Response GetDatabaseHash(Request req)
+        {
+            var msg = _crypto.DecryptMessage(req);
+            var resp = req.GetResponse();
+            _crypto.EncryptMessage(resp, GetResponseMessage().ToString());
+            return resp;
+        }
+
+        private Response TestAssociate(Request req)
+        {
+            var entry = _ext.GetConfigEntry(false);
+            if (entry != null)
+            {
+                var msg = _crypto.DecryptMessage(req);
+                var x = entry.Strings.First(e => e.Key.Equals(KeePassHttpExt.ASSOCIATE_KEY_PREFIX + msg.GetString("id")));
+                var key = x.Value;
+                var reqKey = msg.GetBytes("key");
+                var dbKey = Convert.FromBase64String(key.ReadString());
+                if (Enumerable.SequenceEqual(dbKey, reqKey))
+                {
+                    var resp = req.GetResponse();
+                    return resp;
+                }
+            }
+            return null;
+        }
+
+        private Response Associate(Request req)
+        {
+            var msg = _crypto.DecryptMessage(req);
+            var pkStr = msg.GetString("key");
+            _ext.ShowNotification("Attempting to Associate... " + pkStr);
+            var keyBytes = msg.GetBytes("key");
+            if (Enumerable.SequenceEqual(keyBytes, _crypto.ClientPublicKey))
+            {
+                var id = _ext.ShowConfirmAssociationDialog(msg.GetString("key"));
+                _ext.ShowNotification($"Attempting to Associate: [{id}]");
+                var resp = req.GetResponse();
+                var respMsg = GetResponseMessage();
+                respMsg.Add("id", id);
+                _crypto.EncryptMessage(resp, respMsg.ToString());
+                return resp;
+            }
+            else
+            {
+                _ext.ShowNotification("Association Failed. Public Keys don't match.");
+            }
+            return null;
+        }
+
+        private Response GetErrorResponse(string action, string error)
+        {
+            var r = new Response(action);
+            r.Remove("nonce");
+            r.Add("error", error);
+            return r;
+        }
+
+        private JsonBase GetResponseMessage()
+        {
+            return new JsonBase
+            {
+                { "hash", new JValue(_ext.GetDbHash()) },
+                { "version", new JValue(GetVersion()) },
+                { "success", new JValue(true) }
+            };
+        }
+
+        private Response ChangePublicKeys(Request req)
+        {
+            var publicKey = req.GetString("publicKey");
+            _crypto.ClientPublicKey = Convert.FromBase64String(publicKey);
+            var pair = _crypto.GenerateKeyPair();
+            var resp = req.GetResponse();
+            resp.AddBytes("publicKey", pair.PublicKey);
+            var respMsg = GetResponseMessage();
+            respMsg.Remove("hash");
+            _crypto.EncryptMessage(resp, respMsg.ToString());
+            return resp;
+        }
+
+        private string GetVersion() => typeof(Handlers).Assembly.GetName().Version.ToString();
+
+        private Response GetLogins(Request req)
+        {
+            var es = new EntrySearch(_ext, _crypto);
+            return es.GetLoginsHandler(req, GetResponseMessage());
+        }
+    }
+}
