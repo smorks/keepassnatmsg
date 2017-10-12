@@ -8,3 +8,4 @@ create-plgx.bat
 *.pvk
 *.csproj.user
 /KeePassHttp/KeePassHttp.dll
+.vs/
