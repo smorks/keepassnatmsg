@@ -13,6 +13,7 @@ namespace KeePassHttp.Protocol.Crypto
 
         public JsonBase DecryptMessage(Request req)
         {
+            if (_pair == null) return null;
             var msg = System.Convert.FromBase64String(req.Message);
             var nonce = System.Convert.FromBase64String(req.Nonce);
             var data = TweetNaCl.CryptoBoxOpen(msg, nonce, ClientPublicKey, _pair.PrivateKey);

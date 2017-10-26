@@ -95,18 +95,6 @@ namespace KeePassHttp.Protocol
                     }
                 }
 
-                string compareToUrl = null;
-                /*
-                if (submitUrl != null)
-                {
-                    compareToUrl = CryptoTransform(r.SubmitUrl, true, false, aes, CMode.DECRYPT);
-                }
-                if (String.IsNullOrEmpty(compareToUrl))
-                    compareToUrl = CryptoTransform(r.Url, true, false, aes, CMode.DECRYPT);
-                    */
-
-                compareToUrl = compareToUrl.ToLower();
-
                 foreach (var entryDatabase in items)
                 {
                     string entryUrl = String.Copy(entryDatabase.entry.Strings.ReadSafe(PwDefs.UrlField));
@@ -115,7 +103,7 @@ namespace KeePassHttp.Protocol
 
                     entryUrl = entryUrl.ToLower();
 
-                    entryDatabase.entry.UsageCount = (ulong)LevenshteinDistance(compareToUrl, entryUrl);
+                    entryDatabase.entry.UsageCount = (ulong)LevenshteinDistance(submitUrl.ToLower(), entryUrl);
 
                 }
 
@@ -152,12 +140,18 @@ namespace KeePassHttp.Protocol
                 var entries = new JArray(itemsList.Select(item =>
                 {
                     var up = _ext.GetUserPass(item);
+                    JArray fldArr = null;
+                    var fields = GetFields(configOpt, item);
+                    if (fields != null)
+                    {
+                        fldArr = new JArray(fields.Select(f => new JObject { f.Key, f.Value }));
+                    }
                     return new JObject {
                         { "name", item.entry.Strings.ReadSafe(PwDefs.TitleField) },
                         { "login", up[0] },
                         { "password", up[1] },
                         { "uuid", item.entry.Uuid.ToHexString() },
-                        { "fields", new JArray(GetFields(configOpt, item).Select(f => new JObject { f.Key, f.Value })) }
+                        { "fields", fldArr }
                     };
                 }));
 

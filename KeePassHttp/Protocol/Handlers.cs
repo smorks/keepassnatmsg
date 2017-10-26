@@ -1,9 +1,6 @@
 ﻿
 using KeePassHttp.Protocol.Action;
 using KeePassHttp.Protocol.Crypto;
-using KeePassLib;
-using KeePassLib.Collections;
-using KeePassLib.Security;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
@@ -62,6 +59,7 @@ namespace KeePassHttp.Protocol
         private Response GetDatabaseHash(Request req)
         {
             var msg = _crypto.DecryptMessage(req);
+            if (msg == null) return null;
             var resp = req.GetResponse();
             _crypto.EncryptMessage(resp, GetResponseMessage().ToString());
             return resp;
@@ -69,6 +67,7 @@ namespace KeePassHttp.Protocol
 
         private Response TestAssociate(Request req)
         {
+            _ext.ShowNotification("Test Associate...");
             var entry = _ext.GetConfigEntry(false);
             if (entry != null)
             {
@@ -90,12 +89,10 @@ namespace KeePassHttp.Protocol
         {
             var msg = _crypto.DecryptMessage(req);
             var pkStr = msg.GetString("key");
-            _ext.ShowNotification("Attempting to Associate... " + pkStr);
             var keyBytes = msg.GetBytes("key");
             if (Enumerable.SequenceEqual(keyBytes, _crypto.ClientPublicKey))
             {
                 var id = _ext.ShowConfirmAssociationDialog(msg.GetString("key"));
-                _ext.ShowNotification($"Attempting to Associate: [{id}]");
                 var resp = req.GetResponse();
                 var respMsg = GetResponseMessage();
                 respMsg.Add("id", id);
