@@ -24,12 +24,14 @@ namespace KeePassHttp.Protocol
 
         public void Initialize()
         {
-            _handlers = new Dictionary<string, RequestHandler>();
-            _handlers.Add(Actions.GET_DATABASE_HASH, GetDatabaseHash);
-            _handlers.Add(Actions.TEST_ASSOCIATE, TestAssociate);
-            _handlers.Add(Actions.ASSOCIATE, Associate);
-            _handlers.Add(Actions.CHANGE_PUBLIC_KEYS, ChangePublicKeys);
-            _handlers.Add(Actions.GET_LOGINS, GetLogins);
+            _handlers = new Dictionary<string, RequestHandler>
+            {
+                {Actions.GET_DATABASE_HASH, GetDatabaseHash},
+                {Actions.TEST_ASSOCIATE, TestAssociate},
+                {Actions.ASSOCIATE, Associate},
+                {Actions.CHANGE_PUBLIC_KEYS, ChangePublicKeys},
+                {Actions.GET_LOGINS, GetLogins}
+            };
         }
 
         public RequestHandler GetHandler(string action) => _handlers[action];
@@ -76,7 +78,7 @@ namespace KeePassHttp.Protocol
                 var key = x.Value;
                 var reqKey = msg.GetBytes("key");
                 var dbKey = Convert.FromBase64String(key.ReadString());
-                if (Enumerable.SequenceEqual(dbKey, reqKey))
+                if (dbKey.SequenceEqual(reqKey))
                 {
                     var resp = req.GetResponse();
                     return resp;
@@ -88,9 +90,8 @@ namespace KeePassHttp.Protocol
         private Response Associate(Request req)
         {
             var msg = _crypto.DecryptMessage(req);
-            var pkStr = msg.GetString("key");
             var keyBytes = msg.GetBytes("key");
-            if (Enumerable.SequenceEqual(keyBytes, _crypto.ClientPublicKey))
+            if (keyBytes.SequenceEqual(_crypto.ClientPublicKey))
             {
                 var id = _ext.ShowConfirmAssociationDialog(msg.GetString("key"));
                 var resp = req.GetResponse();
@@ -118,9 +119,9 @@ namespace KeePassHttp.Protocol
         {
             return new JsonBase
             {
-                { "hash", new JValue(_ext.GetDbHash()) },
-                { "version", new JValue(GetVersion()) },
-                { "success", new JValue(true) }
+                {"hash", _ext.GetDbHash()},
+                {"version", GetVersion()},
+                {"success", true}
             };
         }
 
