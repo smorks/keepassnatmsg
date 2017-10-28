@@ -69,7 +69,6 @@ namespace KeePassHttp.Protocol
 
         private Response TestAssociate(Request req)
         {
-            _ext.ShowNotification("Test Associate...");
             var entry = _ext.GetConfigEntry(false);
             if (entry != null)
             {
@@ -77,10 +76,14 @@ namespace KeePassHttp.Protocol
                 var x = entry.Strings.First(e => e.Key.Equals(KeePassHttpExt.ASSOCIATE_KEY_PREFIX + msg.GetString("id")));
                 var key = x.Value;
                 var reqKey = msg.GetBytes("key");
+                var id = msg.GetString("id");
                 var dbKey = Convert.FromBase64String(key.ReadString());
-                if (dbKey.SequenceEqual(reqKey))
+                if (dbKey.SequenceEqual(reqKey) && !string.IsNullOrWhiteSpace(id))
                 {
                     var resp = req.GetResponse();
+                    var respMsg = GetResponseMessage();
+                    respMsg.Add("id", id);
+                    _crypto.EncryptMessage(resp, respMsg.ToString());
                     return resp;
                 }
             }
