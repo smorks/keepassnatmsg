@@ -10,5 +10,6 @@ namespace KeePassHttp.Protocol
         public const string SET_LOGIN = "set-login";
         public const string GENERATE_PASSWORD = "generate-password";
         public const string CHANGE_PUBLIC_KEYS = "change-public-keys";
+        public const string LOCK_DATABASE = "lock-database";
     }
 }

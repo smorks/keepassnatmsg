@@ -30,33 +30,14 @@ namespace KeePassHttp.Protocol
                 {Actions.TEST_ASSOCIATE, TestAssociate},
                 {Actions.ASSOCIATE, Associate},
                 {Actions.CHANGE_PUBLIC_KEYS, ChangePublicKeys},
-                {Actions.GET_LOGINS, GetLogins}
+                {Actions.GET_LOGINS, GetLogins},
+                {Actions.SET_LOGIN, SetLogin},
+                {Actions.GENERATE_PASSWORD, GeneratePassword},
+                {Actions.LOCK_DATABASE, LockDatabase}
             };
         }
 
         public RequestHandler GetHandler(string action) => _handlers[action];
-
-        /*
-        private void LoadKeyPair()
-        {
-            var entry = _ext.GetConfigEntry(false);
-            if (entry != null)
-            {
-                if (!entry.Strings.Exists(KeePassHttpExt.KEEPASSHTTP_KEYPAIR_NAME))
-                {
-                    var kp = _crypto.GenerateKeyPair();
-                    entry.Strings.Set(KeePassHttpExt.KEEPASSHTTP_KEYPAIR_NAME, new ProtectedString(true, kp.ToBase64()));
-                    entry.Touch(true);
-                    _ext.UpdateUI(entry.ParentGroup);
-                }
-                else
-                {
-                    var str = entry.Strings.ReadSafe(KeePassHttpExt.KEEPASSHTTP_KEYPAIR_NAME);
-                    _crypto.SetKeyPair(KeyPair.FromBase64(str));
-                }
-            }
-        }
-        */
 
         private Response GetDatabaseHash(Request req)
         {
@@ -147,6 +128,32 @@ namespace KeePassHttp.Protocol
         {
             var es = new EntrySearch(_ext, _crypto);
             return es.GetLoginsHandler(req, GetResponseMessage());
+        }
+
+        private Response SetLogin(Request req)
+        {
+            var resp = req.GetResponse();
+            var msg = GetResponseMessage();
+            _crypto.EncryptMessage(resp, msg.ToString());
+            return resp;
+        }
+
+        private Response GeneratePassword(Request req)
+        {
+            var resp = req.GetResponse();
+            var msg = GetResponseMessage();
+            msg.Add("entries", new JArray(_ext.GeneratePassword()));
+            _crypto.EncryptMessage(resp, msg.ToString());
+            return resp;
+        }
+
+        private Response LockDatabase(Request req)
+        {
+            var resp = req.GetResponse();
+            var msg = GetResponseMessage();
+            _crypto.EncryptMessage(resp, msg.ToString());
+            _ext.host.MainWindow.LockAllDocuments();
+            return resp;
         }
     }
 }
