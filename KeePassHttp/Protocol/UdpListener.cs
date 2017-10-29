@@ -59,10 +59,15 @@ namespace KeePassHttp.Protocol
             while (_active)
             {
                 _gotData.Reset();
-                _client.BeginReceive(ReceiveData, null);
-                _gotData.Wait(_cts.Token);
-
-                if (_cts.IsCancellationRequested) break;
+                try
+                {
+                    _client.BeginReceive(ReceiveData, null);
+                    _gotData.Wait(_cts.Token);
+                }
+                catch (OperationCanceledException)
+                {
+                    if (_cts.IsCancellationRequested) break;
+                }
             }
 
             _client.Close();
@@ -70,11 +75,14 @@ namespace KeePassHttp.Protocol
 
         private void ReceiveData(IAsyncResult ar)
         {
-            var ep = new IPEndPoint(IPAddress.Any, 0);
-            var data = _client.EndReceive(ar, ref ep);
-            var str = System.Text.Encoding.UTF8.GetString(data);
-            MessageReceived?.Invoke(this, new MessageReceivedEventArgs(ep, str));
-            _gotData.Set();
+            if (_active)
+            {
+                var ep = new IPEndPoint(IPAddress.Any, 0);
+                var data = _client.EndReceive(ar, ref ep);
+                var str = System.Text.Encoding.UTF8.GetString(data);
+                MessageReceived?.Invoke(this, new MessageReceivedEventArgs(ep, str));
+                _gotData.Set();
+            }
         }
     }
 
