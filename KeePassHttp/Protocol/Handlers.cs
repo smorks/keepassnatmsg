@@ -43,10 +43,12 @@ namespace KeePassHttp.Protocol
 
         private Response GetDatabaseHash(Request req)
         {
-            var msg = _crypto.DecryptMessage(req);
-            if (msg == null) return null;
+            var reqMsg = _crypto.DecryptMessage(req);
+            if (reqMsg == null) return null;
             var resp = req.GetResponse();
-            _crypto.EncryptMessage(resp, GetResponseMessage().ToString());
+            var msg = GetResponseMessage();
+            msg.Add("nonce", resp.Nonce);
+            _crypto.EncryptMessage(resp, msg.ToString());
             return resp;
         }
 
@@ -66,6 +68,7 @@ namespace KeePassHttp.Protocol
                     var resp = req.GetResponse();
                     var respMsg = GetResponseMessage();
                     respMsg.Add("id", id);
+                    respMsg.Add("nonce", resp.Nonce);
                     _crypto.EncryptMessage(resp, respMsg.ToString());
                     return resp;
                 }
@@ -83,6 +86,7 @@ namespace KeePassHttp.Protocol
                 var resp = req.GetResponse();
                 var respMsg = GetResponseMessage();
                 respMsg.Add("id", id);
+                respMsg.Add("nonce", resp.Nonce);
                 _crypto.EncryptMessage(resp, respMsg.ToString());
                 return resp;
             }
@@ -107,7 +111,7 @@ namespace KeePassHttp.Protocol
             {
                 {"hash", _ext.GetDbHash()},
                 {"version", GetVersion()},
-                {"success", true}
+                {"success", "true"}
             };
         }
 
@@ -118,9 +122,11 @@ namespace KeePassHttp.Protocol
             var pair = _crypto.GenerateKeyPair();
             var resp = req.GetResponse();
             resp.AddBytes("publicKey", pair.PublicKey);
-            var respMsg = GetResponseMessage();
-            respMsg.Remove("hash");
-            _crypto.EncryptMessage(resp, respMsg.ToString());
+            resp.Add("version", GetVersion());
+            resp.Add("success", "true");
+            //var respMsg = GetResponseMessage();
+            //respMsg.Remove("hash");
+            //_crypto.EncryptMessage(resp, respMsg.ToString());
             return resp;
         }
 
@@ -153,6 +159,7 @@ namespace KeePassHttp.Protocol
 
             var resp = req.GetResponse();
             var msg = GetResponseMessage();
+            msg.Add("nonce", resp.Nonce);
             _crypto.EncryptMessage(resp, msg.ToString());
             return resp;
         }
@@ -162,6 +169,7 @@ namespace KeePassHttp.Protocol
             var resp = req.GetResponse();
             var msg = GetResponseMessage();
             msg.Add("entries", new JArray(_ext.GeneratePassword()));
+            msg.Add("nonce", resp.Nonce);
             _crypto.EncryptMessage(resp, msg.ToString());
             return resp;
         }
@@ -170,6 +178,7 @@ namespace KeePassHttp.Protocol
         {
             var resp = req.GetResponse();
             var msg = GetResponseMessage();
+            msg.Add("nonce", resp.Nonce);
             _crypto.EncryptMessage(resp, msg.ToString());
             _host.MainWindow.LockAllDocuments();
             return resp;

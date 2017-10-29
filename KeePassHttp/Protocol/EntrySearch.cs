@@ -158,7 +158,9 @@ namespace KeePassHttp.Protocol
                     };
                 }));
 
+                respMsg.Add("count", itemsList.Count);
                 respMsg.Add("entries", entries);
+                respMsg.Add("nonce", resp.Nonce);
 
                 _crypto.EncryptMessage(resp, respMsg.ToString());
 
