@@ -1,4 +1,5 @@
-﻿using KeePass.Util.Spr;
+﻿using KeePass.Plugins;
+using KeePass.Util.Spr;
 using KeePassHttp.Protocol.Action;
 using KeePassHttp.Protocol.Crypto;
 using KeePassLib;
@@ -12,12 +13,14 @@ namespace KeePassHttp.Protocol
 {
     public sealed class EntrySearch
     {
+        private IPluginHost _host;
         private KeePassHttpExt _ext;
         private Helper _crypto;
 
-        public EntrySearch(KeePassHttpExt ext, Helper crypto)
+        public EntrySearch(Helper crypto)
         {
-            _ext = ext;
+            _host = KeePassHttpExt.HostInstance;
+            _ext = KeePassHttpExt.ExtInstance;
             _crypto = crypto;
         }
 
@@ -50,7 +53,7 @@ namespace KeePassHttp.Protocol
                     return title != hostUri.Host && entryUrl != hostUri.Host || (submitUri.Host != null && title != submitUri.Host && entryUrl != submitUri.Host);
                 };
 
-                var configOpt = new ConfigOpt(_ext.host.CustomConfig);
+                var configOpt = new ConfigOpt(_host.CustomConfig);
                 var config = _ext.GetConfigEntry(true);
                 var autoAllowS = config.Strings.ReadSafe("Auto Allow");
                 var autoAllow = autoAllowS != null && autoAllowS.Trim() != "";
@@ -59,7 +62,7 @@ namespace KeePassHttp.Protocol
 
                 if (needPrompting.ToList().Count > 0 && !autoAllow)
                 {
-                    var win = _ext.host.MainWindow;
+                    var win = _host.MainWindow;
 
                     using (var f = new AccessControlForm())
                     {

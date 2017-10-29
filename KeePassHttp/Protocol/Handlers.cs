@@ -1,4 +1,4 @@
-﻿
+﻿using KeePass.Plugins;
 using KeePassHttp.Protocol.Action;
 using KeePassHttp.Protocol.Crypto;
 using Newtonsoft.Json.Linq;
@@ -13,13 +13,15 @@ namespace KeePassHttp.Protocol
         private Helper _crypto;
         private KeePassHttpExt _ext;
         private Dictionary<string, RequestHandler> _handlers;
+        private IPluginHost _host;
 
         public delegate Response RequestHandler(Request req);
 
-        public Handlers(KeePassHttpExt ext)
+        public Handlers()
         {
             _crypto = new Helper();
-            _ext = ext;
+            _ext = KeePassHttpExt.ExtInstance;
+            _host = KeePassHttpExt.HostInstance;
         }
 
         public void Initialize()
@@ -126,12 +128,29 @@ namespace KeePassHttp.Protocol
 
         private Response GetLogins(Request req)
         {
-            var es = new EntrySearch(_ext, _crypto);
+            var es = new EntrySearch(_crypto);
             return es.GetLoginsHandler(req, GetResponseMessage());
         }
 
         private Response SetLogin(Request req)
         {
+            var eu = new EntryUpdate();
+            var reqMsg = _crypto.DecryptMessage(req);
+            var url = reqMsg.GetString("url");
+            var uuid = reqMsg.GetString("uuid");
+            var login = reqMsg.GetString("login");
+            var pw = reqMsg.GetString("password");
+            var submitUrl = reqMsg.GetString("submitUrl");
+
+            if (string.IsNullOrEmpty(uuid))
+            {
+                eu.CreateEntry(login, pw, url, submitUrl, null);
+            }
+            else
+            {
+                eu.UpdateEntry(uuid, login, pw, url);
+            }
+
             var resp = req.GetResponse();
             var msg = GetResponseMessage();
             _crypto.EncryptMessage(resp, msg.ToString());
@@ -152,7 +171,7 @@ namespace KeePassHttp.Protocol
             var resp = req.GetResponse();
             var msg = GetResponseMessage();
             _crypto.EncryptMessage(resp, msg.ToString());
-            _ext.host.MainWindow.LockAllDocuments();
+            _host.MainWindow.LockAllDocuments();
             return resp;
         }
     }

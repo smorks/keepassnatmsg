@@ -16,6 +16,12 @@ namespace KeePassHttp.Protocol.Action
             return new Request((JObject)ReadFrom(reader));
         }
 
+        public static Request FromString(string s)
+        {
+            var rdr = new JsonTextReader(new System.IO.StringReader(s));
+            return new Request((JObject)ReadFrom(rdr));
+        }
+
         public string Action => GetString("action");
 
         public string Message => GetString("message");

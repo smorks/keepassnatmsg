@@ -1,0 +1,154 @@
+﻿using KeePass.Plugins;
+using KeePass.UI;
+using KeePassLib;
+using KeePassLib.Collections;
+using KeePassLib.Security;
+using KeePassLib.Utility;
+using System;
+using System.IO;
+using System.Windows.Forms;
+
+namespace KeePassHttp.Protocol
+{
+    public sealed class EntryUpdate
+    {
+        private IPluginHost _host;
+        private KeePassHttpExt _ext;
+
+        public EntryUpdate()
+        {
+            _host = KeePassHttpExt.HostInstance;
+            _ext = KeePassHttpExt.ExtInstance;
+        }
+
+        public bool UpdateEntry(string uuid, string username, string password, string formHost)
+        {
+            PwEntry entry = null;
+            PwUuid id = new PwUuid(MemUtil.HexStringToByteArray(uuid));
+
+            var configOpt = new ConfigOpt(_host.CustomConfig);
+            if (configOpt.SearchInAllOpenedDatabases)
+            {
+                foreach (PwDocument doc in _host.MainWindow.DocumentManager.Documents)
+                {
+                    if (doc.Database.IsOpen)
+                    {
+                        entry = doc.Database.RootGroup.FindEntry(id, true);
+                        if (entry != null)
+                        {
+                            break;
+                        }
+                    }
+                }
+            }
+            else
+            {
+                entry = _host.Database.RootGroup.FindEntry(id, true);
+            }
+
+            if (entry == null)
+            {
+                return false;
+            }
+
+            string[] up = _ext.GetUserPass(entry);
+            var u = up[0];
+            var p = up[1];
+
+            if (u != username || p != password)
+            {
+                bool allowUpdate = configOpt.AlwaysAllowUpdates;
+
+                if (!allowUpdate)
+                {
+                    _host.MainWindow.Activate();
+
+                    DialogResult result;
+                    if (_host.MainWindow.IsTrayed())
+                    {
+                        result = MessageBox.Show(
+                            String.Format("Do you want to update the information in {0} - {1}?", formHost, u),
+                            "Update Entry", MessageBoxButtons.YesNo,
+                            MessageBoxIcon.None, MessageBoxDefaultButton.Button1, MessageBoxOptions.DefaultDesktopOnly);
+                    }
+                    else
+                    {
+                        result = MessageBox.Show(
+                            _host.MainWindow,
+                            String.Format("Do you want to update the information in {0} - {1}?", formHost, u),
+                            "Update Entry", MessageBoxButtons.YesNo,
+                            MessageBoxIcon.Information, MessageBoxDefaultButton.Button1);
+                    }
+
+
+                    if (result == DialogResult.Yes)
+                    {
+                        allowUpdate = true;
+                    }
+                }
+
+                if (allowUpdate)
+                {
+                    PwObjectList<PwEntry> m_vHistory = entry.History.CloneDeep();
+                    entry.History = m_vHistory;
+                    entry.CreateBackup(null);
+
+                    entry.Strings.Set(PwDefs.UserNameField, new ProtectedString(false, username));
+                    entry.Strings.Set(PwDefs.PasswordField, new ProtectedString(true, password));
+                    entry.Touch(true, false);
+                    _ext.UpdateUI(entry.ParentGroup);
+
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        public bool CreateEntry(string username, string password, string url, string submithost, string realm)
+        {
+            var root = _host.Database.RootGroup;
+            var group = root.FindCreateGroup(KeePassHttpExt.KEEPASSHTTP_GROUP_NAME, false);
+            if (group == null)
+            {
+                group = new PwGroup(true, true, KeePassHttpExt.KEEPASSHTTP_GROUP_NAME, PwIcon.WorldComputer);
+                root.AddGroup(group, true);
+                _ext.UpdateUI(null);
+            }
+
+            string baseUrl = url;
+            // index bigger than https:// <-- this slash
+            if (baseUrl.LastIndexOf("/") > 9)
+            {
+                baseUrl = baseUrl.Substring(0, baseUrl.LastIndexOf("/") + 1);
+            }
+
+            var uri = new Uri(url);
+
+            PwEntry entry = new PwEntry(true, true);
+            entry.Strings.Set(PwDefs.TitleField, new ProtectedString(false, uri.Host));
+            entry.Strings.Set(PwDefs.UserNameField, new ProtectedString(false, username));
+            entry.Strings.Set(PwDefs.PasswordField, new ProtectedString(true, password));
+            entry.Strings.Set(PwDefs.UrlField, new ProtectedString(true, baseUrl));
+
+            if ((submithost != null && uri.Host != submithost) || realm != null)
+            {
+                var config = new EntryConfig();
+                if (submithost != null)
+                    config.Allow.Add(submithost);
+                if (realm != null)
+                    config.Realm = realm;
+
+                var serializer = _ext.NewJsonSerializer();
+                var writer = new StringWriter();
+                serializer.Serialize(writer, config);
+                entry.Strings.Set(KeePassHttpExt.KEEPASSHTTP_NAME, new ProtectedString(false, writer.ToString()));
+            }
+
+            group.AddEntry(entry, true);
+            _ext.UpdateUI(group);
+
+            return true;
+        }
+    }
+}

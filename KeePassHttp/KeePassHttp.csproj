@@ -84,8 +84,10 @@
     <Compile Include="Protocol\Crypto\Nacl.cs" />
     <Compile Include="Protocol\Crypto\Helper.cs" />
     <Compile Include="Protocol\EntrySearch.cs" />
+    <Compile Include="Protocol\EntryUpdate.cs" />
     <Compile Include="Protocol\Handlers.cs" />
     <Compile Include="Protocol\Crypto\KeyPair.cs" />
+    <Compile Include="Protocol\UdpListener.cs" />
     <Compile Include="PwEntryDatabase.cs" />
   </ItemGroup>
   <ItemGroup>

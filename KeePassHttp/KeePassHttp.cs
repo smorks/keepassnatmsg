@@ -35,16 +35,19 @@ namespace KeePassHttp
         public readonly byte[] KEEPASSHTTP_UUID = {
                 0x34, 0x69, 0x7a, 0x40, 0x8a, 0x5b, 0x41, 0xc0,
                 0x9f, 0x36, 0x89, 0x7d, 0x62, 0x3e, 0xcb, 0x31
-                                                };
+        };
+
+        internal static IPluginHost HostInstance;
+        internal static KeePassHttpExt ExtInstance;
 
         private const int DEFAULT_NOTIFICATION_TIME = 5000;
         public const string KEEPASSHTTP_NAME = "KeePassHttp2 Settings";
-        private const string KEEPASSHTTP_GROUP_NAME = "KeePassHttp Passwords";
+        public const string KEEPASSHTTP_GROUP_NAME = "KeePassHttp Passwords";
         // internal const string KEEPASSHTTP_KEYPAIR_NAME = "Key Pair";
         public const string ASSOCIATE_KEY_PREFIX = "Public Key: ";
-        internal IPluginHost host;
         private HttpListener listener;
         public const int DEFAULT_PORT = 19455;
+        public const int DEFAULT_UDP_PORT = 19700;
         public const string DEFAULT_HOST = "localhost";
         /// <summary>
         /// TODO make configurable
@@ -55,6 +58,7 @@ namespace KeePassHttp
         private Thread httpThread;
         private volatile bool stopped = false;
         // Dictionary<string, RequestHandler> handlers = new Dictionary<string, RequestHandler>();
+        private UdpListener _udp;
 
         //public string UpdateUrl = "";
         public override string UpdateUrl { get { return "https://passifox.appspot.com/kph/latest-version.txt"; } }
@@ -80,7 +84,7 @@ namespace KeePassHttp
 
         internal PwEntry GetConfigEntry(bool create)
         {
-            var root = host.Database.RootGroup;
+            var root = HostInstance.Database.RootGroup;
             var uuid = new PwUuid(KEEPASSHTTP_UUID);
             var entry = root.FindEntry(uuid, false);
             if (entry == null && create)
@@ -128,7 +132,7 @@ namespace KeePassHttp
         {
             MethodInvoker m = delegate
             {
-                var notify = host.MainWindow.MainNotifyIcon;
+                var notify = HostInstance.MainWindow.MainNotifyIcon;
                 if (notify == null)
                     return;
 
@@ -158,33 +162,38 @@ namespace KeePassHttp
                 notify.BalloonTipClosed += closed;
                 notify.BalloonTipClicked += clicked;
             };
-            if (host.MainWindow.InvokeRequired)
-                host.MainWindow.Invoke(m);
+            if (HostInstance.MainWindow.InvokeRequired)
+                HostInstance.MainWindow.Invoke(m);
             else
                 m.Invoke();
         }
 
-        public override bool Initialize(IPluginHost host)
+        public override bool Initialize(IPluginHost pluginHost)
         {
             var httpSupported = HttpListener.IsSupported;
-            this.host = host;
+            HostInstance = pluginHost;
+            ExtInstance = this;
 
             var optionsMenu = new ToolStripMenuItem("KeePassHttp Options...");
             optionsMenu.Click += OnOptions_Click;
             optionsMenu.Image = KeePassHttp.Properties.Resources.earth_lock;
             //optionsMenu.Image = global::KeePass.Properties.Resources.B16x16_File_Close;
-            this.host.MainWindow.ToolsMenu.DropDownItems.Add(optionsMenu);
+            HostInstance.MainWindow.ToolsMenu.DropDownItems.Add(optionsMenu);
 
             if (httpSupported)
             {
                 try
                 {
-                    _handlers = new Protocol.Handlers(this);
+                    _handlers = new Handlers();
                     _handlers.Initialize();
 
                     listener = new HttpListener();
 
-                    var configOpt = new ConfigOpt(this.host.CustomConfig);
+                    _udp = new UdpListener(DEFAULT_UDP_PORT);
+                    _udp.MessageReceived += _udp_MessageReceived;
+                    _udp.Start();
+
+                    var configOpt = new ConfigOpt(HostInstance.CustomConfig);
 
                     listener.Prefixes.Add(HTTP_SCHEME + configOpt.ListenerHost + ":" + configOpt.ListenerPort.ToString() + "/");
                     //listener.Prefixes.Add(HTTPS_PREFIX + HTTPS_PORT + "/");
@@ -193,7 +202,7 @@ namespace KeePassHttp
                     httpThread = new Thread(new ThreadStart(Run));
                     httpThread.Start();
                 } catch (HttpListenerException e) {
-                    MessageBox.Show(host.MainWindow,
+                    MessageBox.Show(HostInstance.MainWindow,
                         "Unable to start HttpListener!\nDo you really have only one installation of KeePassHttp in your KeePass-directory?\n\n" + e,
                         "Unable to start HttpListener",
                         MessageBoxButtons.OK,
@@ -203,7 +212,7 @@ namespace KeePassHttp
             }
             else
             {
-                MessageBox.Show(host.MainWindow, "The .NET HttpListener is not supported on your OS",
+                MessageBox.Show(HostInstance.MainWindow, "The .NET HttpListener is not supported on your OS",
                         ".NET HttpListener not supported",
                         MessageBoxButtons.OK,
                         MessageBoxIcon.Error
@@ -212,9 +221,19 @@ namespace KeePassHttp
             return httpSupported;
         }
 
+        private void _udp_MessageReceived(object sender, MessageReceivedEventArgs e)
+        {
+            var req = Request.FromString(e.Message);
+            var resp = ProcessRequest(req, null);
+            if (resp != null)
+            {
+                _udp.Send(resp.ToString(), e.From);
+            }
+        }
+
         void OnOptions_Click(object sender, EventArgs e)
         {
-            var form = new OptionsForm(new ConfigOpt(host.CustomConfig));
+            var form = new OptionsForm(new ConfigOpt(HostInstance.CustomConfig));
             UIUtil.ShowDialogAndDestroy(form);
         }
 
@@ -230,7 +249,7 @@ namespace KeePassHttp
                 }
                 catch (ThreadInterruptedException) { }
                 catch (HttpListenerException e) {
-                    MessageBox.Show(host.MainWindow, "Unable to process request!\n\n" + e,
+                    MessageBox.Show(HostInstance.MainWindow, "Unable to process request!\n\n" + e,
                         "Unable to process request",
                         MessageBoxButtons.OK,
                         MessageBoxIcon.Error
@@ -239,7 +258,7 @@ namespace KeePassHttp
             }
         }
 
-        private JsonSerializer NewJsonSerializer()
+        internal JsonSerializer NewJsonSerializer()
         {
             var settings = new JsonSerializerSettings();
             settings.DefaultValueHandling = DefaultValueHandling.Ignore;
@@ -259,9 +278,12 @@ namespace KeePassHttp
                 }
                 catch (Exception ex)
                 {
-                    ShowNotification("***BUG*** " + ex, (s, evt) => MessageBox.Show(host.MainWindow, ex.ToString()));
+                    ShowNotification("***BUG*** " + ex, (s, evt) => MessageBox.Show(HostInstance.MainWindow, ex.ToString()));
                     // response.error = ex.ToString();
-                    resp.StatusCode = (int)HttpStatusCode.BadRequest;
+                    if (resp != null)
+                    {
+                        resp.StatusCode = (int)HttpStatusCode.BadRequest;
+                    }
                 }
             }
             return null;
@@ -272,7 +294,7 @@ namespace KeePassHttp
             try {
                 _RequestHandler(r);
             } catch (Exception e) {
-                MessageBox.Show(host.MainWindow, "RequestHandler failed: " + e);
+                MessageBox.Show(HostInstance.MainWindow, "RequestHandler failed: " + e);
             }
         }
 
@@ -302,24 +324,24 @@ namespace KeePassHttp
                 resp.OutputStream.Write(buffer, 0, buffer.Length);
             }
 
-            var db = host.Database;
+            var db = HostInstance.Database;
 
-            var configOpt = new ConfigOpt(this.host.CustomConfig);
+            var configOpt = new ConfigOpt(HostInstance.CustomConfig);
 
             if (request != null && (configOpt.UnlockDatabaseRequest) && !db.IsOpen)
             {
-                host.MainWindow.Invoke((MethodInvoker)delegate
+                HostInstance.MainWindow.Invoke((MethodInvoker)delegate
                 {
-                    host.MainWindow.EnsureVisibleForegroundWindow(true, true);
+                    HostInstance.MainWindow.EnsureVisibleForegroundWindow(true, true);
                 });
 
                 // UnlockDialog not already opened
                 bool bNoDialogOpened = (KeePass.UI.GlobalWindowManager.WindowCount == 0);
                 if (!db.IsOpen && bNoDialogOpened)
                 {
-                    host.MainWindow.Invoke((MethodInvoker)delegate
+                    HostInstance.MainWindow.Invoke((MethodInvoker)delegate
                     {
-                        host.MainWindow.OpenDatabase(host.MainWindow.DocumentManager.ActiveDocument.LockedIoc, null, false);
+                        HostInstance.MainWindow.OpenDatabase(HostInstance.MainWindow.DocumentManager.ActiveDocument.LockedIoc, null, false);
                     });
                 }
             }
@@ -355,13 +377,14 @@ namespace KeePassHttp
             stopped = true;
             listener.Stop();
             listener.Close();
+            _udp.Stop();
             httpThread.Interrupt();
         }
 
         internal void UpdateUI(PwGroup group)
         {
-            var win = host.MainWindow;
-            if (group == null) group = host.Database.RootGroup;
+            var win = HostInstance.MainWindow;
+            if (group == null) group = HostInstance.Database.RootGroup;
             var f = (MethodInvoker) delegate {
                 win.UpdateUI(false, null, true, group, true, null, true);
             };
@@ -373,7 +396,7 @@ namespace KeePassHttp
 
         internal string[] GetUserPass(PwEntry entry)
         {
-            return GetUserPass(new PwEntryDatabase(entry, host.Database));
+            return GetUserPass(new PwEntryDatabase(entry, HostInstance.Database));
         }
 
         internal string[] GetUserPass(PwEntryDatabase entryDatabase)
@@ -395,10 +418,10 @@ namespace KeePassHttp
             var f = (MethodInvoker)delegate
             {
                 // apparently, SprEngine.Compile might modify the database
-                host.MainWindow.UpdateUI(false, null, false, null, false, null, false);
+                HostInstance.MainWindow.UpdateUI(false, null, false, null, false, null, false);
             };
-            if (host.MainWindow.InvokeRequired)
-                host.MainWindow.Invoke(f);
+            if (HostInstance.MainWindow.InvokeRequired)
+                HostInstance.MainWindow.Invoke(f);
             else
                 f.Invoke();
 
@@ -408,8 +431,8 @@ namespace KeePassHttp
         internal string GetDbHash()
         {
             var ms = new MemoryStream();
-            ms.Write(host.Database.RootGroup.Uuid.UuidBytes, 0, 16);
-            ms.Write(host.Database.RecycleBinUuid.UuidBytes, 0, 16);
+            ms.Write(HostInstance.Database.RootGroup.Uuid.UuidBytes, 0, 16);
+            ms.Write(HostInstance.Database.RecycleBinUuid.UuidBytes, 0, 16);
             var sha256 = new SHA256CryptoServiceProvider();
             var hashBytes = sha256.ComputeHash(ms.ToArray());
             return ByteToHexBitFiddle(hashBytes);
@@ -435,7 +458,7 @@ namespace KeePassHttp
             string id = null;
             using (var f = new ConfirmAssociationForm())
             {
-                var win = host.MainWindow;
+                var win = HostInstance.MainWindow;
                 win.Invoke((MethodInvoker)delegate
                 {
                     f.Activate();
@@ -489,7 +512,7 @@ namespace KeePassHttp
 
         internal void ShowAccessControlDialog(string submitUrl, IList<PwEntryDatabase> items)
         {
-            var win = host.MainWindow;
+            var win = HostInstance.MainWindow;
 
             using (var f = new AccessControlForm())
             {
@@ -562,10 +585,10 @@ namespace KeePassHttp
 
             List<PwDatabase> listDatabases = new List<PwDatabase>();
 
-            var configOpt = new ConfigOpt(this.host.CustomConfig);
+            var configOpt = new ConfigOpt(HostInstance.CustomConfig);
             if (configOpt.SearchInAllOpenedDatabases)
             {
-                foreach (PwDocument doc in host.MainWindow.DocumentManager.Documents)
+                foreach (PwDocument doc in HostInstance.MainWindow.DocumentManager.Documents)
                 {
                     if (doc.Database.IsOpen)
                     {
@@ -575,7 +598,7 @@ namespace KeePassHttp
             }
             else
             {
-                listDatabases.Add(host.Database);
+                listDatabases.Add(HostInstance.Database);
             }
 
             int listCount = 0;
