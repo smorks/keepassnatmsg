@@ -265,7 +265,6 @@
             this.hostName.Size = new System.Drawing.Size(103, 20);
             this.hostName.TabIndex = 25;
             this.hostName.Text = "localhost";
-            this.hostName.TextChanged += new System.EventHandler(this.hostName_TextChanged);
             // 
             // label10
             // 
@@ -328,7 +327,6 @@
             0,
             0,
             0});
-            this.portNumber.ValueChanged += new System.EventHandler(this.portNumber_ValueChanged);
             // 
             // label5
             // 

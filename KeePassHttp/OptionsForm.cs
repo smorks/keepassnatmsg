@@ -47,8 +47,6 @@ namespace KeePassHttp
             returnStringFieldsWithKphOnlyCheckBox.Checked = _config.ReturnStringFieldsWithKphOnly;
             SortByUsernameRadioButton.Checked = _config.SortResultByUsername;
             SortByTitleRadioButton.Checked = !_config.SortResultByUsername;
-            portNumber.Value = _config.ListenerPort;
-            hostName.Text = _config.ListenerHost;
 
             this.returnStringFieldsCheckbox_CheckedChanged(null, EventArgs.Empty);
         }
@@ -66,8 +64,6 @@ namespace KeePassHttp
             _config.ReturnStringFields = returnStringFieldsCheckbox.Checked;
             _config.ReturnStringFieldsWithKphOnly = returnStringFieldsWithKphOnlyCheckBox.Checked;
             _config.SortResultByUsername = SortByUsernameRadioButton.Checked;
-            _config.ListenerPort = (int)portNumber.Value;
-            _config.ListenerHost = hostName.Text;
             if (_restartRequired)
             {
                 MessageBox.Show(
@@ -202,21 +198,6 @@ namespace KeePassHttp
             {
                 MessageBox.Show("The active database is locked!\nPlease unlock the selected database or choose another one which is unlocked.", "Database locked!", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
-        }
-
-        private void portNumber_ValueChanged(object sender, EventArgs e)
-        {
-            SetRestartRequired();
-        }
-
-        private void hostName_TextChanged(object sender, EventArgs e)
-        {
-            SetRestartRequired();
-        }
-
-        private void SetRestartRequired()
-        {
-            _restartRequired = (_config.ListenerPort != portNumber.Value) || (_config.ListenerHost != hostName.Text);
         }
 
         private void returnStringFieldsCheckbox_CheckedChanged(object sender, EventArgs e)

@@ -33,7 +33,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="KeePass">
-      <HintPath>..\..\..\..\apps\keepass\KeePass.exe</HintPath>
+      <HintPath>..\..\..\..\data\cloud.brandt.tech\apps\keepass\KeePass.exe</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="Newtonsoft.Json">
@@ -87,6 +87,8 @@
     <Compile Include="Protocol\EntryUpdate.cs" />
     <Compile Include="Protocol\Handlers.cs" />
     <Compile Include="Protocol\Crypto\KeyPair.cs" />
+    <Compile Include="Protocol\NamedPipeListener.cs" />
+    <Compile Include="Protocol\PipeThreadState.cs" />
     <Compile Include="Protocol\UdpListener.cs" />
     <Compile Include="PwEntryDatabase.cs" />
   </ItemGroup>

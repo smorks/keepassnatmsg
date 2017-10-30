@@ -7,16 +7,14 @@ namespace KeePassHttp.Protocol
 {
     public sealed class UdpListener
     {
-        private Thread _thread;
+        private readonly Thread _thread;
         private UdpClient _client;
         private IPEndPoint _ep;
-        private bool _active;
-        private ManualResetEventSlim _gotData;
-        private CancellationTokenSource _cts;
-        private System.Text.UTF8Encoding _utf8 = new System.Text.UTF8Encoding(false);
-        private int _port;
+        private volatile bool _active;
+        private readonly System.Text.UTF8Encoding _utf8 = new System.Text.UTF8Encoding(false);
+        private readonly int _port;
 
-        public event EventHandler<MessageReceivedEventArgs> MessageReceived;
+        public event EventHandler<UdpMessageReceivedEventArgs> MessageReceived;
 
         public UdpListener(int port)
         {
@@ -31,6 +29,7 @@ namespace KeePassHttp.Protocol
         {
             if (_thread.ThreadState == ThreadState.Unstarted)
             {
+                _active = true;
                 _thread.Start();
             }
         }
@@ -38,7 +37,7 @@ namespace KeePassHttp.Protocol
         public void Stop()
         {
             _active = false;
-            _cts.Cancel();
+            _client.Close();
             _thread.Join();
         }
 
@@ -50,27 +49,14 @@ namespace KeePassHttp.Protocol
 
         private void Run()
         {
-            _active = true;
-            _gotData = new ManualResetEventSlim(false);
-            _cts = new CancellationTokenSource();
             _ep = new IPEndPoint(IPAddress.Any, _port);
             _client = new UdpClient(_ep);
 
             while (_active)
             {
-                _gotData.Reset();
-                try
-                {
-                    _client.BeginReceive(ReceiveData, null);
-                    _gotData.Wait(_cts.Token);
-                }
-                catch (OperationCanceledException)
-                {
-                    if (_cts.IsCancellationRequested) break;
-                }
+                var ar = _client.BeginReceive(ReceiveData, null);
+                ar.AsyncWaitHandle.WaitOne();
             }
-
-            _client.Close();
         }
 
         private void ReceiveData(IAsyncResult ar)
@@ -80,18 +66,17 @@ namespace KeePassHttp.Protocol
                 var ep = new IPEndPoint(IPAddress.Any, 0);
                 var data = _client.EndReceive(ar, ref ep);
                 var str = System.Text.Encoding.UTF8.GetString(data);
-                MessageReceived?.Invoke(this, new MessageReceivedEventArgs(ep, str));
-                _gotData.Set();
+                MessageReceived?.Invoke(this, new UdpMessageReceivedEventArgs(ep, str));
             }
         }
     }
 
-    public sealed class MessageReceivedEventArgs: EventArgs
+    public sealed class UdpMessageReceivedEventArgs: EventArgs
     {
         public IPEndPoint From { get; private set; }
         public string Message { get; private set; }
 
-        public MessageReceivedEventArgs(IPEndPoint from, string msg)
+        public UdpMessageReceivedEventArgs(IPEndPoint from, string msg)
         {
             From = from;
             Message = msg;

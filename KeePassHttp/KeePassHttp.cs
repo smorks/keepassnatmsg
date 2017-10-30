@@ -1,28 +1,23 @@
-﻿using System;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading;
-using System.Net;
-using System.Windows.Forms;
-using System.Security.Cryptography;
-
+﻿using KeePass;
 using KeePass.Plugins;
 using KeePass.UI;
-using KeePassLib;
-using KeePassLib.Security;
-
-using Newtonsoft.Json;
 using KeePass.Util.Spr;
 using KeePassHttp.Protocol;
-using System.Collections.Generic;
 using KeePassHttp.Protocol.Action;
+using KeePassLib;
 using KeePassLib.Collections;
 using KeePassLib.Cryptography;
-using KeePass;
 using KeePassLib.Cryptography.PasswordGenerator;
-using Newtonsoft.Json.Linq;
+using KeePassLib.Security;
 using KeePassLib.Utility;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Security.Cryptography;
+using System.Windows.Forms;
 
 namespace KeePassHttp
 {
@@ -43,22 +38,13 @@ namespace KeePassHttp
         private const int DEFAULT_NOTIFICATION_TIME = 5000;
         public const string KEEPASSHTTP_NAME = "KeePassHttp2 Settings";
         public const string KEEPASSHTTP_GROUP_NAME = "KeePassHttp Passwords";
-        // internal const string KEEPASSHTTP_KEYPAIR_NAME = "Key Pair";
         public const string ASSOCIATE_KEY_PREFIX = "Public Key: ";
-        private HttpListener listener;
-        public const int DEFAULT_PORT = 19455;
-        public const int DEFAULT_UDP_PORT = 19700;
-        public const string DEFAULT_HOST = "localhost";
-        /// <summary>
-        /// TODO make configurable
-        /// </summary>
-        private const string HTTP_SCHEME = "http://";
-        //private const string HTTPS_PREFIX = "https://localhost:";
-        //private int HTTPS_PORT = DEFAULT_PORT + 1;
-        private Thread httpThread;
-        private volatile bool stopped = false;
-        // Dictionary<string, RequestHandler> handlers = new Dictionary<string, RequestHandler>();
+
+        private const int DefaultUdpPort = 19700;
+        private const string DefaultPipeName = "KeePassHttp";
+
         private UdpListener _udp;
+        private NamedPipeListener _pipe;
 
         //public string UpdateUrl = "";
         public override string UpdateUrl { get { return "https://passifox.appspot.com/kph/latest-version.txt"; } }
@@ -170,7 +156,6 @@ namespace KeePassHttp
 
         public override bool Initialize(IPluginHost pluginHost)
         {
-            var httpSupported = HttpListener.IsSupported;
             HostInstance = pluginHost;
             ExtInstance = this;
 
@@ -180,51 +165,40 @@ namespace KeePassHttp
             //optionsMenu.Image = global::KeePass.Properties.Resources.B16x16_File_Close;
             HostInstance.MainWindow.ToolsMenu.DropDownItems.Add(optionsMenu);
 
-            if (httpSupported)
+            try
             {
-                try
-                {
-                    _handlers = new Handlers();
-                    _handlers.Initialize();
+                _handlers = new Handlers();
+                _handlers.Initialize();
 
-                    listener = new HttpListener();
+                _udp = new UdpListener(DefaultUdpPort);
+                _udp.MessageReceived += _udp_MessageReceived;
+                _udp.Start();
 
-                    _udp = new UdpListener(DEFAULT_UDP_PORT);
-                    _udp.MessageReceived += _udp_MessageReceived;
-                    _udp.Start();
-
-                    var configOpt = new ConfigOpt(HostInstance.CustomConfig);
-
-                    listener.Prefixes.Add(HTTP_SCHEME + configOpt.ListenerHost + ":" + configOpt.ListenerPort.ToString() + "/");
-                    //listener.Prefixes.Add(HTTPS_PREFIX + HTTPS_PORT + "/");
-                    listener.Start();
-
-                    httpThread = new Thread(new ThreadStart(Run));
-                    httpThread.Start();
-                } catch (HttpListenerException e) {
-                    MessageBox.Show(HostInstance.MainWindow,
-                        "Unable to start HttpListener!\nDo you really have only one installation of KeePassHttp in your KeePass-directory?\n\n" + e,
-                        "Unable to start HttpListener",
-                        MessageBoxButtons.OK,
-                        MessageBoxIcon.Error
-                    );
-                }
+                _pipe = new NamedPipeListener(DefaultPipeName);
+                _pipe.MessageReceived += _pipe_MessageReceived;
+                _pipe.Start();
             }
-            else
+            catch (Exception e)
             {
-                MessageBox.Show(HostInstance.MainWindow, "The .NET HttpListener is not supported on your OS",
-                        ".NET HttpListener not supported",
-                        MessageBoxButtons.OK,
-                        MessageBoxIcon.Error
-                    );
+                MessageBox.Show(HostInstance.MainWindow, e.ToString(), "Unable to start", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
-            return httpSupported;
+            return true;
         }
 
-        private void _udp_MessageReceived(object sender, MessageReceivedEventArgs e)
+        private void _pipe_MessageReceived(object sender, PipeMessageReceivedEventArgs e)
         {
             var req = Request.FromString(e.Message);
-            var resp = ProcessRequest(req, null);
+            var resp = ProcessRequest(req);
+            if (resp != null)
+            {
+                e.ThreadState.Send(resp.ToString());
+            }
+        }
+
+        private void _udp_MessageReceived(object sender, UdpMessageReceivedEventArgs e)
+        {
+            var req = Request.FromString(e.Message);
+            var resp = ProcessRequest(req);
             if (resp != null)
             {
                 _udp.Send(resp.ToString(), e.From);
@@ -237,27 +211,6 @@ namespace KeePassHttp
             UIUtil.ShowDialogAndDestroy(form);
         }
 
-        private void Run()
-        {
-            while (!stopped)
-            {
-                try
-                {
-                    var r = listener.BeginGetContext(new AsyncCallback(RequestHandler), listener);
-                    r.AsyncWaitHandle.WaitOne();
-                    r.AsyncWaitHandle.Close();
-                }
-                catch (ThreadInterruptedException) { }
-                catch (HttpListenerException e) {
-                    MessageBox.Show(HostInstance.MainWindow, "Unable to process request!\n\n" + e,
-                        "Unable to process request",
-                        MessageBoxButtons.OK,
-                        MessageBoxIcon.Error
-                    );
-                }
-            }
-        }
-
         internal JsonSerializer NewJsonSerializer()
         {
             var settings = new JsonSerializerSettings();
@@ -267,7 +220,7 @@ namespace KeePassHttp
             return JsonSerializer.Create(settings);
         }
 
-        private Response ProcessRequest(Request req, HttpListenerResponse resp)
+        private Response ProcessRequest(Request req)
         {
             var handler = _handlers.GetHandler(req.Action);
             if (handler != null)
@@ -279,106 +232,15 @@ namespace KeePassHttp
                 catch (Exception ex)
                 {
                     ShowNotification("***BUG*** " + ex, (s, evt) => MessageBox.Show(HostInstance.MainWindow, ex.ToString()));
-                    // response.error = ex.ToString();
-                    if (resp != null)
-                    {
-                        resp.StatusCode = (int)HttpStatusCode.BadRequest;
-                    }
                 }
             }
             return null;
         }
 
-        private void RequestHandler(IAsyncResult r) 
-        {
-            try {
-                _RequestHandler(r);
-            } catch (Exception e) {
-                MessageBox.Show(HostInstance.MainWindow, "RequestHandler failed: " + e);
-            }
-        }
-
-        private void _RequestHandler(IAsyncResult r)
-        {
-            if (stopped) return;
-            var l    = (HttpListener)r.AsyncState;
-            var ctx  = l.EndGetContext(r);
-            var req  = ctx.Request;
-            var resp = ctx.Response;
-
-            var serializer = NewJsonSerializer();
-
-            resp.StatusCode = (int)HttpStatusCode.OK;
-
-            Request request = null;
-
-            try
-            {
-                request = Request.ReadFromStream(req.InputStream);
-            }
-            catch (JsonException e)
-            {
-                var buffer = Encoding.UTF8.GetBytes(e + "");
-                resp.StatusCode = (int)HttpStatusCode.BadRequest;
-                resp.ContentLength64 = buffer.Length;
-                resp.OutputStream.Write(buffer, 0, buffer.Length);
-            }
-
-            var db = HostInstance.Database;
-
-            var configOpt = new ConfigOpt(HostInstance.CustomConfig);
-
-            if (request != null && (configOpt.UnlockDatabaseRequest) && !db.IsOpen)
-            {
-                HostInstance.MainWindow.Invoke((MethodInvoker)delegate
-                {
-                    HostInstance.MainWindow.EnsureVisibleForegroundWindow(true, true);
-                });
-
-                // UnlockDialog not already opened
-                bool bNoDialogOpened = (KeePass.UI.GlobalWindowManager.WindowCount == 0);
-                if (!db.IsOpen && bNoDialogOpened)
-                {
-                    HostInstance.MainWindow.Invoke((MethodInvoker)delegate
-                    {
-                        HostInstance.MainWindow.OpenDatabase(HostInstance.MainWindow.DocumentManager.ActiveDocument.LockedIoc, null, false);
-                    });
-                }
-            }
-
-            if (request != null && db.IsOpen)
-            {
-                Response response = null;
-                if (request != null)
-                    response = ProcessRequest(request, resp);
-
-                resp.ContentType = "application/json";
-                var writer = new StringWriter();
-                if (response != null)
-                {
-                    serializer.Serialize(writer, response);
-                    var buffer = Encoding.UTF8.GetBytes(writer.ToString());
-                    resp.ContentLength64 = buffer.Length;
-                    resp.OutputStream.Write(buffer, 0, buffer.Length);
-                }
-            }
-            else
-            {
-                resp.StatusCode = (int)HttpStatusCode.ServiceUnavailable;
-            }
-
-            var outs = resp.OutputStream;
-            outs.Close();
-            resp.Close();
-        }
-
         public override void Terminate()
         {
-            stopped = true;
-            listener.Stop();
-            listener.Close();
             _udp.Stop();
-            httpThread.Interrupt();
+            _pipe.Stop();
         }
 
         internal void UpdateUI(PwGroup group)

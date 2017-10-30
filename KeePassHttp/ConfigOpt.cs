@@ -88,17 +88,5 @@ namespace KeePassHttp
             get { return _config.GetBool(SortResultByUsernameKey, true); }
             set { _config.SetBool(SortResultByUsernameKey, value); }
         }
-
-        public long ListenerPort
-        {
-            get { return _config.GetLong(ListenerPortKey, KeePassHttpExt.DEFAULT_PORT); }
-            set { _config.SetLong(ListenerPortKey, value); }
-        }
-
-        public string ListenerHost
-        {
-            get { return _config.GetString(ListenerHostKey, KeePassHttpExt.DEFAULT_HOST); }
-            set { _config.SetString(ListenerHostKey, value); }
-        }
     }
 }
