@@ -12,8 +12,6 @@ namespace KeePassHttp.Protocol
         private volatile bool _active;
         private readonly List<PipeThreadState> _threads;
 
-        private const int BufferSize = 1024 * 1024;
-
         public event EventHandler<PipeMessageReceivedEventArgs> MessageReceived;
 
         public NamedPipeListener(string name)
@@ -36,7 +34,7 @@ namespace KeePassHttp.Protocol
             _active = false;
             foreach (var pts in _threads)
             {
-                pts.WaitHandle.Set();
+                pts.Closing.Set();
                 pts.Thread.Join();
             }
         }
@@ -76,113 +74,39 @@ namespace KeePassHttp.Protocol
         {
             var pts = (PipeThreadState)args;
 
-            pts.Server = new NamedPipeServerStream(_name, PipeDirection.InOut, Threads, PipeTransmissionMode.Message, PipeOptions.Asynchronous);
+            var server = new NamedPipeServerStream(_name, PipeDirection.InOut, Threads);
 
-            pts.Server.BeginWaitForConnection(HandleConnection, pts);
-            pts.WaitHandle.Wait();
+            server.WaitForConnection();
 
-            pts.Server.Close();
+            while (_active && !pts.Closing.IsSet && server.IsConnected)
+            {
+                var hdr = new byte[4];
+                var bytes = server.Read(hdr, 0, hdr.Length);
+                if (bytes == hdr.Length)
+                {
+                    var dataLen = BitConverter.ToInt32(hdr, 0);
+                    var data = new byte[dataLen];
+                    bytes = server.Read(data, 0, data.Length);
+                    if (bytes == data.Length)
+                    {
+                        MessageReceived?.Invoke(this, new PipeMessageReceivedEventArgs(new PipeWriter(server), data));
+                    }
+                }
+            }
+
+            server.Close();
             ThreadClosed(pts);
-        }
-
-        private void HandleConnection(IAsyncResult ar)
-        {
-            if (_active)
-            {
-                var pts = (PipeThreadState)ar.AsyncState;
-                pts.Server.EndWaitForConnection(ar);
-
-                var state = new PipeReadState(pts);
-
-                while (!pts.WaitHandle.IsSet)
-                {
-                    var readAr = pts.Server.BeginRead(state.Data, 0, state.Data.Length, HandleRead, state);
-                    readAr.AsyncWaitHandle.WaitOne();
-                }
-            }
-        }
-
-        private void HandleRead(IAsyncResult ar)
-        {
-            if (_active)
-            {
-                var state = (PipeReadState)ar.AsyncState;
-                if (!state.ThreadState.WaitHandle.IsSet)
-                {
-                    var server = state.ThreadState.Server;
-                    var bytes = server.EndRead(ar);
-                    if (bytes > 0)
-                    {
-                        if (server.IsMessageComplete)
-                        {
-                            MessageReceived?.Invoke(this, new PipeMessageReceivedEventArgs(state.ThreadState, state.GetData(bytes)));
-                            state.Reset();
-                        }
-                        else
-                        {
-                            state.AppendData(bytes);
-                        }
-                    }
-                    else if (bytes == 0)
-                    {
-                        state.ThreadState.WaitHandle.Set();
-                    }
-                }
-            }
-        }
-
-        private class PipeReadState
-        {
-            public PipeThreadState ThreadState { get; }
-            public byte[] Data { get; private set; }
-            private byte[] Partial { get; set; }
-
-            public PipeReadState(PipeThreadState pts)
-            {
-                ThreadState = pts;
-                Data = new byte[BufferSize];
-                Partial = null;
-            }
-
-            public void AppendData(int dataLength)
-            {
-                Partial = GetData(dataLength);
-                Data = new byte[BufferSize];
-            }
-
-            public byte[] GetData(int dataLength)
-            {
-                byte[] d;
-                if (Partial == null)
-                {
-                    if (dataLength == Data.Length) return Data;
-                    d = new byte[dataLength];
-                    Array.Copy(Data, d, dataLength);
-                }
-                else
-                {
-                    d = new byte[Partial.Length + dataLength];
-                    Array.Copy(Partial, d, Partial.Length);
-                    Array.Copy(Data, 0, d, Partial.Length, dataLength);
-                }
-                return d;
-            }
-
-            public void Reset()
-            {
-                Partial = null;
-            }
         }
     }
 
     public class PipeMessageReceivedEventArgs : EventArgs
     {
         public string Message { get; set; }
-        public PipeThreadState ThreadState { get; set; }
+        public PipeWriter Writer { get; set; }
 
-        public PipeMessageReceivedEventArgs(PipeThreadState pts, byte[] data)
+        public PipeMessageReceivedEventArgs(PipeWriter writer, byte[] data)
         {
-            ThreadState = pts;
+            Writer = writer;
             Message = System.Text.Encoding.UTF8.GetString(data);
         }
     }

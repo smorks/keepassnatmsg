@@ -191,7 +191,7 @@ namespace KeePassHttp
             var resp = ProcessRequest(req);
             if (resp != null)
             {
-                e.ThreadState.Send(resp.ToString());
+                e.Writer.Send(resp.ToString());
             }
         }
 

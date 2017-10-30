@@ -89,6 +89,7 @@
     <Compile Include="Protocol\Crypto\KeyPair.cs" />
     <Compile Include="Protocol\NamedPipeListener.cs" />
     <Compile Include="Protocol\PipeThreadState.cs" />
+    <Compile Include="Protocol\PipeWriter.cs" />
     <Compile Include="Protocol\UdpListener.cs" />
     <Compile Include="PwEntryDatabase.cs" />
   </ItemGroup>
