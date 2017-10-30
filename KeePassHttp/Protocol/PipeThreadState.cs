@@ -5,13 +5,18 @@ namespace KeePassHttp.Protocol
 {
     public class PipeThreadState
     {
-        public Thread Thread { get; set; }
-        public ManualResetEventSlim Closing { get; }
+        public Thread Thread { get; }
+        public NamedPipeServerStream Server { get; set; }
 
         public PipeThreadState(Thread t)
         {
-            Closing = new ManualResetEventSlim(false);
             Thread = t;
+        }
+
+        public void Close()
+        {
+            Server.Close();
+            Thread.Join();
         }
     }
 }

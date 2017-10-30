@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.IO.Pipes;
 using System.Threading;
 
@@ -34,8 +35,7 @@ namespace KeePassHttp.Protocol
             _active = false;
             foreach (var pts in _threads)
             {
-                pts.Closing.Set();
-                pts.Thread.Join();
+                pts.Close();
             }
         }
 
@@ -56,7 +56,7 @@ namespace KeePassHttp.Protocol
         {
             var pts = (PipeThreadState)args;
             _threads.Remove(pts);
-            pts.Thread.Join();
+            pts.Close();
             pts = CreateThreadState(Thread.CurrentThread);
             Run(pts);
         }
@@ -74,27 +74,34 @@ namespace KeePassHttp.Protocol
         {
             var pts = (PipeThreadState)args;
 
-            var server = new NamedPipeServerStream(_name, PipeDirection.InOut, Threads);
+            var server = new NamedPipeServerStream(_name, PipeDirection.InOut, Threads, PipeTransmissionMode.Byte, PipeOptions.Asynchronous);
 
-            server.WaitForConnection();
+            pts.Server = server;
 
-            while (_active && !pts.Closing.IsSet && server.IsConnected)
+            try
             {
-                var hdr = new byte[4];
-                var bytes = server.Read(hdr, 0, hdr.Length);
-                if (bytes == hdr.Length)
+                server.WaitForConnection();
+
+                while (_active && server.IsConnected)
                 {
-                    var dataLen = BitConverter.ToInt32(hdr, 0);
-                    var data = new byte[dataLen];
-                    bytes = server.Read(data, 0, data.Length);
-                    if (bytes == data.Length)
+                    var hdr = new byte[4];
+                    var bytes = server.Read(hdr, 0, hdr.Length);
+                    if (bytes == hdr.Length)
                     {
-                        MessageReceived?.Invoke(this, new PipeMessageReceivedEventArgs(new PipeWriter(server), data));
+                        var dataLen = BitConverter.ToInt32(hdr, 0);
+                        var data = new byte[dataLen];
+                        bytes = server.Read(data, 0, data.Length);
+                        if (bytes == data.Length)
+                        {
+                            MessageReceived?.Invoke(this, new PipeMessageReceivedEventArgs(new PipeWriter(server), data));
+                        }
                     }
                 }
             }
+            catch (IOException)
+            {
+            }
 
-            server.Close();
             ThreadClosed(pts);
         }
     }
