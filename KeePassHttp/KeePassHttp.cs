@@ -571,5 +571,7 @@ namespace KeePassHttp
             }
             return null;
         }
+
+        public static string GetVersion() => typeof(KeePassHttpExt).Assembly.GetName().Version.ToString();
     }
 }

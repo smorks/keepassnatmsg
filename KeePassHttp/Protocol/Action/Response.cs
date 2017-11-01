@@ -32,12 +32,10 @@ namespace KeePassHttp.Protocol.Action
             _msg = new JsonBase
             {
                 {"hash", KeePassHttpExt.ExtInstance.GetDbHash()},
-                {"version", GetVersion()},
+                {"version", KeePassHttpExt.GetVersion()},
                 {"success", "true"},
                 {"nonce", Nonce}
             };
         }
-
-        private string GetVersion() => typeof(Response).Assembly.GetName().Version.ToString();
     }
 }

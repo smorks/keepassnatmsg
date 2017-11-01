@@ -118,16 +118,18 @@ namespace KeePassHttp.Protocol
         {
             var crypto = KeePassHttpExt.CryptoHelper;
             var publicKey = req.GetString("publicKey");
+
+            if (string.IsNullOrEmpty(publicKey))
+                return GetErrorResponse(req.Action, ErrorType.ClientPublicKeyNotReceived);
+
             crypto.ClientPublicKey = Convert.FromBase64String(publicKey);
             var pair = crypto.GenerateKeyPair();
             var resp = req.GetResponse();
             resp.AddBytes("publicKey", pair.PublicKey);
-            resp.Add("version", GetVersion());
+            resp.Add("version", KeePassHttpExt.GetVersion());
             resp.Add("success", "true");
             return resp;
         }
-
-        private string GetVersion() => typeof(Handlers).Assembly.GetName().Version.ToString();
 
         private Response GetLogins(Request req)
         {
