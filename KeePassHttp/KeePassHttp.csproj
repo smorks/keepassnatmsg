@@ -81,6 +81,7 @@
     <Compile Include="Protocol\Action\JsonBase.cs" />
     <Compile Include="Protocol\Action\Request.cs" />
     <Compile Include="Protocol\Action\Response.cs" />
+    <Compile Include="Protocol\Errors.cs" />
     <Compile Include="Protocol\Crypto\Nacl.cs" />
     <Compile Include="Protocol\Crypto\Helper.cs" />
     <Compile Include="Protocol\EntrySearch.cs" />

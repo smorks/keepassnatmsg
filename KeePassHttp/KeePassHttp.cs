@@ -191,7 +191,7 @@ namespace KeePassHttp
         private void _pipe_MessageReceived(object sender, PipeMessageReceivedEventArgs e)
         {
             var req = Request.FromString(e.Message);
-            var resp = ProcessRequest(req);
+            var resp = _handlers.ProcessRequest(req);
             if (resp != null)
             {
                 e.Writer.Send(resp.GetEncryptedResponse());
@@ -201,7 +201,7 @@ namespace KeePassHttp
         private void _udp_MessageReceived(object sender, UdpMessageReceivedEventArgs e)
         {
             var req = Request.FromString(e.Message);
-            var resp = ProcessRequest(req);
+            var resp = _handlers.ProcessRequest(req);
             if (resp != null)
             {
                 _udp.Send(resp.GetEncryptedResponse(), e.From);
@@ -221,23 +221,6 @@ namespace KeePassHttp
             settings.NullValueHandling = NullValueHandling.Ignore;
 
             return JsonSerializer.Create(settings);
-        }
-
-        private Response ProcessRequest(Request req)
-        {
-            var handler = _handlers.GetHandler(req.Action);
-            if (handler != null)
-            {
-                try
-                {
-                    return handler.Invoke(req);
-                }
-                catch (Exception ex)
-                {
-                    ShowNotification("***BUG*** " + ex, (s, evt) => MessageBox.Show(HostInstance.MainWindow, ex.ToString()));
-                }
-            }
-            return null;
         }
 
         public override void Terminate()
