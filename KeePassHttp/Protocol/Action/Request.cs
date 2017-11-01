@@ -1,11 +1,14 @@
 ﻿
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using System;
 
 namespace KeePassHttp.Protocol.Action
 {
     public class Request : JsonBase
     {
+        private JsonBase _msg;
+
         public Request(JObject obj) : base(obj)
         {
         }
@@ -24,11 +27,24 @@ namespace KeePassHttp.Protocol.Action
 
         public string Action => GetString("action");
 
-        public string Message => GetString("message");
-
         public string Nonce => GetString("nonce");
+
+        public JsonBase Message => _msg;
 
         public Response GetResponse() => new Response(Action);
 
+        public bool TryDecrypt()
+        {
+            try
+            {
+                _msg = KeePassHttpExt.CryptoHelper.DecryptMessage(GetBytes("message"), GetBytes("nonce"));
+                return true;
+            }
+            catch (Exception)
+            {
+                _msg = null;
+            }
+            return false;
+        }
     }
 }

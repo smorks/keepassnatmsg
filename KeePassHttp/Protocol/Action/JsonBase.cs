@@ -14,7 +14,7 @@ namespace KeePassHttp.Protocol.Action
 
         public void AddBytes(string key, byte[] data)
         {
-            Add(key, new JValue(System.Convert.ToBase64String(data)));
+            Add(key, System.Convert.ToBase64String(data));
         }
 
         public string GetString(string key) => (this[key] as JValue)?.Value as string;

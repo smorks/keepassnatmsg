@@ -8,22 +8,20 @@ namespace KeePassHttp.Protocol.Crypto
     public sealed class Helper
     {
         private KeyPair _pair;
+        private UTF8Encoding _utf8 = new UTF8Encoding(false);
 
         public byte[] ClientPublicKey { get; set; }
 
-        public JsonBase DecryptMessage(Request req)
+        public JsonBase DecryptMessage(byte[] message, byte[] nonce)
         {
             if (_pair == null) return null;
-            var msg = System.Convert.FromBase64String(req.Message);
-            var nonce = System.Convert.FromBase64String(req.Nonce);
-            var data = TweetNaCl.CryptoBoxOpen(msg, nonce, ClientPublicKey, _pair.PrivateKey);
-            return new JsonBase(JObject.Parse(Encoding.UTF8.GetString(data)));
+            var data = TweetNaCl.CryptoBoxOpen(message, nonce, ClientPublicKey, _pair.PrivateKey);
+            return new JsonBase(JObject.Parse(_utf8.GetString(data)));
         }
 
-        public void EncryptMessage(Response resp, string msg)
+        public byte[] EncryptMessage(string msg, byte[] nonce)
         {
-            var data = TweetNaCl.CryptoBox(Encoding.UTF8.GetBytes(msg), resp.Nonce, ClientPublicKey, _pair.PrivateKey);
-            resp.SetMessage(data);
+            return TweetNaCl.CryptoBox(_utf8.GetBytes(msg), nonce, ClientPublicKey, _pair.PrivateKey);
         }
 
         public KeyPair GenerateKeyPair()

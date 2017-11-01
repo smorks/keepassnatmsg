@@ -1,6 +1,5 @@
 ﻿using KeePass.Plugins;
 using KeePassHttp.Protocol.Action;
-using KeePassHttp.Protocol.Crypto;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
@@ -10,7 +9,6 @@ namespace KeePassHttp.Protocol
 {
     public sealed class Handlers
     {
-        private Helper _crypto;
         private KeePassHttpExt _ext;
         private Dictionary<string, RequestHandler> _handlers;
         private IPluginHost _host;
@@ -19,7 +17,6 @@ namespace KeePassHttp.Protocol
 
         public Handlers()
         {
-            _crypto = new Helper();
             _ext = KeePassHttpExt.ExtInstance;
             _host = KeePassHttpExt.HostInstance;
         }
@@ -43,13 +40,11 @@ namespace KeePassHttp.Protocol
 
         private Response GetDatabaseHash(Request req)
         {
-            var reqMsg = _crypto.DecryptMessage(req);
-            if (reqMsg == null) return null;
-            var resp = req.GetResponse();
-            var msg = GetResponseMessage();
-            msg.Add("nonce", resp.Nonce);
-            _crypto.EncryptMessage(resp, msg.ToString());
-            return resp;
+            if (req.TryDecrypt())
+            {
+                return req.GetResponse();
+            }
+            return null;
         }
 
         private Response TestAssociate(Request req)
@@ -57,20 +52,20 @@ namespace KeePassHttp.Protocol
             var entry = _ext.GetConfigEntry(false);
             if (entry != null)
             {
-                var msg = _crypto.DecryptMessage(req);
-                var x = entry.Strings.First(e => e.Key.Equals(KeePassHttpExt.ASSOCIATE_KEY_PREFIX + msg.GetString("id")));
-                var key = x.Value;
-                var reqKey = msg.GetBytes("key");
-                var id = msg.GetString("id");
-                var dbKey = Convert.FromBase64String(key.ReadString());
-                if (dbKey.SequenceEqual(reqKey) && !string.IsNullOrWhiteSpace(id))
+                if (req.TryDecrypt())
                 {
-                    var resp = req.GetResponse();
-                    var respMsg = GetResponseMessage();
-                    respMsg.Add("id", id);
-                    respMsg.Add("nonce", resp.Nonce);
-                    _crypto.EncryptMessage(resp, respMsg.ToString());
-                    return resp;
+                    var msg = req.Message;
+                    var x = entry.Strings.First(e => e.Key.Equals(KeePassHttpExt.ASSOCIATE_KEY_PREFIX + msg.GetString("id")));
+                    var key = x.Value;
+                    var reqKey = msg.GetBytes("key");
+                    var id = msg.GetString("id");
+                    var dbKey = Convert.FromBase64String(key.ReadString());
+                    if (dbKey.SequenceEqual(reqKey) && !string.IsNullOrWhiteSpace(id))
+                    {
+                        var resp = req.GetResponse();
+                        resp.Message.Add("id", id);
+                        return resp;
+                    }
                 }
             }
             return null;
@@ -78,21 +73,21 @@ namespace KeePassHttp.Protocol
 
         private Response Associate(Request req)
         {
-            var msg = _crypto.DecryptMessage(req);
-            var keyBytes = msg.GetBytes("key");
-            if (keyBytes.SequenceEqual(_crypto.ClientPublicKey))
+            if (req.TryDecrypt())
             {
-                var id = _ext.ShowConfirmAssociationDialog(msg.GetString("key"));
-                var resp = req.GetResponse();
-                var respMsg = GetResponseMessage();
-                respMsg.Add("id", id);
-                respMsg.Add("nonce", resp.Nonce);
-                _crypto.EncryptMessage(resp, respMsg.ToString());
-                return resp;
-            }
-            else
-            {
-                _ext.ShowNotification("Association Failed. Public Keys don't match.");
+                var msg = req.Message;
+                var keyBytes = msg.GetBytes("key");
+                if (keyBytes.SequenceEqual(KeePassHttpExt.CryptoHelper.ClientPublicKey))
+                {
+                    var id = _ext.ShowConfirmAssociationDialog(msg.GetString("key"));
+                    var resp = req.GetResponse();
+                    resp.Message.Add("id", id);
+                    return resp;
+                }
+                else
+                {
+                    _ext.ShowNotification("Association Failed. Public Keys don't match.");
+                }
             }
             return null;
         }
@@ -105,28 +100,16 @@ namespace KeePassHttp.Protocol
             return r;
         }
 
-        private JsonBase GetResponseMessage()
-        {
-            return new JsonBase
-            {
-                {"hash", _ext.GetDbHash()},
-                {"version", GetVersion()},
-                {"success", "true"}
-            };
-        }
-
         private Response ChangePublicKeys(Request req)
         {
+            var crypto = KeePassHttpExt.CryptoHelper;
             var publicKey = req.GetString("publicKey");
-            _crypto.ClientPublicKey = Convert.FromBase64String(publicKey);
-            var pair = _crypto.GenerateKeyPair();
+            crypto.ClientPublicKey = Convert.FromBase64String(publicKey);
+            var pair = crypto.GenerateKeyPair();
             var resp = req.GetResponse();
             resp.AddBytes("publicKey", pair.PublicKey);
             resp.Add("version", GetVersion());
             resp.Add("success", "true");
-            //var respMsg = GetResponseMessage();
-            //respMsg.Remove("hash");
-            //_crypto.EncryptMessage(resp, respMsg.ToString());
             return resp;
         }
 
@@ -134,54 +117,48 @@ namespace KeePassHttp.Protocol
 
         private Response GetLogins(Request req)
         {
-            var es = new EntrySearch(_crypto);
-            return es.GetLoginsHandler(req, GetResponseMessage());
+            var es = new EntrySearch();
+            return es.GetLoginsHandler(req);
         }
 
         private Response SetLogin(Request req)
         {
-            var eu = new EntryUpdate();
-            var reqMsg = _crypto.DecryptMessage(req);
-            var url = reqMsg.GetString("url");
-            var uuid = reqMsg.GetString("uuid");
-            var login = reqMsg.GetString("login");
-            var pw = reqMsg.GetString("password");
-            var submitUrl = reqMsg.GetString("submitUrl");
-
-            if (string.IsNullOrEmpty(uuid))
+            if (req.TryDecrypt())
             {
-                eu.CreateEntry(login, pw, url, submitUrl, null);
-            }
-            else
-            {
-                eu.UpdateEntry(uuid, login, pw, url);
-            }
+                var eu = new EntryUpdate();
+                var reqMsg = req.Message;
+                var url = reqMsg.GetString("url");
+                var uuid = reqMsg.GetString("uuid");
+                var login = reqMsg.GetString("login");
+                var pw = reqMsg.GetString("password");
+                var submitUrl = reqMsg.GetString("submitUrl");
 
-            var resp = req.GetResponse();
-            var msg = GetResponseMessage();
-            msg.Add("nonce", resp.Nonce);
-            _crypto.EncryptMessage(resp, msg.ToString());
-            return resp;
+                if (string.IsNullOrEmpty(uuid))
+                {
+                    eu.CreateEntry(login, pw, url, submitUrl, null);
+                }
+                else
+                {
+                    eu.UpdateEntry(uuid, login, pw, url);
+                }
+
+                return req.GetResponse();
+            }
+            return null;
         }
 
         private Response GeneratePassword(Request req)
         {
             var resp = req.GetResponse();
-            var msg = GetResponseMessage();
+            var msg = resp.Message;
             msg.Add("entries", new JArray(_ext.GeneratePassword()));
-            msg.Add("nonce", resp.Nonce);
-            _crypto.EncryptMessage(resp, msg.ToString());
             return resp;
         }
 
         private Response LockDatabase(Request req)
         {
-            var resp = req.GetResponse();
-            var msg = GetResponseMessage();
-            msg.Add("nonce", resp.Nonce);
-            _crypto.EncryptMessage(resp, msg.ToString());
             _host.MainWindow.LockAllDocuments();
-            return resp;
+            return req.GetResponse();
         }
     }
 }

@@ -4,6 +4,7 @@ using KeePass.UI;
 using KeePass.Util.Spr;
 using KeePassHttp.Protocol;
 using KeePassHttp.Protocol.Action;
+using KeePassHttp.Protocol.Crypto;
 using KeePassLib;
 using KeePassLib.Collections;
 using KeePassLib.Cryptography;
@@ -34,6 +35,7 @@ namespace KeePassHttp
 
         internal static IPluginHost HostInstance;
         internal static KeePassHttpExt ExtInstance;
+        internal static Helper CryptoHelper;
 
         private const int DEFAULT_NOTIFICATION_TIME = 5000;
         public const string KEEPASSHTTP_NAME = "KeePassHttp2 Settings";
@@ -158,6 +160,7 @@ namespace KeePassHttp
         {
             HostInstance = pluginHost;
             ExtInstance = this;
+            CryptoHelper = new Helper();
 
             var optionsMenu = new ToolStripMenuItem("KeePassHttp Options...");
             optionsMenu.Click += OnOptions_Click;
@@ -191,7 +194,7 @@ namespace KeePassHttp
             var resp = ProcessRequest(req);
             if (resp != null)
             {
-                e.Writer.Send(resp.ToString());
+                e.Writer.Send(resp.GetEncryptedResponse());
             }
         }
 
@@ -201,7 +204,7 @@ namespace KeePassHttp
             var resp = ProcessRequest(req);
             if (resp != null)
             {
-                _udp.Send(resp.ToString(), e.From);
+                _udp.Send(resp.GetEncryptedResponse(), e.From);
             }
         }
 

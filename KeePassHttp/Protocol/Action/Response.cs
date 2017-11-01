@@ -5,39 +5,39 @@ namespace KeePassHttp.Protocol.Action
 {
     public class Response : JsonBase
     {
+        private JsonBase _msg;
+
         public Response(string action)
         {
             Add("action", new JValue(action));
             AddBytes("nonce", Helper.GenerateNonce());
+            CreateMessage();
         }
 
         public byte[] Nonce => GetBytes("nonce");
 
-        public void SetMessage(byte[] msg)
+        public JsonBase Message => _msg;
+
+        public string GetEncryptedResponse()
         {
-            var existingMsg = this["message"];
-            if (existingMsg == null)
+            if (_msg != null)
             {
-                AddBytes("message", msg);
+                AddBytes("message", KeePassHttpExt.CryptoHelper.EncryptMessage(_msg.ToString(), Nonce));
             }
-            else
-            {
-                this["message"] = System.Convert.ToBase64String(msg);
-            }
+            return ToString();
         }
 
-        public void SetMessage(JsonBase msg)
+        private void CreateMessage()
         {
-            var existingMsg = this["message"];
-            var b64 = System.Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(msg.ToString()));
-            if (existingMsg == null)
+            _msg = new JsonBase
             {
-                Add("message", b64);
-            }
-            else
-            {
-                this["message"] = b64;
-            }
+                {"hash", KeePassHttpExt.ExtInstance.GetDbHash()},
+                {"version", GetVersion()},
+                {"success", "true"},
+                {"nonce", Nonce}
+            };
         }
+
+        private string GetVersion() => typeof(Response).Assembly.GetName().Version.ToString();
     }
 }

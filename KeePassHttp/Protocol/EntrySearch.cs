@@ -1,7 +1,6 @@
 ﻿using KeePass.Plugins;
 using KeePass.Util.Spr;
 using KeePassHttp.Protocol.Action;
-using KeePassHttp.Protocol.Crypto;
 using KeePassLib;
 using Newtonsoft.Json.Linq;
 using System;
@@ -15,27 +14,24 @@ namespace KeePassHttp.Protocol
     {
         private IPluginHost _host;
         private KeePassHttpExt _ext;
-        private Helper _crypto;
 
-        public EntrySearch(Helper crypto)
+        public EntrySearch()
         {
             _host = KeePassHttpExt.HostInstance;
             _ext = KeePassHttpExt.ExtInstance;
-            _crypto = crypto;
         }
 
-        internal Response GetLoginsHandler(Request req, JsonBase respMsg)
+        internal Response GetLoginsHandler(Request req)
         {
-            var msg = _crypto.DecryptMessage(req);
+            if (!req.TryDecrypt()) return null;
+
+            var msg = req.Message;
             var id = msg.GetString("id");
             var url = msg.GetString("url");
             var submitUrl = msg.GetString("submitUrl");
 
-            var resp = req.GetResponse();
             var hostUri = new Uri(url);
             var submitUri = new Uri(submitUrl);
-
-            // resp.Add("id", req.GetString("id"));
 
             var items = _ext.FindMatchingEntries(url, submitUrl, null);
             if (items.ToList().Count > 0)
@@ -158,11 +154,11 @@ namespace KeePassHttp.Protocol
                     };
                 }));
 
-                respMsg.Add("count", itemsList.Count);
-                respMsg.Add("entries", entries);
-                respMsg.Add("nonce", resp.Nonce);
+                var resp = req.GetResponse();
 
-                _crypto.EncryptMessage(resp, respMsg.ToString());
+                resp.Message.Add("id", id);
+                resp.Message.Add("count", itemsList.Count);
+                resp.Message.Add("entries", entries);
 
                 if (itemsList.Count > 0)
                 {
@@ -172,9 +168,11 @@ namespace KeePassHttp.Protocol
                     if (configOpt.ReceiveCredentialNotification)
                         _ext.ShowNotification(String.Format("{0}: {1} is receiving credentials for:\n    {2}", req.GetString("id"), hostUri.Host, n));
                 }
+
+                return resp;
             }
 
-            return resp;
+            return null;
         }
 
         //http://en.wikibooks.org/wiki/Algorithm_Implementation/Strings/Levenshtein_distance#C.23
