@@ -23,7 +23,7 @@ namespace KeePassHttp.Protocol
 
         internal Response GetLoginsHandler(Request req)
         {
-            if (!req.TryDecrypt()) return null;
+            if (!req.TryDecrypt()) return new ErrorResponse(req.Action, ErrorType.CannotDecryptMessage);
 
             var msg = req.Message;
             var id = msg.GetString("id");
@@ -32,6 +32,9 @@ namespace KeePassHttp.Protocol
 
             var hostUri = new Uri(url);
             var submitUri = new Uri(submitUrl);
+
+            var resp = req.GetResponse();
+            resp.Message.Add("id", id);
 
             var items = _ext.FindMatchingEntries(url, submitUrl, null);
             if (items.ToList().Count > 0)
@@ -154,9 +157,6 @@ namespace KeePassHttp.Protocol
                     };
                 }));
 
-                var resp = req.GetResponse();
-
-                resp.Message.Add("id", id);
                 resp.Message.Add("count", itemsList.Count);
                 resp.Message.Add("entries", entries);
 
@@ -172,7 +172,10 @@ namespace KeePassHttp.Protocol
                 return resp;
             }
 
-            return null;
+            resp.Message.Add("count", 0);
+            resp.Message.Add("entries", new JArray());
+
+            return resp;
         }
 
         //http://en.wikibooks.org/wiki/Algorithm_Implementation/Strings/Levenshtein_distance#C.23

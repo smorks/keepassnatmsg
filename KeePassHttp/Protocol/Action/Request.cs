@@ -33,6 +33,8 @@ namespace KeePassHttp.Protocol.Action
 
         public Response GetResponse() => new Response(Action);
 
+        public Response GetResponse(bool createMessage) => new Response(Action, createMessage);
+
         public bool TryDecrypt()
         {
             try

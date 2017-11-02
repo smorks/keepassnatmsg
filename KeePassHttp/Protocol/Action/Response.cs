@@ -9,9 +9,12 @@ namespace KeePassHttp.Protocol.Action
 
         public Response(string action)
         {
-            Add("action", new JValue(action));
-            AddBytes("nonce", Helper.GenerateNonce());
-            CreateMessage();
+            Init(action, true);
+        }
+
+        public Response(string action, bool createMessage)
+        {
+            Init(action, createMessage);
         }
 
         public byte[] Nonce => GetBytes("nonce");
@@ -25,6 +28,13 @@ namespace KeePassHttp.Protocol.Action
                 AddBytes("message", KeePassHttpExt.CryptoHelper.EncryptMessage(_msg.ToString(), Nonce));
             }
             return ToString();
+        }
+
+        private void Init(string action, bool createMessage)
+        {
+            Add("action", new JValue(action));
+            AddBytes("nonce", Helper.GenerateNonce());
+            if (createMessage) CreateMessage();
         }
 
         private void CreateMessage()

@@ -78,6 +78,7 @@
     <Compile Include="KeePassHttp.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Protocol\Actions.cs" />
+    <Compile Include="Protocol\Action\ErrorResponse.cs" />
     <Compile Include="Protocol\Action\JsonBase.cs" />
     <Compile Include="Protocol\Action\Request.cs" />
     <Compile Include="Protocol\Action\Response.cs" />
