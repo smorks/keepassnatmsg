@@ -1,4 +1,5 @@
 ﻿using KeePass.Plugins;
+using KeePassHttp.Entry;
 using KeePassHttp.Protocol.Action;
 using Newtonsoft.Json.Linq;
 using System;

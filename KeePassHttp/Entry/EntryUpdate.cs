@@ -8,7 +8,7 @@ using System;
 using System.IO;
 using System.Windows.Forms;
 
-namespace KeePassHttp.Protocol
+namespace KeePassHttp.Entry
 {
     public sealed class EntryUpdate
     {

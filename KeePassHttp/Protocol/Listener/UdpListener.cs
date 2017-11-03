@@ -3,7 +3,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Threading;
 
-namespace KeePassHttp.Protocol
+namespace KeePassHttp.Protocol.Listener
 {
     public sealed class UdpListener
     {

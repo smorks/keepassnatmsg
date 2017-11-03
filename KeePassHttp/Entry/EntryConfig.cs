@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace KeePassHttp
+namespace KeePassHttp.Entry
 {
     public class EntryConfig
     {

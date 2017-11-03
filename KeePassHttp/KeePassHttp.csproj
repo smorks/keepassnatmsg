@@ -55,7 +55,7 @@
     <Compile Include="AccessControlForm.Designer.cs">
       <DependentUpon>AccessControlForm.cs</DependentUpon>
     </Compile>
-    <Compile Include="EntryConfig.cs" />
+    <Compile Include="Entry\EntryConfig.cs" />
     <Compile Include="ConfigOpt.cs" />
     <Compile Include="OptionsForm.cs">
       <SubType>Form</SubType>
@@ -68,7 +68,6 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
-    <Compile Include="Handlers.cs" />
     <Compile Include="ConfirmAssociationForm.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -85,14 +84,14 @@
     <Compile Include="Protocol\Errors.cs" />
     <Compile Include="Protocol\Crypto\Nacl.cs" />
     <Compile Include="Protocol\Crypto\Helper.cs" />
-    <Compile Include="Protocol\EntrySearch.cs" />
-    <Compile Include="Protocol\EntryUpdate.cs" />
+    <Compile Include="Entry\EntrySearch.cs" />
+    <Compile Include="Entry\EntryUpdate.cs" />
     <Compile Include="Protocol\Handlers.cs" />
     <Compile Include="Protocol\Crypto\KeyPair.cs" />
-    <Compile Include="Protocol\NamedPipeListener.cs" />
-    <Compile Include="Protocol\PipeThreadState.cs" />
-    <Compile Include="Protocol\PipeWriter.cs" />
-    <Compile Include="Protocol\UdpListener.cs" />
+    <Compile Include="Protocol\Listener\NamedPipeListener.cs" />
+    <Compile Include="Protocol\Listener\PipeThreadState.cs" />
+    <Compile Include="Protocol\Listener\PipeWriter.cs" />
+    <Compile Include="Protocol\Listener\UdpListener.cs" />
     <Compile Include="PwEntryDatabase.cs" />
   </ItemGroup>
   <ItemGroup>

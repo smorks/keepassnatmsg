@@ -1,6 +1,6 @@
 ﻿using System.IO.Pipes;
 
-namespace KeePassHttp.Protocol
+namespace KeePassHttp.Protocol.Listener
 {
     public class PipeWriter
     {

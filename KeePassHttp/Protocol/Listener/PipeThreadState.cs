@@ -1,7 +1,7 @@
 ﻿using System.IO.Pipes;
 using System.Threading;
 
-namespace KeePassHttp.Protocol
+namespace KeePassHttp.Protocol.Listener
 {
     public class PipeThreadState
     {

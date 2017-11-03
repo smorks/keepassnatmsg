@@ -2,11 +2,12 @@
 using KeePass.Plugins;
 using KeePass.UI;
 using KeePass.Util.Spr;
+using KeePassHttp.Entry;
 using KeePassHttp.Protocol;
 using KeePassHttp.Protocol.Action;
 using KeePassHttp.Protocol.Crypto;
+using KeePassHttp.Protocol.Listener;
 using KeePassLib;
-using KeePassLib.Collections;
 using KeePassLib.Cryptography;
 using KeePassLib.Cryptography.PasswordGenerator;
 using KeePassLib.Security;
@@ -48,27 +49,9 @@ namespace KeePassHttp
         private UdpListener _udp;
         private NamedPipeListener _pipe;
 
-        //public string UpdateUrl = "";
         public override string UpdateUrl { get { return "https://passifox.appspot.com/kph/latest-version.txt"; } }
 
         private Handlers _handlers;
-
-        private SearchParameters MakeSearchParameters()
-        {
-            return new SearchParameters
-            {
-                SearchInTitles = true,
-                RegularExpression = true,
-                SearchInGroupNames = false,
-                SearchInNotes = false,
-                SearchInOther = false,
-                SearchInPasswords = false,
-                SearchInTags = false,
-                SearchInUrls = true,
-                SearchInUserNames = false,
-                SearchInUuids = false
-            };
-        }
 
         internal PwEntry GetConfigEntry(bool create)
         {
@@ -131,15 +114,13 @@ namespace KeePassHttp
                 {
                     notify.BalloonTipClicked -= clicked;
                     notify.BalloonTipClosed -= closed;
-                    if (onclick != null)
-                        onclick(notify, null);
+                    onclick?.Invoke(notify, null);
                 };
                 closed = delegate
                 {
                     notify.BalloonTipClicked -= clicked;
                     notify.BalloonTipClosed -= closed;
-                    if (onclose != null)
-                        onclose(notify, null);
+                    onclose?.Invoke(notify, null);
                 };
 
                 //notify.BalloonTipIcon = ToolTipIcon.Info;
@@ -418,140 +399,6 @@ namespace KeePassHttp
             e.Strings.Set(KEEPASSHTTP_NAME, new ProtectedString(false, writer.ToString()));
             e.Touch(true);
             UpdateUI(e.ParentGroup);
-        }
-
-        internal IEnumerable<PwEntryDatabase> FindMatchingEntries(string url, string submitUrl, string realm)
-        {
-            string submitHost = null;
-            var listResult = new List<PwEntryDatabase>();
-            var hostUri = new Uri(url);
-
-            var formHost = hostUri.Host;
-            var searchHost = hostUri.Host;
-            var origSearchHost = hostUri.Host;
-            var parms = MakeSearchParameters();
-
-            List<PwDatabase> listDatabases = new List<PwDatabase>();
-
-            var configOpt = new ConfigOpt(HostInstance.CustomConfig);
-            if (configOpt.SearchInAllOpenedDatabases)
-            {
-                foreach (PwDocument doc in HostInstance.MainWindow.DocumentManager.Documents)
-                {
-                    if (doc.Database.IsOpen)
-                    {
-                        listDatabases.Add(doc.Database);
-                    }
-                }
-            }
-            else
-            {
-                listDatabases.Add(HostInstance.Database);
-            }
-
-            int listCount = 0;
-            foreach (PwDatabase db in listDatabases)
-            {
-                searchHost = origSearchHost;
-                //get all possible entries for given host-name
-                while (listResult.Count == listCount && (origSearchHost == searchHost || searchHost.IndexOf(".") != -1))
-                {
-                    parms.SearchString = String.Format("^{0}$|/{0}/?", searchHost);
-                    var listEntries = new PwObjectList<PwEntry>();
-                    db.RootGroup.SearchEntries(parms, listEntries);
-                    foreach (var le in listEntries)
-                    {
-                        listResult.Add(new PwEntryDatabase(le, db));
-                    }
-                    searchHost = searchHost.Substring(searchHost.IndexOf(".") + 1);
-
-                    //searchHost contains no dot --> prevent possible infinite loop
-                    if (searchHost == origSearchHost)
-                        break;
-                }
-                listCount = listResult.Count;
-            }
-
-
-            Func<PwEntry, bool> filter = delegate (PwEntry e)
-            {
-                var title = e.Strings.ReadSafe(PwDefs.TitleField);
-                var entryUrl = e.Strings.ReadSafe(PwDefs.UrlField);
-                var c = GetEntryConfig(e);
-                if (c != null)
-                {
-                    if (c.Allow.Contains(formHost) && (submitHost == null || c.Allow.Contains(submitHost)))
-                        return true;
-                    if (c.Deny.Contains(formHost) || (submitHost != null && c.Deny.Contains(submitHost)))
-                        return false;
-                    if (realm != null && c.Realm != realm)
-                        return false;
-                }
-
-                if (entryUrl != null && (entryUrl.StartsWith("http://") || entryUrl.StartsWith("https://") || title.StartsWith("ftp://") || title.StartsWith("sftp://")))
-                {
-                    var uHost = new Uri(entryUrl);
-                    if (formHost.EndsWith(uHost.Host))
-                        return true;
-                }
-
-                if (title.StartsWith("http://") || title.StartsWith("https://") || title.StartsWith("ftp://") || title.StartsWith("sftp://"))
-                {
-                    var uHost = new Uri(title);
-                    if (formHost.EndsWith(uHost.Host))
-                        return true;
-                }
-                return formHost.Contains(title) || (entryUrl != null && formHost.Contains(entryUrl));
-            };
-
-            Func<PwEntry, bool> filterSchemes = delegate (PwEntry e)
-            {
-                var title = e.Strings.ReadSafe(PwDefs.TitleField);
-                var entryUrl = e.Strings.ReadSafe(PwDefs.UrlField);
-
-                if (entryUrl != null)
-                {
-                    var entryUri = new Uri(entryUrl);
-                    if (entryUri.Scheme == hostUri.Scheme)
-                    {
-                        return true;
-                    }
-                }
-
-                var titleUri = new Uri(title);
-                if (titleUri.Scheme == hostUri.Scheme)
-                {
-                    return true;
-                }
-
-                return false;
-            };
-
-            var result = from e in listResult where filter(e.entry) select e;
-
-            if (configOpt.MatchSchemes)
-            {
-                result = from e in result where filterSchemes(e.entry) select e;
-            }
-
-            Func<PwEntry, bool> hideExpired = delegate (PwEntry e)
-            {
-                DateTime dtNow = DateTime.UtcNow;
-
-                if (e.Expires && (e.ExpiryTime <= dtNow))
-                {
-                    return false;
-                }
-
-                return true;
-            };
-
-            if (configOpt.HideExpired)
-            {
-                result = from e in result where hideExpired(e.entry) select e;
-            }
-
-            return result;
         }
 
         internal JObject GeneratePassword()

@@ -4,7 +4,7 @@ using System.IO;
 using System.IO.Pipes;
 using System.Threading;
 
-namespace KeePassHttp.Protocol
+namespace KeePassHttp.Protocol.Listener
 {
     public sealed class NamedPipeListener
     {
