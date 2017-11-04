@@ -339,44 +339,6 @@ namespace KeePassHttp
             return id;
         }
 
-        internal void ShowAccessControlDialog(string submitUrl, IList<PwEntryDatabase> items)
-        {
-            var win = HostInstance.MainWindow;
-
-            using (var f = new AccessControlForm())
-            {
-                win.Invoke((MethodInvoker)delegate
-                {
-                    f.Icon = win.Icon;
-                    f.Plugin = this;
-                    f.Entries = items.Select(item => item.entry).ToList();
-                    f.Host = submitUrl;
-                    f.Load += delegate { f.Activate(); };
-                    f.ShowDialog(win);
-                    if (f.Remember && (f.Allowed || f.Denied))
-                    {
-                        foreach (var e in items)
-                        {
-                            var c = GetEntryConfig(e.entry);
-                            if (c == null)
-                                c = new EntryConfig();
-                            var set = f.Allowed ? c.Allow : c.Deny;
-                            set.Add(submitUrl);
-                            /*
-                            if (submithost != null && submithost != host)
-                                set.Add(submithost);
-                                */
-                            SetEntryConfig(e.entry, c);
-                        }
-                    }
-                    if (!f.Allowed)
-                    {
-                        // items = items.Except(needPrompting);
-                    }
-                });
-            }
-        }
-
         internal EntryConfig GetEntryConfig(PwEntry e)
         {
             var serializer = NewJsonSerializer();
