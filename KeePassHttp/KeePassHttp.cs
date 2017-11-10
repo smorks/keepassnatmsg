@@ -15,7 +15,6 @@ using KeePassLib.Utility;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
@@ -39,7 +38,7 @@ namespace KeePassHttp
         internal static Helper CryptoHelper;
 
         private const int DEFAULT_NOTIFICATION_TIME = 5000;
-        public const string KEEPASSHTTP_NAME = "KeePassHttp2 Settings";
+        public const string KEEPASSHTTP_NAME = "KeePassHttp Settings";
         public const string KEEPASSHTTP_GROUP_NAME = "KeePassHttp Passwords";
         public const string ASSOCIATE_KEY_PREFIX = "Public Key: ";
 
