@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 
 namespace KeePassHttp.NativeMessaging
@@ -35,8 +36,7 @@ namespace KeePassHttp.NativeMessaging
 
         private void InstallWindows()
         {
-            int browsers = 0;
-
+            var browsers = new List<string>();
             var keys = new[] { "Software\\Google\\Chrome", "Software\\Chromium", "Software\\Mozilla", "Software\\Vivaldi" };
             var browserMap = new[] { Browsers.Chrome, Browsers.Chromium, Browsers.Firefox, Browsers.Vivaldi };
 
@@ -44,21 +44,29 @@ namespace KeePassHttp.NativeMessaging
             {
                 var key = keys[i];
                 var b = browserMap[i];
-                var bkey = Microsoft.Win32.Registry.CurrentUser.OpenSubKey(key, false);
+                var bkey = Microsoft.Win32.Registry.CurrentUser.OpenSubKey(key, true);
                 if (bkey != null)
                 {
                     var nmhKey = bkey.CreateSubKey($"{NmhKey}\\{ExtKey}");
                     if (nmhKey != null)
                     {
                         CreateRegKeyAndFile(b, nmhKey);
-                        browsers += (int)b;
+                        browsers.Add(b.ToString());
                     }
                 }
             }
 
-            if (DownloadProxy())
+            var msg = new System.Text.StringBuilder();
+
+            if (browsers.Count > 0)
             {
-                System.Windows.Forms.MessageBox.Show("The Native Messaging Host was installed successfully!", "Installation Complete!", System.Windows.Forms.MessageBoxButtons.OK, System.Windows.Forms.MessageBoxIcon.Information);
+                msg.Append("\n\nRegistry Keys and Files were created for the following browsers:\n");
+                msg.Append(string.Join("\n", browsers));
+            }
+
+            if (DownloadProxy(msg))
+            {
+                System.Windows.Forms.MessageBox.Show($"The Native Messaging Host was installed successfully!{msg}", "Installation Complete!", System.Windows.Forms.MessageBoxButtons.OK, System.Windows.Forms.MessageBoxIcon.Information);
             }
         }
 
@@ -94,7 +102,7 @@ namespace KeePassHttp.NativeMessaging
             }
         }
 
-        private bool DownloadProxy()
+        private bool DownloadProxy(System.Text.StringBuilder msg)
         {
             try
             {
@@ -122,6 +130,7 @@ namespace KeePassHttp.NativeMessaging
                     if (newVersion)
                     {
                         web.DownloadFile($"https://github.com/smorks/keepasshttp-proxy/releases/download/v{latestVersion}/keepasshttp-proxy.exe", proxyExe);
+                        msg.Append($"\n\nProxy updated to version {lv}");
                     }
 
                     return true;
