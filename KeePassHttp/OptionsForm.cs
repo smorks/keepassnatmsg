@@ -204,5 +204,12 @@ namespace KeePassHttp
         {
             this.returnStringFieldsWithKphOnlyCheckBox.Enabled = this.returnStringFieldsCheckbox.Checked;
         }
+
+        private void btnInstallNativeMessaging_Click(object sender, EventArgs e)
+        {
+            if (MessageBox.Show("Are you sure you want to install/update the Native Messaging Host?","Confirm Install/Update", MessageBoxButtons.YesNo, MessageBoxIcon.Question, MessageBoxDefaultButton.Button2) == DialogResult.Yes)
+            {
+            }
+        }
     }
 }

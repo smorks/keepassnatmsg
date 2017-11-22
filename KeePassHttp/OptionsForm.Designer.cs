@@ -59,6 +59,7 @@
             this.label1 = new System.Windows.Forms.Label();
             this.credAllowUpdatesCheckbox = new System.Windows.Forms.CheckBox();
             this.credAllowAccessCheckbox = new System.Windows.Forms.CheckBox();
+            this.btnInstallNativeMessaging = new System.Windows.Forms.Button();
             this.tabControl1.SuspendLayout();
             this.tabPage1.SuspendLayout();
             this.tabPage2.SuspendLayout();
@@ -104,6 +105,7 @@
             // 
             // tabPage1
             // 
+            this.tabPage1.Controls.Add(this.btnInstallNativeMessaging);
             this.tabPage1.Controls.Add(this.SortByUsernameRadioButton);
             this.tabPage1.Controls.Add(this.SortByTitleRadioButton);
             this.tabPage1.Controls.Add(this.hideExpiredCheckbox);
@@ -116,7 +118,7 @@
             this.tabPage1.Location = new System.Drawing.Point(4, 22);
             this.tabPage1.Name = "tabPage1";
             this.tabPage1.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage1.Size = new System.Drawing.Size(402, 497);
+            this.tabPage1.Size = new System.Drawing.Size(402, 472);
             this.tabPage1.TabIndex = 0;
             this.tabPage1.Text = "General";
             this.tabPage1.UseVisualStyleBackColor = true;
@@ -142,19 +144,19 @@
             this.SortByTitleRadioButton.TabStop = true;
             this.SortByTitleRadioButton.Text = "Sort found entries by &title";
             this.SortByTitleRadioButton.UseVisualStyleBackColor = true;
-            //
+            // 
             // hideExpiredCheckbox
-            //
+            // 
             this.hideExpiredCheckbox.AutoSize = true;
             this.hideExpiredCheckbox.Location = new System.Drawing.Point(7, 88);
             this.hideExpiredCheckbox.Name = "hideExpiredCheckbox";
-            this.hideExpiredCheckbox.Size = new System.Drawing.Size(256, 17);
+            this.hideExpiredCheckbox.Size = new System.Drawing.Size(152, 17);
             this.hideExpiredCheckbox.TabIndex = 17;
-            this.hideExpiredCheckbox.Text = "Don't return e&xpired entries";
+            this.hideExpiredCheckbox.Text = "Don\'t return e&xpired entries";
             this.hideExpiredCheckbox.UseVisualStyleBackColor = true;
-            //
+            // 
             // matchSchemesCheckbox
-            //
+            // 
             this.matchSchemesCheckbox.AutoSize = true;
             this.matchSchemesCheckbox.Location = new System.Drawing.Point(7, 111);
             this.matchSchemesCheckbox.Name = "matchSchemesCheckbox";
@@ -428,6 +430,18 @@
             this.credAllowAccessCheckbox.Text = "Always allow &access to entries";
             this.credAllowAccessCheckbox.UseVisualStyleBackColor = true;
             // 
+            // btnInstallNativeMessaging
+            // 
+            this.btnInstallNativeMessaging.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.btnInstallNativeMessaging.Location = new System.Drawing.Point(14, 348);
+            this.btnInstallNativeMessaging.Name = "btnInstallNativeMessaging";
+            this.btnInstallNativeMessaging.Size = new System.Drawing.Size(372, 28);
+            this.btnInstallNativeMessaging.TabIndex = 20;
+            this.btnInstallNativeMessaging.Text = "Install/Update Native Messaging Host";
+            this.btnInstallNativeMessaging.UseVisualStyleBackColor = true;
+            this.btnInstallNativeMessaging.Click += new System.EventHandler(this.btnInstallNativeMessaging_Click);
+            // 
             // OptionsForm
             // 
             this.AcceptButton = this.okButton;
@@ -488,5 +502,6 @@
         private System.Windows.Forms.Label label8;
         private System.Windows.Forms.Label label9;
         private System.Windows.Forms.CheckBox returnStringFieldsWithKphOnlyCheckBox;
+        private System.Windows.Forms.Button btnInstallNativeMessaging;
     }
 }

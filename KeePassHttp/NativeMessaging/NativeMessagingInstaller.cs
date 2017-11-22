@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 
 namespace KeePassHttp.NativeMessaging
 {
@@ -6,10 +7,10 @@ namespace KeePassHttp.NativeMessaging
     {
         public enum Browsers
         {
-            Chrome,
-            Chromium,
-            Firefox,
-            Vivaldi
+            Chrome = 1,
+            Chromium = 2,
+            Firefox = 4,
+            Vivaldi = 8
         }
 
         public enum OperatingSystem
@@ -17,70 +18,120 @@ namespace KeePassHttp.NativeMessaging
             Windows
         }
 
-        public void Install(OperatingSystem os, Browsers browser)
+        private const string NmhKey = "NativeMessagingHosts";
+        private const string ExtKey = "com.varjolintu.keepassxc_browser";
+
+        private string KphAppData => Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "KeePassHttp");
+
+        public void Install(OperatingSystem os)
         {
             switch (os)
             {
                 case OperatingSystem.Windows:
-                    InstallWindows(browser);
+                    InstallWindows();
                     break;
             }
         }
 
-        private void InstallWindows(Browsers browser)
+        private void InstallWindows()
         {
-            string nmhKey = null;
-            string jsonData = null;
-            switch (browser)
+            int browsers = 0;
+
+            var keys = new[] { "Software\\Google\\Chrome", "Software\\Chromium", "Software\\Mozilla", "Software\\Vivaldi" };
+            var browserMap = new[] { Browsers.Chrome, Browsers.Chromium, Browsers.Firefox, Browsers.Vivaldi };
+
+            for (var i=0;i<keys.Length;i++)
+            {
+                var key = keys[i];
+                var b = browserMap[i];
+                var bkey = Microsoft.Win32.Registry.CurrentUser.OpenSubKey(key, false);
+                if (bkey != null)
+                {
+                    var nmhKey = bkey.CreateSubKey($"{NmhKey}\\{ExtKey}");
+                    if (nmhKey != null)
+                    {
+                        CreateRegKeyAndFile(b, nmhKey);
+                        browsers += (int)b;
+                    }
+                }
+            }
+
+            if (DownloadProxy())
+            {
+                System.Windows.Forms.MessageBox.Show("The Native Messaging Host was installed successfully!", "Installation Complete!", System.Windows.Forms.MessageBoxButtons.OK, System.Windows.Forms.MessageBoxIcon.Information);
+            }
+        }
+
+        private string GetJsonData(Browsers b)
+        {
+            switch (b)
             {
                 case Browsers.Chrome:
-                    nmhKey = "Software\\Google\\Chrome\\NativeMessagingHosts\\com.varjolintu.keepassxc_browser";
-                    jsonData = Properties.Resources.chrome_win;
-                    break;
                 case Browsers.Chromium:
-                    nmhKey = "Software\\Chromium\\NativeMessagingHosts\\com.varjolintu.keepassxc_browser";
-                    jsonData = Properties.Resources.chrome_win;
-                    break;
-                case Browsers.Firefox:
-                    nmhKey = "Software\\Mozilla\\NativeMessagingHosts\\com.varjolintu.keepassxc_browser";
-                    jsonData = Properties.Resources.firefox_win;
-                    break;
                 case Browsers.Vivaldi:
-                    nmhKey = "Software\\Vivaldi\\NativeMessagingHosts\\com.varjolintu.keepassxc_browser";
-                    jsonData = Properties.Resources.chrome_win;
-                    break;
+                    return Properties.Resources.chrome_win;
+                case Browsers.Firefox:
+                    return Properties.Resources.firefox_win;
             }
+            return null;
+        }
 
-            if (nmhKey != null)
+        private void CreateRegKeyAndFile(Browsers b, Microsoft.Win32.RegistryKey key)
+        {
+            try
             {
-                try
+                var jsonFile = Path.Combine(KphAppData, $"kph_nmh_{b.ToString().ToLower()}.json");
+                key.SetValue(string.Empty, jsonFile, Microsoft.Win32.RegistryValueKind.String);
+                if (!Directory.Exists(KphAppData))
                 {
-                    var kphAppData = Path.Combine(System.Environment.GetFolderPath(System.Environment.SpecialFolder.LocalApplicationData), "KeePassHttp");
-                    var jsonFile = Path.Combine(kphAppData, $"kph_nmh_{browser.ToString().ToLower()}.json");
-                    var key = Microsoft.Win32.Registry.CurrentUser.CreateSubKey(nmhKey);
-                    key.SetValue(string.Empty, jsonFile, Microsoft.Win32.RegistryValueKind.String);
-                    if (!Directory.Exists(kphAppData))
-                    {
-                        Directory.CreateDirectory(kphAppData);
-                    }
-                    File.WriteAllText(jsonFile, jsonData, new System.Text.UTF8Encoding(false));
-
-                    var web = new System.Net.WebClient();
-                    var latestVersion = web.DownloadString("https://github.com/smorks/keepasshttp-proxy/raw/master/version.txt");
-
-                    System.Version v;
-                    if (System.Version.TryParse(latestVersion, out v))
-                    {
-                        var proxyExe = Path.Combine(kphAppData, "keepasshttp-proxy.exe");
-                        web.DownloadFile($"https://github.com/smorks/keepasshttp-proxy/releases/download/v{latestVersion}/keepasshttp-proxy.exe", proxyExe);
-                        System.Windows.Forms.MessageBox.Show("The Native Messaging Host was installed successfully!", "Installation Complete!", System.Windows.Forms.MessageBoxButtons.OK, System.Windows.Forms.MessageBoxIcon.Information);
-                    }
+                    Directory.CreateDirectory(KphAppData);
                 }
-                catch (System.Exception ex)
+                File.WriteAllText(jsonFile, GetJsonData(b), new System.Text.UTF8Encoding(false));
+            }
+            catch (Exception ex)
+            {
+                System.Windows.Forms.MessageBox.Show($"An error occurred attempting to install the native messaging host for KeePassHttp: {ex}", "Install Error", System.Windows.Forms.MessageBoxButtons.OK, System.Windows.Forms.MessageBoxIcon.Error);
+            }
+        }
+
+        private bool DownloadProxy()
+        {
+            try
+            {
+                var web = new System.Net.WebClient();
+                var latestVersion = web.DownloadString("https://github.com/smorks/keepasshttp-proxy/raw/master/version.txt");
+
+                if (Version.TryParse(latestVersion, out Version lv))
                 {
-                    System.Windows.Forms.MessageBox.Show($"An error occurred during installtion: {ex}", "Installation Error", System.Windows.Forms.MessageBoxButtons.OK, System.Windows.Forms.MessageBoxIcon.Error);
+                    var proxyExe = Path.Combine(KphAppData, "keepasshttp-proxy.exe");
+                    var newVersion = false;
+
+                    if (File.Exists(proxyExe))
+                    {
+                        var fvi = System.Diagnostics.FileVersionInfo.GetVersionInfo(proxyExe);
+                        if (Version.TryParse(fvi.FileVersion, out Version exeVer))
+                        {
+                            newVersion = lv > exeVer;
+                        }
+                    }
+                    else
+                    {
+                        newVersion = true;
+                    }
+
+                    if (newVersion)
+                    {
+                        web.DownloadFile($"https://github.com/smorks/keepasshttp-proxy/releases/download/v{latestVersion}/keepasshttp-proxy.exe", proxyExe);
+                    }
+
+                    return true;
                 }
             }
+            catch (Exception ex)
+            {
+                System.Windows.Forms.MessageBox.Show($"An error occurred attempting to download the proxy application: {ex}", "Proxy Download Error", System.Windows.Forms.MessageBoxButtons.OK, System.Windows.Forms.MessageBoxIcon.Error);
+            }
+            return false;
         }
     }
 }
