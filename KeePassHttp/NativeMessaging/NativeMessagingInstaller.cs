@@ -52,7 +52,9 @@ namespace KeePassHttp.NativeMessaging
                     {
                         CreateRegKeyAndFile(b, nmhKey);
                         browsers.Add(b.ToString());
+                        nmhKey.Close();
                     }
+                    bkey.Close();
                 }
             }
 
