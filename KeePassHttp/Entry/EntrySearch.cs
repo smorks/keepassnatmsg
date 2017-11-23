@@ -33,8 +33,26 @@ namespace KeePassHttp.Entry
             var url = msg.GetString("url");
             var submitUrl = msg.GetString("submitUrl");
 
-            var hostUri = new Uri(url);
-            var submitUri = new Uri(submitUrl);
+            Uri hostUri;
+            Uri submitUri;
+
+            if (!string.IsNullOrEmpty(url))
+            {
+                hostUri = new Uri(url);
+            }
+            else
+            {
+                return new ErrorResponse(req.Action, ErrorType.NoUrlProvided);
+            }
+
+            if (!string.IsNullOrEmpty(submitUrl))
+            {
+                submitUri = new Uri(submitUrl);
+            }
+            else
+            {
+                submitUri = hostUri;
+            }
 
             var resp = req.GetResponse();
             resp.Message.Add("id", id);
