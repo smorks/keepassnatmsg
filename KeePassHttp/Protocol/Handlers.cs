@@ -44,7 +44,7 @@ namespace KeePassHttp.Protocol
             {
                 return handler.Invoke(req);
             }
-            return new ErrorResponse(req.Action, ErrorType.IncorrectAction);
+            return new ErrorResponse(req, ErrorType.IncorrectAction);
         }
 
         private RequestHandler GetHandler(string action) => _handlers.ContainsKey(action) ? _handlers[action] : null;
@@ -55,7 +55,7 @@ namespace KeePassHttp.Protocol
             {
                 return req.GetResponse();
             }
-            return new ErrorResponse(req.Action, ErrorType.CannotDecryptMessage);
+            return new ErrorResponse(req, ErrorType.CannotDecryptMessage);
         }
 
         private Response TestAssociate(Request req)
@@ -77,11 +77,11 @@ namespace KeePassHttp.Protocol
                         resp.Message.Add("id", id);
                         return resp;
                     }
-                    return new ErrorResponse(req.Action, ErrorType.AssociationFailed);
+                    return new ErrorResponse(req, ErrorType.AssociationFailed);
                 }
-                return new ErrorResponse(req.Action, ErrorType.CannotDecryptMessage);
+                return new ErrorResponse(req, ErrorType.CannotDecryptMessage);
             }
-            return new ErrorResponse(req.Action, ErrorType.AssociationFailed);
+            return new ErrorResponse(req, ErrorType.AssociationFailed);
         }
 
         private Response Associate(Request req)
@@ -100,10 +100,10 @@ namespace KeePassHttp.Protocol
                 else
                 {
                     _ext.ShowNotification("Association Failed. Public Keys don't match.");
-                    return new ErrorResponse(req.Action, ErrorType.AssociationFailed);
+                    return new ErrorResponse(req, ErrorType.AssociationFailed);
                 }
             }
-            return new ErrorResponse(req.Action, ErrorType.CannotDecryptMessage);
+            return new ErrorResponse(req, ErrorType.CannotDecryptMessage);
         }
 
         private Response ChangePublicKeys(Request req)
@@ -112,7 +112,7 @@ namespace KeePassHttp.Protocol
             var publicKey = req.GetString("publicKey");
 
             if (string.IsNullOrEmpty(publicKey))
-                return new ErrorResponse(req.Action, ErrorType.ClientPublicKeyNotReceived);
+                return new ErrorResponse(req, ErrorType.ClientPublicKeyNotReceived);
 
             crypto.ClientPublicKey = Convert.FromBase64String(publicKey);
             var pair = crypto.GenerateKeyPair();
@@ -152,7 +152,7 @@ namespace KeePassHttp.Protocol
 
                 return req.GetResponse();
             }
-            return new ErrorResponse(req.Action, ErrorType.CannotDecryptMessage);
+            return new ErrorResponse(req, ErrorType.CannotDecryptMessage);
         }
 
         private Response GeneratePassword(Request req)

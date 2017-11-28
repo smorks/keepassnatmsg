@@ -2,7 +2,7 @@
 {
     public class ErrorResponse : Response
     {
-        public ErrorResponse(string action, ErrorType error) : base(action, false)
+        public ErrorResponse(Request req, ErrorType error) : base(req, false)
         {
             Remove("nonce");
             Add("errorCode", (int)error);

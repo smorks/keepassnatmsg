@@ -35,11 +35,6 @@ namespace KeePassHttp.Protocol.Crypto
             _pair = pair;
         }
 
-        public static byte[] GenerateNonce()
-        {
-            var nonce = new byte[TweetNaCl.BoxNonceBytes];
-            TweetNaCl.RandomBytes(nonce);
-            return nonce;
-        }
+        public static byte[] GenerateNonce(byte[] nonce) => TweetNaCl.Increment(nonce);
     }
 }

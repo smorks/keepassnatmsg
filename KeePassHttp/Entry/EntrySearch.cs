@@ -26,7 +26,7 @@ namespace KeePassHttp.Entry
 
         internal Response GetLoginsHandler(Request req)
         {
-            if (!req.TryDecrypt()) return new ErrorResponse(req.Action, ErrorType.CannotDecryptMessage);
+            if (!req.TryDecrypt()) return new ErrorResponse(req, ErrorType.CannotDecryptMessage);
 
             var msg = req.Message;
             var id = msg.GetString("id");
@@ -42,7 +42,7 @@ namespace KeePassHttp.Entry
             }
             else
             {
-                return new ErrorResponse(req.Action, ErrorType.NoUrlProvided);
+                return new ErrorResponse(req, ErrorType.NoUrlProvided);
             }
 
             if (!string.IsNullOrEmpty(submitUrl))

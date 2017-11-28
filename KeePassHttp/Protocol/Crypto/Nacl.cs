@@ -1466,6 +1466,17 @@ namespace KeePassHttp.Protocol.Crypto
             }
         }
 
-
+        public static byte[] Increment(byte[] nonce)
+        {
+            var inc = new byte[nonce.Length];
+            short c = 1;
+            for (var i = 0; i < nonce.Length; i++)
+            {
+                c += nonce[i];
+                inc[i] = (byte) c;
+                c >>= 8;
+            }
+            return inc;
+        }
     }
 }

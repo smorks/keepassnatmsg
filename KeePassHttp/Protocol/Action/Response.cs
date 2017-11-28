@@ -7,14 +7,14 @@ namespace KeePassHttp.Protocol.Action
     {
         private JsonBase _msg;
 
-        public Response(string action)
+        public Response(Request req, bool createMessage)
         {
-            Init(action, true);
+            Init(req, createMessage);
         }
 
-        public Response(string action, bool createMessage)
+        public Response(Request req)
         {
-            Init(action, createMessage);
+            Init(req, true);
         }
 
         public byte[] Nonce => GetBytes("nonce");
@@ -30,10 +30,10 @@ namespace KeePassHttp.Protocol.Action
             return ToString();
         }
 
-        private void Init(string action, bool createMessage)
+        private void Init(Request req, bool createMessage)
         {
-            Add("action", new JValue(action));
-            AddBytes("nonce", Helper.GenerateNonce());
+            Add("action", new JValue(req.Action));
+            AddBytes("nonce", Helper.GenerateNonce(req.NonceBytes));
             if (createMessage) CreateMessage();
         }
 

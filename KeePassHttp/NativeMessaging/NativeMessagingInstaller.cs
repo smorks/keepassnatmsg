@@ -110,8 +110,9 @@ namespace KeePassHttp.NativeMessaging
             {
                 var web = new System.Net.WebClient();
                 var latestVersion = web.DownloadString("https://github.com/smorks/keepasshttp-proxy/raw/master/version.txt");
+                Version lv;
 
-                if (Version.TryParse(latestVersion, out Version lv))
+                if (Version.TryParse(latestVersion, out lv))
                 {
                     var proxyExe = Path.Combine(KphAppData, "keepasshttp-proxy.exe");
                     var newVersion = false;
@@ -119,7 +120,8 @@ namespace KeePassHttp.NativeMessaging
                     if (File.Exists(proxyExe))
                     {
                         var fvi = System.Diagnostics.FileVersionInfo.GetVersionInfo(proxyExe);
-                        if (Version.TryParse(fvi.FileVersion, out Version exeVer))
+                        Version exeVer;
+                        if (Version.TryParse(fvi.FileVersion, out exeVer))
                         {
                             newVersion = lv > exeVer;
                         }
