@@ -74,7 +74,7 @@ namespace KeePassHttp.Protocol.Listener
         {
             var pts = (PipeThreadState)args;
 
-            var server = new NamedPipeServerStream(_name, PipeDirection.InOut, Threads, PipeTransmissionMode.Byte, PipeOptions.Asynchronous);
+            var server = new NamedPipeServerStream(_name, PipeDirection.InOut, Threads);
 
             pts.Server = server;
 
