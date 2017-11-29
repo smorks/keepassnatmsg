@@ -45,7 +45,6 @@ namespace KeePassHttp
         private const int DefaultUdpPort = 19700;
         private const string DefaultPipeName = "KeePassHttp";
 
-        private UdpListener _udp;
         private NamedPipeListener _pipe;
 
         public override string UpdateUrl { get { return "https://passifox.appspot.com/kph/latest-version.txt"; } }
@@ -153,10 +152,6 @@ namespace KeePassHttp
                 _handlers = new Handlers();
                 _handlers.Initialize();
 
-                _udp = new UdpListener(DefaultUdpPort);
-                _udp.MessageReceived += _udp_MessageReceived;
-                _udp.Start();
-
                 _pipe = new NamedPipeListener(DefaultPipeName);
                 _pipe.MessageReceived += _pipe_MessageReceived;
                 _pipe.Start();
@@ -178,16 +173,6 @@ namespace KeePassHttp
             }
         }
 
-        private void _udp_MessageReceived(object sender, UdpMessageReceivedEventArgs e)
-        {
-            var req = Request.FromString(e.Message);
-            var resp = _handlers.ProcessRequest(req);
-            if (resp != null)
-            {
-                _udp.Send(resp.GetEncryptedResponse(), e.From);
-            }
-        }
-
         void OnOptions_Click(object sender, EventArgs e)
         {
             var form = new OptionsForm(new ConfigOpt(HostInstance.CustomConfig));
@@ -205,8 +190,7 @@ namespace KeePassHttp
 
         public override void Terminate()
         {
-            _udp.Stop();
-            _pipe.Stop();
+            _pipe?.Stop();
         }
 
         internal void UpdateUI(PwGroup group)

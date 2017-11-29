@@ -33,7 +33,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="KeePass">
-      <HintPath>..\..\..\..\data\brandtware\apps\keepass\KeePass.exe</HintPath>
+      <HintPath>..\..\..\..\data\cloud.brandt.tech\apps\keepass\KeePass.exe</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="Newtonsoft.Json">

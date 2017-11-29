@@ -73,8 +73,19 @@ namespace KeePassHttp.Protocol.Listener
         private void Run(object args)
         {
             var pts = (PipeThreadState)args;
+            NamedPipeServerStream server;
 
-            var server = new NamedPipeServerStream(_name, PipeDirection.InOut, Threads);
+            // check if we're running under Mono
+            var t = Type.GetType("Mono.Runtime");
+
+            if (t == null)
+            {
+                server = new NamedPipeServerStream(_name, PipeDirection.InOut, Threads, PipeTransmissionMode.Byte, PipeOptions.Asynchronous);
+            }
+            else
+            {
+                server = new NamedPipeServerStream(_name, PipeDirection.InOut, Threads);
+            }
 
             pts.Server = server;
 
