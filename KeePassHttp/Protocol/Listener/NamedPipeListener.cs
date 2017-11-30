@@ -8,6 +8,7 @@ namespace KeePassHttp.Protocol.Listener
 {
     public sealed class NamedPipeListener
     {
+        private const int BufferSize = 1024*1024;
         private const int Threads = 5;
         private readonly string _name;
         private volatile bool _active;
@@ -95,17 +96,14 @@ namespace KeePassHttp.Protocol.Listener
 
                 while (_active && server.IsConnected)
                 {
-                    var hdr = new byte[4];
-                    var bytes = server.Read(hdr, 0, hdr.Length);
-                    if (bytes == hdr.Length)
+                    var buffer = new byte[BufferSize];
+                    var bytes = server.Read(buffer, 0, buffer.Length);
+
+                    if (bytes > 0)
                     {
-                        var dataLen = BitConverter.ToInt32(hdr, 0);
-                        var data = new byte[dataLen];
-                        bytes = server.Read(data, 0, data.Length);
-                        if (bytes == data.Length)
-                        {
-                            MessageReceived?.Invoke(this, new PipeMessageReceivedEventArgs(new PipeWriter(server), data));
-                        }
+                        var data = new byte[bytes];
+                        Array.Copy(buffer, data, bytes);
+                        MessageReceived?.Invoke(this, new PipeMessageReceivedEventArgs(new PipeWriter(server), data));
                     }
                 }
             }

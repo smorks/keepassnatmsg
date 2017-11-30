@@ -16,8 +16,6 @@ namespace KeePassHttp.Protocol.Listener
         public void Send(string msg)
         {
             var data = _utf8.GetBytes(msg);
-            var sizeData = System.BitConverter.GetBytes(data.Length);
-            _server.Write(sizeData, 0, sizeData.Length);
             _server.Write(data, 0, data.Length);
             _server.Flush();
         }
