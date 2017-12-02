@@ -150,7 +150,7 @@ namespace KeePassHttp
                 _handlers = new Handlers();
                 _handlers.Initialize();
 
-                _pipe = new NamedPipeListener(Path.Combine(Path.GetTempPath(), PipeName));
+                _pipe = new NamedPipeListener($"keepassxc\\{Environment.UserName}\\{PipeName}");
                 _pipe.MessageReceived += _pipe_MessageReceived;
                 _pipe.Start();
             }
