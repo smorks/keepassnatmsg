@@ -41,9 +41,7 @@ namespace KeePassHttp
         public const string KEEPASSHTTP_NAME = "KeePassHttp Settings";
         public const string KEEPASSHTTP_GROUP_NAME = "KeePassHttp Passwords";
         public const string ASSOCIATE_KEY_PREFIX = "Public Key: ";
-
-        private const int DefaultUdpPort = 19700;
-        private const string DefaultPipeName = "KeePassHttp";
+        private const string PipeName = "kpxc_server";
 
         private NamedPipeListener _pipe;
 
@@ -152,7 +150,7 @@ namespace KeePassHttp
                 _handlers = new Handlers();
                 _handlers.Initialize();
 
-                _pipe = new NamedPipeListener(DefaultPipeName);
+                _pipe = new NamedPipeListener(Path.Combine(Path.GetTempPath(), PipeName));
                 _pipe.MessageReceived += _pipe_MessageReceived;
                 _pipe.Start();
             }
