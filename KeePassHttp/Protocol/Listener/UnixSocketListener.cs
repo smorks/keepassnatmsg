@@ -1,5 +1,6 @@
 ﻿using Mono.Unix;
 using System;
+using System.Diagnostics;
 using System.Net.Sockets;
 using System.Threading;
 
@@ -50,17 +51,23 @@ namespace KeePassHttp.Protocol.Listener
 
             while (_active)
             {
-                var result = _socket.BeginAccept(ProcessConnection, null);
-                result.AsyncWaitHandle.WaitOne();
+                try
+                {
+                    ReadLoop(_socket.Accept());
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"Socket Error: {ex}");
+                }
             }
         }
 
-        private void ProcessConnection(IAsyncResult ar)
+        private void ReadLoop(Socket s)
         {
-            if (_active)
+            var buffer = new byte[1024 * 16];
+
+            while (_active && s.Connected)
             {
-                var s = _socket.EndAccept(ar);
-                var buffer = new byte[1024 * 16];
                 var bytes = s.Receive(buffer);
                 if (bytes > 0)
                 {
@@ -81,7 +88,7 @@ namespace KeePassHttp.Protocol.Listener
                 }
                 catch (Exception ex)
                 {
-                    System.Diagnostics.Debug.WriteLine($"Error Deleting Socket File ({_uep.Filename}): {ex}");
+                    Debug.WriteLine($"Error Deleting Socket File ({_uep.Filename}): {ex}");
                 }
             }
         }
