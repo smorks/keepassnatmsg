@@ -32,6 +32,7 @@
             this.okButton = new System.Windows.Forms.Button();
             this.tabControl1 = new System.Windows.Forms.TabControl();
             this.tabPage1 = new System.Windows.Forms.TabPage();
+            this.btnInstallNativeMessaging = new System.Windows.Forms.Button();
             this.SortByUsernameRadioButton = new System.Windows.Forms.RadioButton();
             this.SortByTitleRadioButton = new System.Windows.Forms.RadioButton();
             this.hideExpiredCheckbox = new System.Windows.Forms.CheckBox();
@@ -43,14 +44,6 @@
             this.credNotifyCheckbox = new System.Windows.Forms.CheckBox();
             this.tabPage2 = new System.Windows.Forms.TabPage();
             this.returnStringFieldsWithKphOnlyCheckBox = new System.Windows.Forms.CheckBox();
-            this.hostName = new System.Windows.Forms.TextBox();
-            this.label10 = new System.Windows.Forms.Label();
-            this.label8 = new System.Windows.Forms.Label();
-            this.label9 = new System.Windows.Forms.Label();
-            this.label7 = new System.Windows.Forms.Label();
-            this.portNumber = new System.Windows.Forms.NumericUpDown();
-            this.label5 = new System.Windows.Forms.Label();
-            this.label6 = new System.Windows.Forms.Label();
             this.label4 = new System.Windows.Forms.Label();
             this.label3 = new System.Windows.Forms.Label();
             this.returnStringFieldsCheckbox = new System.Windows.Forms.CheckBox();
@@ -59,11 +52,9 @@
             this.label1 = new System.Windows.Forms.Label();
             this.credAllowUpdatesCheckbox = new System.Windows.Forms.CheckBox();
             this.credAllowAccessCheckbox = new System.Windows.Forms.CheckBox();
-            this.btnInstallNativeMessaging = new System.Windows.Forms.Button();
             this.tabControl1.SuspendLayout();
             this.tabPage1.SuspendLayout();
             this.tabPage2.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.portNumber)).BeginInit();
             this.SuspendLayout();
             // 
             // cancelButton
@@ -122,6 +113,18 @@
             this.tabPage1.TabIndex = 0;
             this.tabPage1.Text = "General";
             this.tabPage1.UseVisualStyleBackColor = true;
+            // 
+            // btnInstallNativeMessaging
+            // 
+            this.btnInstallNativeMessaging.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.btnInstallNativeMessaging.Location = new System.Drawing.Point(14, 348);
+            this.btnInstallNativeMessaging.Name = "btnInstallNativeMessaging";
+            this.btnInstallNativeMessaging.Size = new System.Drawing.Size(372, 28);
+            this.btnInstallNativeMessaging.TabIndex = 20;
+            this.btnInstallNativeMessaging.Text = "Install/Update Native Messaging Host";
+            this.btnInstallNativeMessaging.UseVisualStyleBackColor = true;
+            this.btnInstallNativeMessaging.Click += new System.EventHandler(this.btnInstallNativeMessaging_Click);
             // 
             // SortByUsernameRadioButton
             // 
@@ -225,14 +228,6 @@
             // tabPage2
             // 
             this.tabPage2.Controls.Add(this.returnStringFieldsWithKphOnlyCheckBox);
-            this.tabPage2.Controls.Add(this.hostName);
-            this.tabPage2.Controls.Add(this.label10);
-            this.tabPage2.Controls.Add(this.label8);
-            this.tabPage2.Controls.Add(this.label9);
-            this.tabPage2.Controls.Add(this.label7);
-            this.tabPage2.Controls.Add(this.portNumber);
-            this.tabPage2.Controls.Add(this.label5);
-            this.tabPage2.Controls.Add(this.label6);
             this.tabPage2.Controls.Add(this.label4);
             this.tabPage2.Controls.Add(this.label3);
             this.tabPage2.Controls.Add(this.returnStringFieldsCheckbox);
@@ -259,94 +254,6 @@
             this.returnStringFieldsWithKphOnlyCheckBox.Text = "Only return advanced string fields which start with \"KPH: \"\r\n(Mind the space afte" +
     "r KPH:)";
             this.returnStringFieldsWithKphOnlyCheckBox.UseVisualStyleBackColor = true;
-            // 
-            // hostName
-            // 
-            this.hostName.Location = new System.Drawing.Point(48, 318);
-            this.hostName.Name = "hostName";
-            this.hostName.Size = new System.Drawing.Size(103, 20);
-            this.hostName.TabIndex = 25;
-            this.hostName.Text = "localhost";
-            // 
-            // label10
-            // 
-            this.label10.AutoSize = true;
-            this.label10.Location = new System.Drawing.Point(7, 283);
-            this.label10.Name = "label10";
-            this.label10.Size = new System.Drawing.Size(375, 26);
-            this.label10.TabIndex = 23;
-            this.label10.Text = "Only change the host to bind to if you want to give access to other computers.\r\nU" +
-    "se \'*\' to bind it to all your IP addresses (potentially dangerous!)\r\n";
-            // 
-            // label8
-            // 
-            this.label8.AutoSize = true;
-            this.label8.Location = new System.Drawing.Point(157, 318);
-            this.label8.Name = "label8";
-            this.label8.Size = new System.Drawing.Size(244, 65);
-            this.label8.TabIndex = 26;
-            this.label8.Text = "Default: localhost\r\nYou might need to run KeePass as administrator \r\nwhen you cha" +
-    "nge this.\r\nAlso don\'t forget to open the firewall if you want to \r\nbe able to us" +
-    "e it from a different computer.";
-            // 
-            // label9
-            // 
-            this.label9.AutoSize = true;
-            this.label9.Location = new System.Drawing.Point(10, 321);
-            this.label9.Name = "label9";
-            this.label9.Size = new System.Drawing.Size(32, 13);
-            this.label9.TabIndex = 24;
-            this.label9.Text = "Host:";
-            // 
-            // label7
-            // 
-            this.label7.AutoSize = true;
-            this.label7.Location = new System.Drawing.Point(157, 415);
-            this.label7.Name = "label7";
-            this.label7.Size = new System.Drawing.Size(241, 39);
-            this.label7.TabIndex = 30;
-            this.label7.Text = "Default: 19455\r\nDon\'t forget to change the port number also in\r\nthe plugins like " +
-    "chromeIPass, PassIFox, kypass,...";
-            // 
-            // portNumber
-            // 
-            this.portNumber.Location = new System.Drawing.Point(48, 415);
-            this.portNumber.Maximum = new decimal(new int[] {
-            99999,
-            0,
-            0,
-            0});
-            this.portNumber.Minimum = new decimal(new int[] {
-            1025,
-            0,
-            0,
-            0});
-            this.portNumber.Name = "portNumber";
-            this.portNumber.Size = new System.Drawing.Size(60, 20);
-            this.portNumber.TabIndex = 29;
-            this.portNumber.Value = new decimal(new int[] {
-            19455,
-            0,
-            0,
-            0});
-            // 
-            // label5
-            // 
-            this.label5.AutoSize = true;
-            this.label5.Location = new System.Drawing.Point(8, 393);
-            this.label5.Name = "label5";
-            this.label5.Size = new System.Drawing.Size(312, 13);
-            this.label5.TabIndex = 27;
-            this.label5.Text = "Change the default port number if you have connection problems";
-            // 
-            // label6
-            // 
-            this.label6.AutoSize = true;
-            this.label6.Location = new System.Drawing.Point(13, 417);
-            this.label6.Name = "label6";
-            this.label6.Size = new System.Drawing.Size(29, 13);
-            this.label6.TabIndex = 28;
-            this.label6.Text = "Port:";
             // 
             // label4
             // 
@@ -430,18 +337,6 @@
             this.credAllowAccessCheckbox.Text = "Always allow &access to entries";
             this.credAllowAccessCheckbox.UseVisualStyleBackColor = true;
             // 
-            // btnInstallNativeMessaging
-            // 
-            this.btnInstallNativeMessaging.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.btnInstallNativeMessaging.Location = new System.Drawing.Point(14, 348);
-            this.btnInstallNativeMessaging.Name = "btnInstallNativeMessaging";
-            this.btnInstallNativeMessaging.Size = new System.Drawing.Size(372, 28);
-            this.btnInstallNativeMessaging.TabIndex = 20;
-            this.btnInstallNativeMessaging.Text = "Install/Update Native Messaging Host";
-            this.btnInstallNativeMessaging.UseVisualStyleBackColor = true;
-            this.btnInstallNativeMessaging.Click += new System.EventHandler(this.btnInstallNativeMessaging_Click);
-            // 
             // OptionsForm
             // 
             this.AcceptButton = this.okButton;
@@ -464,7 +359,6 @@
             this.tabPage1.PerformLayout();
             this.tabPage2.ResumeLayout(false);
             this.tabPage2.PerformLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.portNumber)).EndInit();
             this.ResumeLayout(false);
 
         }
@@ -493,14 +387,6 @@
         private System.Windows.Forms.Label label4;
         private System.Windows.Forms.RadioButton SortByUsernameRadioButton;
         private System.Windows.Forms.RadioButton SortByTitleRadioButton;
-        private System.Windows.Forms.Label label7;
-        private System.Windows.Forms.NumericUpDown portNumber;
-        private System.Windows.Forms.Label label5;
-        private System.Windows.Forms.Label label6;
-        private System.Windows.Forms.TextBox hostName;
-        private System.Windows.Forms.Label label10;
-        private System.Windows.Forms.Label label8;
-        private System.Windows.Forms.Label label9;
         private System.Windows.Forms.CheckBox returnStringFieldsWithKphOnlyCheckBox;
         private System.Windows.Forms.Button btnInstallNativeMessaging;
     }
