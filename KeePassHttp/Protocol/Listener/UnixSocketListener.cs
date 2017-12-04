@@ -39,6 +39,7 @@ namespace KeePassHttp.Protocol.Listener
             _active = false;
             _socket.Close();
             _t.Join();
+            DeleteSocketFile();
         }
 
         private void RunThread()
@@ -66,6 +67,21 @@ namespace KeePassHttp.Protocol.Listener
                     var data = new byte[bytes];
                     Array.Copy(buffer, data, bytes);
                     MessageReceived?.Invoke(this, new PipeMessageReceivedEventArgs(new SocketWriter(s), data));
+                }
+            }
+        }
+
+        private void DeleteSocketFile()
+        {
+            if (System.IO.File.Exists(_uep.Filename))
+            {
+                try
+                {
+                    System.IO.File.Delete(_uep.Filename);
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"Error Deleting Socket File ({_uep.Filename}): {ex}");
                 }
             }
         }
