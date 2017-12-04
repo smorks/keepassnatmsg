@@ -6,7 +6,7 @@ using System.Threading;
 
 namespace KeePassHttp.Protocol.Listener
 {
-    public sealed class NamedPipeListener
+    public sealed class NamedPipeListener : IListener
     {
         private const int BufferSize = 1024*1024;
         private const int Threads = 5;
@@ -76,17 +76,7 @@ namespace KeePassHttp.Protocol.Listener
             var pts = (PipeThreadState)args;
             NamedPipeServerStream server;
 
-            // check if we're running under Mono
-            var t = Type.GetType("Mono.Runtime");
-
-            if (t == null)
-            {
-                server = new NamedPipeServerStream(_name, PipeDirection.InOut, Threads, PipeTransmissionMode.Byte, PipeOptions.Asynchronous);
-            }
-            else
-            {
-                server = new NamedPipeServerStream(_name, PipeDirection.InOut, Threads);
-            }
+            server = new NamedPipeServerStream(_name, PipeDirection.InOut, Threads, PipeTransmissionMode.Byte, PipeOptions.Asynchronous);
 
             pts.Server = server;
 
@@ -118,9 +108,9 @@ namespace KeePassHttp.Protocol.Listener
     public class PipeMessageReceivedEventArgs : EventArgs
     {
         public string Message { get; set; }
-        public PipeWriter Writer { get; set; }
+        public IMessageWriter Writer { get; set; }
 
-        public PipeMessageReceivedEventArgs(PipeWriter writer, byte[] data)
+        public PipeMessageReceivedEventArgs(IMessageWriter writer, byte[] data)
         {
             Writer = writer;
             Message = System.Text.Encoding.UTF8.GetString(data);

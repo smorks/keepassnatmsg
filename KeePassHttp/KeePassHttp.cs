@@ -43,7 +43,7 @@ namespace KeePassHttp
         public const string ASSOCIATE_KEY_PREFIX = "Public Key: ";
         private const string PipeName = "kpxc_server";
 
-        private NamedPipeListener _pipe;
+        private IListener _listener;
 
         public override string UpdateUrl { get { return "https://passifox.appspot.com/kph/latest-version.txt"; } }
 
@@ -150,9 +150,25 @@ namespace KeePassHttp
                 _handlers = new Handlers();
                 _handlers.Initialize();
 
-                _pipe = new NamedPipeListener($"keepassxc\\{Environment.UserName}\\{PipeName}");
-                _pipe.MessageReceived += _pipe_MessageReceived;
-                _pipe.Start();
+                // check if we're running under Mono
+                var t = Type.GetType("Mono.Runtime");
+
+                if (t == null)
+                {
+                    // not Mono, assume Windows
+                    _listener = new NamedPipeListener($"keepassxc\\{Environment.UserName}\\{PipeName}");
+                    _listener.MessageReceived += Listener_MessageReceived;
+                    _listener.Start();
+                }
+                else
+                {
+                    if (Environment.OSVersion.Platform == PlatformID.Unix || Environment.OSVersion.Platform == PlatformID.MacOSX)
+                    {
+                        _listener = new UnixSocketListener();
+                        _listener.MessageReceived += Listener_MessageReceived;
+                        _listener.Start();
+                    }
+                }
             }
             catch (Exception e)
             {
@@ -161,7 +177,7 @@ namespace KeePassHttp
             return true;
         }
 
-        private void _pipe_MessageReceived(object sender, PipeMessageReceivedEventArgs e)
+        private void Listener_MessageReceived(object sender, PipeMessageReceivedEventArgs e)
         {
             var req = Request.FromString(e.Message);
             var resp = _handlers.ProcessRequest(req);
@@ -188,7 +204,7 @@ namespace KeePassHttp
 
         public override void Terminate()
         {
-            _pipe?.Stop();
+            _listener?.Stop();
         }
 
         internal void UpdateUI(PwGroup group)

@@ -1,23 +1,22 @@
-﻿using System.IO.Pipes;
+﻿using System.Net.Sockets;
 
 namespace KeePassHttp.Protocol.Listener
 {
-    public class PipeWriter : IMessageWriter
+    public class SocketWriter : IMessageWriter
     {
-        private readonly NamedPipeServerStream _server;
+        private readonly Socket _socket;
         private readonly System.Text.UTF8Encoding _utf8;
 
-        public PipeWriter(NamedPipeServerStream server)
+        public SocketWriter(Socket socket)
         {
-            _server = server;
+            _socket = socket;
             _utf8 = new System.Text.UTF8Encoding(false);
         }
 
         public void Send(string msg)
         {
             var data = _utf8.GetBytes(msg);
-            _server.Write(data, 0, data.Length);
-            _server.Flush();
+            _socket.Send(data);
         }
     }
 }

@@ -9,3 +9,4 @@ create-plgx.bat
 *.csproj.user
 /KeePassHttp/KeePassHttp.dll
 .vs/
+/packages/
