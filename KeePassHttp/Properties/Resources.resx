@@ -121,7 +121,7 @@
     <value>{
   "name": "com.varjolintu.keepassxc_browser",
   "description": "KeepassXC integration with Native Messaging support",
-  "path" : "keepasshttp-proxy.exe",
+  "path" : "{0}",
   "type": "stdio",
   "allowed_origins": [
     "chrome-extension://iopaggbpplllidnfmcghoonnokmjoicf/",
@@ -137,7 +137,7 @@
     <value>{
   "name": "com.varjolintu.keepassxc_browser",
   "description": "KeepassXC integration with Firefox with Native Messaging support",
-  "path" : "keepasshttp-proxy.exe",
+  "path" : "{0}",
   "type": "stdio",
   "allowed_extensions": [
     "keepassxc-browser@sami.vanttinen"

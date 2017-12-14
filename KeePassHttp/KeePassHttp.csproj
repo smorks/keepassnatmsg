@@ -40,6 +40,9 @@
       <HintPath>..\..\..\..\data\cloud.brandt.tech\apps\keepass\KeePass.exe</HintPath>
       <Private>False</Private>
     </Reference>
+    <Reference Include="Mono.Posix">
+      <HintPath>Mono\Mono.Posix.dll</HintPath>
+    </Reference>
     <Reference Include="Newtonsoft.Json">
       <HintPath>.\Newtonsoft.Json.dll</HintPath>
     </Reference>
@@ -61,7 +64,6 @@
     </Compile>
     <Compile Include="Entry\EntryConfig.cs" />
     <Compile Include="ConfigOpt.cs" />
-    <Compile Include="Mono\Unix\UnixEndPoint.cs" />
     <Compile Include="NativeMessaging\NativeMessagingInstaller.cs" />
     <Compile Include="OptionsForm.cs">
       <SubType>Form</SubType>
@@ -121,6 +123,9 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\earth_lock.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Mono\Mono.Posix.dll" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

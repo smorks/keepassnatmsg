@@ -8,42 +8,50 @@ namespace KeePassHttp.NativeMessaging
     {
         public enum Browsers
         {
-            Chrome = 1,
-            Chromium = 2,
-            Firefox = 4,
-            Vivaldi = 8
-        }
-
-        public enum OperatingSystem
-        {
-            Windows
+            Chrome,
+            Chromium,
+            Firefox,
+            Vivaldi
         }
 
         private const string NmhKey = "NativeMessagingHosts";
         private const string ExtKey = "com.varjolintu.keepassxc_browser";
+        private const string ProxyExecutable = "keepasshttp-proxy.exe";
+        private const string GithubRepo = "https://github.com/smorks/keepasshttp-proxy";
+        private const string LinuxScript = "#!/bin/bash\nmono {0}\n";
+        private const string LinuxProxyPath = ".keepasshttp";
+
+        private System.Text.Encoding _utf8 = new System.Text.UTF8Encoding(false);
 
         private string KphAppData => Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "KeePassHttp");
 
-        public void Install(OperatingSystem os)
+        public void Install()
         {
-            switch (os)
+            switch (Environment.OSVersion.Platform)
             {
-                case OperatingSystem.Windows:
+                case PlatformID.Win32NT:
                     InstallWindows();
+                    break;
+                case PlatformID.Unix:
+                    InstallLinux();
+                    break;
+                case PlatformID.MacOSX:
+                    InstallMaxOsx();
                     break;
             }
         }
+
+        #region "Windows"
 
         private void InstallWindows()
         {
             var browsers = new List<string>();
             var keys = new[] { "Software\\Google\\Chrome", "Software\\Chromium", "Software\\Mozilla", "Software\\Vivaldi" };
-            var browserMap = new[] { Browsers.Chrome, Browsers.Chromium, Browsers.Firefox, Browsers.Vivaldi };
 
             for (var i=0;i<keys.Length;i++)
             {
                 var key = keys[i];
-                var b = browserMap[i];
+                var b = (Browsers)i;
                 var bkey = Microsoft.Win32.Registry.CurrentUser.OpenSubKey(key, true);
                 if (bkey != null)
                 {
@@ -66,7 +74,8 @@ namespace KeePassHttp.NativeMessaging
                 msg.Append(string.Join("\n", browsers));
             }
 
-            if (DownloadProxy(msg))
+            var proxyExe = Path.Combine(KphAppData, ProxyExecutable);
+            if (DownloadProxy(msg, proxyExe))
             {
                 System.Windows.Forms.MessageBox.Show($"The Native Messaging Host was installed successfully!{msg}", "Installation Complete!", System.Windows.Forms.MessageBoxButtons.OK, System.Windows.Forms.MessageBoxIcon.Information);
             }
@@ -96,7 +105,7 @@ namespace KeePassHttp.NativeMessaging
                 {
                     Directory.CreateDirectory(KphAppData);
                 }
-                File.WriteAllText(jsonFile, GetJsonData(b), new System.Text.UTF8Encoding(false));
+                File.WriteAllText(jsonFile, string.Format(GetJsonData(b), ProxyExecutable), _utf8);
             }
             catch (Exception ex)
             {
@@ -104,22 +113,87 @@ namespace KeePassHttp.NativeMessaging
             }
         }
 
-        private bool DownloadProxy(System.Text.StringBuilder msg)
+        #endregion
+
+        #region "Linux"
+
+        private void InstallLinux()
+        {
+            InstallPosix(new[]
+            {
+                ".config/google-chrome/NativeMessagingHosts",
+                ".config/chromium/NativeMessagingHosts",
+                ".mozilla/native-messaging-hosts",
+                ".config/vivaldi/NativeMessagingHosts"
+            });
+        }
+
+        #endregion
+
+        #region "Mac OSX"
+
+        private void InstallMaxOsx()
+        {
+            InstallPosix(new[]
+            {
+                "Library/Application Support/Google/Chrome/NativeMessagingHosts",
+                "Library/Application Support/Chromium/NativeMessagingHosts",
+                "Library/Application Support/Mozilla/NativeMessagingHosts",
+                "Library/Application Support/Vivaldi/NativeMessagingHosts"
+            });
+        }
+
+        #endregion
+
+        private void InstallPosix(string[] browserPaths)
+        {
+            var home = Environment.GetEnvironmentVariable("HOME");
+
+            var proxyPath = Path.Combine(home, LinuxProxyPath);
+            if (!Directory.Exists(proxyPath))
+            {
+                Directory.CreateDirectory(proxyPath);
+            }
+            var monoScript = Path.Combine(proxyPath, "run-proxy.sh");
+            File.WriteAllText(monoScript, string.Format(LinuxScript, ProxyExecutable), _utf8);
+            Mono.Unix.Native.Syscall.chmod(monoScript, Mono.Unix.Native.FilePermissions.S_IXUSR);
+
+            for (var i = 0; i < browserPaths.Length; i++)
+            {
+                var jsonFile = Path.Combine(home, browserPaths[i], ExtKey);
+                var jsonDir = Path.GetDirectoryName(jsonFile);
+                var b = (Browsers)i;
+
+                if (!Directory.Exists(jsonDir))
+                {
+                    Directory.CreateDirectory(jsonDir);
+                }
+                File.WriteAllText(jsonFile, string.Format(GetJsonData(b), monoScript), _utf8);
+            }
+
+            var msg = new System.Text.StringBuilder();
+            var proxyExe = Path.Combine(proxyPath, ProxyExecutable);
+            if (DownloadProxy(msg, proxyExe))
+            {
+                System.Windows.Forms.MessageBox.Show($"The Native Messaging Host was installed successfully!{msg}", "Installation Complete!", System.Windows.Forms.MessageBoxButtons.OK, System.Windows.Forms.MessageBoxIcon.Information);
+            }
+        }
+
+        private bool DownloadProxy(System.Text.StringBuilder msg, string proxyExePath)
         {
             try
             {
                 var web = new System.Net.WebClient();
-                var latestVersion = web.DownloadString("https://github.com/smorks/keepasshttp-proxy/raw/master/version.txt");
+                var latestVersion = web.DownloadString($"{GithubRepo}/raw/master/version.txt");
                 Version lv;
 
                 if (Version.TryParse(latestVersion, out lv))
                 {
-                    var proxyExe = Path.Combine(KphAppData, "keepasshttp-proxy.exe");
                     var newVersion = false;
 
-                    if (File.Exists(proxyExe))
+                    if (File.Exists(proxyExePath))
                     {
-                        var fvi = System.Diagnostics.FileVersionInfo.GetVersionInfo(proxyExe);
+                        var fvi = System.Diagnostics.FileVersionInfo.GetVersionInfo(proxyExePath);
                         Version exeVer;
                         if (Version.TryParse(fvi.FileVersion, out exeVer))
                         {
@@ -133,7 +207,7 @@ namespace KeePassHttp.NativeMessaging
 
                     if (newVersion)
                     {
-                        web.DownloadFile($"https://github.com/smorks/keepasshttp-proxy/releases/download/v{latestVersion}/keepasshttp-proxy.exe", proxyExe);
+                        web.DownloadFile($"{GithubRepo}/releases/download/v{latestVersion}/{ProxyExecutable}", proxyExePath);
                         msg.Append($"\n\nProxy updated to version {lv}");
                     }
 

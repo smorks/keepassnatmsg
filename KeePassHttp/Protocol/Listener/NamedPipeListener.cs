@@ -93,7 +93,7 @@ namespace KeePassHttp.Protocol.Listener
                     {
                         var data = new byte[bytes];
                         Array.Copy(buffer, data, bytes);
-                        MessageReceived?.Invoke(this, new PipeMessageReceivedEventArgs(new PipeWriter(server), data));
+                        MessageReceived?.BeginInvoke(this, new PipeMessageReceivedEventArgs(new PipeWriter(server), data), null, null);
                     }
                 }
             }

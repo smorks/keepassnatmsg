@@ -19,7 +19,7 @@ namespace KeePassHttp.Properties {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "4.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "15.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class Resources {
@@ -64,7 +64,7 @@ namespace KeePassHttp.Properties {
         ///   Looks up a localized string similar to {
         ///  &quot;name&quot;: &quot;com.varjolintu.keepassxc_browser&quot;,
         ///  &quot;description&quot;: &quot;KeepassXC integration with Native Messaging support&quot;,
-        ///  &quot;path&quot; : &quot;keepasshttp-proxy.exe&quot;,
+        ///  &quot;path&quot; : &quot;{0}&quot;,
         ///  &quot;type&quot;: &quot;stdio&quot;,
         ///  &quot;allowed_origins&quot;: [
         ///    &quot;chrome-extension://iopaggbpplllidnfmcghoonnokmjoicf/&quot;,
@@ -92,7 +92,7 @@ namespace KeePassHttp.Properties {
         ///   Looks up a localized string similar to {
         ///  &quot;name&quot;: &quot;com.varjolintu.keepassxc_browser&quot;,
         ///  &quot;description&quot;: &quot;KeepassXC integration with Firefox with Native Messaging support&quot;,
-        ///  &quot;path&quot; : &quot;keepasshttp-proxy.exe&quot;,
+        ///  &quot;path&quot; : &quot;{0}&quot;,
         ///  &quot;type&quot;: &quot;stdio&quot;,
         ///  &quot;allowed_extensions&quot;: [
         ///    &quot;keepassxc-browser@sami.vanttinen&quot;
