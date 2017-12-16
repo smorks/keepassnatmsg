@@ -61,7 +61,7 @@ namespace KeePassHttp.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to {
+        ///   Looks up a localized string similar to {{
         ///  &quot;name&quot;: &quot;com.varjolintu.keepassxc_browser&quot;,
         ///  &quot;description&quot;: &quot;KeepassXC integration with Native Messaging support&quot;,
         ///  &quot;path&quot; : &quot;{0}&quot;,
@@ -70,7 +70,7 @@ namespace KeePassHttp.Properties {
         ///    &quot;chrome-extension://iopaggbpplllidnfmcghoonnokmjoicf/&quot;,
         ///    &quot;chrome-extension://fhakpkpdnjecjfceboihdjpfmgajebii/&quot;
         ///  ]
-        ///}.
+        ///}}.
         /// </summary>
         internal static string chrome_win {
             get {
@@ -89,7 +89,7 @@ namespace KeePassHttp.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to {
+        ///   Looks up a localized string similar to {{
         ///  &quot;name&quot;: &quot;com.varjolintu.keepassxc_browser&quot;,
         ///  &quot;description&quot;: &quot;KeepassXC integration with Firefox with Native Messaging support&quot;,
         ///  &quot;path&quot; : &quot;{0}&quot;,
@@ -97,7 +97,7 @@ namespace KeePassHttp.Properties {
         ///  &quot;allowed_extensions&quot;: [
         ///    &quot;keepassxc-browser@sami.vanttinen&quot;
         ///  ]
-        ///}.
+        ///}}.
         /// </summary>
         internal static string firefox_win {
             get {

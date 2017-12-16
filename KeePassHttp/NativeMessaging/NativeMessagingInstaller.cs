@@ -156,11 +156,17 @@ namespace KeePassHttp.NativeMessaging
             }
             var monoScript = Path.Combine(proxyPath, "run-proxy.sh");
             File.WriteAllText(monoScript, string.Format(LinuxScript, ProxyExecutable), _utf8);
-            Mono.Unix.Native.Syscall.chmod(monoScript, Mono.Unix.Native.FilePermissions.S_IXUSR);
+
+            Mono.Unix.Native.Stat st;
+            Mono.Unix.Native.Syscall.stat(monoScript, out st);
+            if (!st.st_mode.HasFlag(Mono.Unix.Native.FilePermissions.S_IXUSR))
+            {
+                Mono.Unix.Native.Syscall.chmod(monoScript, Mono.Unix.Native.FilePermissions.S_IXUSR | st.st_mode);
+            }
 
             for (var i = 0; i < browserPaths.Length; i++)
             {
-                var jsonFile = Path.Combine(home, browserPaths[i], ExtKey);
+                var jsonFile = Path.Combine(home, browserPaths[i], $"{ExtKey}.json");
                 var jsonDir = Path.GetDirectoryName(jsonFile);
                 var b = (Browsers)i;
 
