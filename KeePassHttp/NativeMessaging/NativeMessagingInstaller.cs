@@ -157,12 +157,13 @@ namespace KeePassHttp.NativeMessaging
             var monoScript = Path.Combine(proxyPath, "run-proxy.sh");
             File.WriteAllText(monoScript, string.Format(LinuxScript, ProxyExecutable), _utf8);
 
-            Mono.Unix.Native.Stat st;
-            Mono.Unix.Native.Syscall.stat(monoScript, out st);
+            Mono.Unix.Native.Syscall.stat(monoScript, out Mono.Unix.Native.Stat st);
             if (!st.st_mode.HasFlag(Mono.Unix.Native.FilePermissions.S_IXUSR))
             {
                 Mono.Unix.Native.Syscall.chmod(monoScript, Mono.Unix.Native.FilePermissions.S_IXUSR | st.st_mode);
             }
+
+            var browsers = new List<string>();
 
             for (var i = 0; i < browserPaths.Length; i++)
             {
@@ -170,14 +171,28 @@ namespace KeePassHttp.NativeMessaging
                 var jsonDir = Path.GetDirectoryName(jsonFile);
                 var b = (Browsers)i;
 
-                if (!Directory.Exists(jsonDir))
+                var jsonDirInfo = new DirectoryInfo(jsonDir);
+                var jsonParent = jsonDirInfo.Parent.FullName;
+
+                if (Directory.Exists(jsonParent))
                 {
-                    Directory.CreateDirectory(jsonDir);
+                    browsers.Add(b.ToString());
+                    if (!Directory.Exists(jsonDir))
+                    {
+                        Directory.CreateDirectory(jsonDir);
+                    }
+                    File.WriteAllText(jsonFile, string.Format(GetJsonData(b), monoScript), _utf8);
                 }
-                File.WriteAllText(jsonFile, string.Format(GetJsonData(b), monoScript), _utf8);
             }
 
             var msg = new System.Text.StringBuilder();
+
+            if (browsers.Count > 0)
+            {
+                msg.Append("\n\nNative Messaging Files were created for the following browsers:\n");
+                msg.Append(string.Join("\n", browsers));
+            }
+
             var proxyExe = Path.Combine(proxyPath, ProxyExecutable);
             if (DownloadProxy(msg, proxyExe))
             {
