@@ -41,10 +41,10 @@
       <Private>False</Private>
     </Reference>
     <Reference Include="Mono.Posix">
-      <HintPath>Mono\Mono.Posix.dll</HintPath>
+      <HintPath>lib\Mono.Posix.dll</HintPath>
     </Reference>
     <Reference Include="Newtonsoft.Json">
-      <HintPath>.\Newtonsoft.Json.dll</HintPath>
+      <HintPath>lib\Newtonsoft.Json.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -123,9 +123,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\earth_lock.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Mono\Mono.Posix.dll" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
