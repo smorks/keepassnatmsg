@@ -65,8 +65,9 @@ namespace KeePassHttp.Protocol.Listener
         private void ReadLoop(Socket s)
         {
             var buffer = new byte[1024 * 16];
+            var read = true;
 
-            while (_active && s.Connected)
+            while (_active && s.Connected && read)
             {
                 var bytes = s.Receive(buffer);
                 if (bytes > 0)
@@ -74,6 +75,10 @@ namespace KeePassHttp.Protocol.Listener
                     var data = new byte[bytes];
                     Array.Copy(buffer, data, bytes);
                     MessageReceived?.BeginInvoke(this, new PipeMessageReceivedEventArgs(new SocketWriter(s), data), null, null);
+                }
+                else if (bytes == 0)
+                {
+                    read = false;
                 }
             }
         }
