@@ -354,6 +354,7 @@
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
             this.Text = "KeePassHttp Options";
             this.Load += new System.EventHandler(this.OptionsForm_Load);
+            this.Shown += new System.EventHandler(this.OptionsForm_Shown);
             this.tabControl1.ResumeLayout(false);
             this.tabPage1.ResumeLayout(false);
             this.tabPage1.PerformLayout();

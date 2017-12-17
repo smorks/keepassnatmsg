@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows.Forms;
+using System.Threading.Tasks;
 
 namespace KeePassHttp
 {
@@ -11,6 +12,7 @@ namespace KeePassHttp
     {
         readonly ConfigOpt _config;
         private bool _restartRequired = false;
+        private NativeMessaging.NativeMessagingInstaller _nmi;
 
         public OptionsForm(ConfigOpt config)
         {
@@ -202,11 +204,43 @@ namespace KeePassHttp
 
         private void btnInstallNativeMessaging_Click(object sender, EventArgs e)
         {
-            if (MessageBox.Show("Are you sure you want to install/update the Native Messaging Host?","Confirm Install/Update", MessageBoxButtons.YesNo, MessageBoxIcon.Question, MessageBoxDefaultButton.Button2) == DialogResult.Yes)
+            var bsf = new NativeMessaging.BrowserSelectForm();
+
+            if (bsf.ShowDialog(this) == DialogResult.OK)
             {
-                var nmi = new NativeMessaging.NativeMessagingInstaller();
-                nmi.Install();
+                var t = new Task(() => _nmi.Install(bsf.SelectedBrowsers));
+                t.Start();
             }
+        }
+
+        private void CheckNativeMessagingHost()
+        {
+            var t = new Task<bool>(() => _nmi.IsInstalled());
+            
+            var t2 = t.ContinueWith((ti) =>
+            {
+                if (ti.IsCompleted && !ti.Result)
+                {
+                    var nmiInstall = MessageBox.Show(this, $"The native messaging host was not detected. It must be installed for KeePassHttp to work. Do you want to install it now?", "Native Messaging Host Not Detected", MessageBoxButtons.YesNo, MessageBoxIcon.Question, MessageBoxDefaultButton.Button2);
+                    if (nmiInstall == DialogResult.Yes)
+                    {
+                        var bsf = new NativeMessaging.BrowserSelectForm();
+                        if (bsf.ShowDialog(this) == DialogResult.OK)
+                        {
+                            _nmi.Install(bsf.SelectedBrowsers);
+                        }
+                    }
+                }
+            });
+
+            t.Start();
+        }
+
+        private void OptionsForm_Shown(object sender, EventArgs e)
+        {
+            _nmi = new NativeMessaging.NativeMessagingInstaller(this);
+
+            CheckNativeMessagingHost();
         }
     }
 }

@@ -64,7 +64,18 @@
     </Compile>
     <Compile Include="Entry\EntryConfig.cs" />
     <Compile Include="ConfigOpt.cs" />
+    <Compile Include="NativeMessaging\BrowserSelectForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="NativeMessaging\BrowserSelectForm.Designer.cs">
+      <DependentUpon>BrowserSelectForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="NativeMessaging\LinuxHost.cs" />
+    <Compile Include="NativeMessaging\MacOsxHost.cs" />
+    <Compile Include="NativeMessaging\NativeMessagingHost.cs" />
     <Compile Include="NativeMessaging\NativeMessagingInstaller.cs" />
+    <Compile Include="NativeMessaging\PosixHost.cs" />
+    <Compile Include="NativeMessaging\WindowsHost.cs" />
     <Compile Include="OptionsForm.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -112,6 +123,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="ConfirmAssociationForm.resx">
       <DependentUpon>ConfirmAssociationForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="NativeMessaging\BrowserSelectForm.resx">
+      <DependentUpon>BrowserSelectForm.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="OptionsForm.resx">
       <DependentUpon>OptionsForm.cs</DependentUpon>
