@@ -208,7 +208,11 @@ namespace KeePassHttp
 
             if (bsf.ShowDialog(this) == DialogResult.OK)
             {
-                var t = new Task(() => _nmi.Install(bsf.SelectedBrowsers));
+                var t = new Task(() =>
+                {
+                    _nmi.Install(bsf.SelectedBrowsers);
+                    GetNativeMessagingStatus();
+                });
                 t.Start();
             }
         }
@@ -231,6 +235,7 @@ namespace KeePassHttp
                         }
                     }
                 }
+                GetNativeMessagingStatus();
             });
 
             t.Start();
@@ -241,6 +246,13 @@ namespace KeePassHttp
             _nmi = new NativeMessaging.NativeMessagingInstaller(this);
 
             CheckNativeMessagingHost();
+        }
+
+        private void GetNativeMessagingStatus()
+        {
+            var proxyVersion = _nmi.GetProxyVersion();
+            var proxyDisplay = proxyVersion == null ? "Not Installed" : proxyVersion.ToString();
+            lblProxyVersion.Text = $"Proxy Version: {proxyDisplay}";
         }
     }
 }

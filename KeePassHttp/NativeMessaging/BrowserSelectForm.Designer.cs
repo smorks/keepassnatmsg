@@ -45,6 +45,7 @@
             this.btnOk.TabIndex = 1;
             this.btnOk.Text = "&Ok";
             this.btnOk.UseVisualStyleBackColor = true;
+            this.btnOk.Click += new System.EventHandler(this.btnOk_Click);
             // 
             // btnCancel
             // 

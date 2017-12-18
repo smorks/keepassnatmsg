@@ -39,7 +39,7 @@ namespace KeePassHttp.NativeMessaging
 
             foreach (Browsers b in Enum.GetValues(typeof(Browsers)))
             {
-                if (browsers.HasFlag(b))
+                if (b != Browsers.None && browsers.HasFlag(b))
                 {
                     var jsonFile = Path.Combine(_home, BrowserPaths[i], $"{ExtKey}.json");
                     var jsonDir = Path.GetDirectoryName(jsonFile);

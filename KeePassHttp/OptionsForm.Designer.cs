@@ -32,6 +32,7 @@
             this.okButton = new System.Windows.Forms.Button();
             this.tabControl1 = new System.Windows.Forms.TabControl();
             this.tabPage1 = new System.Windows.Forms.TabPage();
+            this.lblProxyVersion = new System.Windows.Forms.Label();
             this.btnInstallNativeMessaging = new System.Windows.Forms.Button();
             this.SortByUsernameRadioButton = new System.Windows.Forms.RadioButton();
             this.SortByTitleRadioButton = new System.Windows.Forms.RadioButton();
@@ -96,6 +97,7 @@
             // 
             // tabPage1
             // 
+            this.tabPage1.Controls.Add(this.lblProxyVersion);
             this.tabPage1.Controls.Add(this.btnInstallNativeMessaging);
             this.tabPage1.Controls.Add(this.SortByUsernameRadioButton);
             this.tabPage1.Controls.Add(this.SortByTitleRadioButton);
@@ -113,6 +115,14 @@
             this.tabPage1.TabIndex = 0;
             this.tabPage1.Text = "General";
             this.tabPage1.UseVisualStyleBackColor = true;
+            // 
+            // lblProxyVersion
+            // 
+            this.lblProxyVersion.Location = new System.Drawing.Point(14, 379);
+            this.lblProxyVersion.Name = "lblProxyVersion";
+            this.lblProxyVersion.Size = new System.Drawing.Size(372, 19);
+            this.lblProxyVersion.TabIndex = 22;
+            this.lblProxyVersion.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 
             // btnInstallNativeMessaging
             // 
@@ -390,5 +400,6 @@
         private System.Windows.Forms.RadioButton SortByTitleRadioButton;
         private System.Windows.Forms.CheckBox returnStringFieldsWithKphOnlyCheckBox;
         private System.Windows.Forms.Button btnInstallNativeMessaging;
+        private System.Windows.Forms.Label lblProxyVersion;
     }
 }

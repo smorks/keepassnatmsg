@@ -16,7 +16,7 @@ namespace KeePassHttp.NativeMessaging
             var i = 0;
             foreach(Browsers b in Enum.GetValues(typeof(Browsers)))
             {
-                if (browsers.HasFlag(b))
+                if (b != Browsers.None && browsers.HasFlag(b))
                 {
                     var key = Microsoft.Win32.Registry.CurrentUser.OpenSubKey(RegKeys[i], true);
                     if (key != null)
