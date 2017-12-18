@@ -7,7 +7,7 @@ namespace KeePassHttp.NativeMessaging
     public class WindowsHost : NativeMessagingHost
     {
         private string KphAppData => Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "KeePassHttp");
-        private string[] RegKeys = new[] { "Software\\Google\\Chrome", "Software\\Chromium", "Software\\Mozilla", "Software\\Vivaldi" };
+        private string[] RegKeys = new[] { string.Empty, "Software\\Google\\Chrome", "Software\\Chromium", "Software\\Mozilla", "Software\\Vivaldi" };
 
         public override string ProxyPath => Path.Combine(KphAppData, ProxyExecutable);
 
