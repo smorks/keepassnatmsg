@@ -73,6 +73,7 @@ namespace KeePassHttp.Protocol.Listener
 
         private void Run(object args)
         {
+            var read = true;
             var pts = (PipeThreadState)args;
             NamedPipeServerStream server;
 
@@ -84,7 +85,7 @@ namespace KeePassHttp.Protocol.Listener
             {
                 server.WaitForConnection();
 
-                while (_active && server.IsConnected)
+                while (_active && server.IsConnected && read)
                 {
                     var buffer = new byte[BufferSize];
                     var bytes = server.Read(buffer, 0, buffer.Length);
@@ -94,6 +95,10 @@ namespace KeePassHttp.Protocol.Listener
                         var data = new byte[bytes];
                         Array.Copy(buffer, data, bytes);
                         MessageReceived?.BeginInvoke(this, new PipeMessageReceivedEventArgs(new PipeWriter(server), data), null, null);
+                    }
+                    else if (bytes == 0)
+                    {
+                        read = false;
                     }
                 }
             }
