@@ -260,11 +260,7 @@ namespace KeePassHttp
             {
                 if (b != Browsers.None)
                 {
-                    var status = "Not Installed";
-                    if (browsers.HasFlag(b))
-                    {
-                        status = "Installed";
-                    }
+                    var status = browsers.HasFlag(b) ? "Installed" : "Not Installed";
                     lst.Add($"{b}: {status}");
                 }
             }
