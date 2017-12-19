@@ -68,25 +68,33 @@ namespace KeePassHttp.NativeMessaging
             return null;
         }
 
+        public Version GetLatestProxyVersion()
+        {
+            var web = new System.Net.WebClient();
+            var latestVersion = web.DownloadString($"{GithubRepo}/raw/master/version.txt");
+
+            if (Version.TryParse(latestVersion, out Version lv))
+            {
+                return lv;
+            }
+            return null;
+        }
+
         public bool UpdateProxy()
         {
             try
             {
-                var web = new System.Net.WebClient();
-                var latestVersion = web.DownloadString($"{GithubRepo}/raw/master/version.txt");
+                var latestVersion = GetLatestProxyVersion();
+                var exeVer = GetProxyVersion();
+                var newVersion = exeVer == null ? true : latestVersion > exeVer;
 
-                if (Version.TryParse(latestVersion, out Version lv))
+                if (newVersion)
                 {
-                    var exeVer = GetProxyVersion();
-                    var newVersion = exeVer == null ? true : lv > exeVer;
-
-                    if (newVersion)
-                    {
-                        web.DownloadFile($"{GithubRepo}/releases/download/v{latestVersion}/{ProxyExecutable}", ProxyPath);
-                    }
-
-                    return true;
+                    var web = new System.Net.WebClient();
+                    web.DownloadFile($"{GithubRepo}/releases/download/v{latestVersion}/{ProxyExecutable}", ProxyPath);
                 }
+
+                return true;
             }
             catch (Exception ex)
             {

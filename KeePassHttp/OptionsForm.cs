@@ -265,10 +265,17 @@ namespace KeePassHttp
                 }
             }
 
+            var latestVersion = _host.GetLatestProxyVersion();
             var proxyVersion = _host.GetProxyVersion();
             var proxyDisplay = proxyVersion == null ? "Not Installed" : proxyVersion.ToString();
+            var latestVersionDisplay = "(Up To Date)";
 
-            lst.Add($"Proxy: {proxyDisplay}");
+            if (proxyVersion != null && latestVersion != null && latestVersion > proxyVersion)
+            {
+                latestVersionDisplay = $"New Version Available: {latestVersion}";
+            }
+
+            lst.Add($"Proxy: {proxyDisplay} {latestVersionDisplay}");
 
             lblProxyVersion.Text = string.Join(Environment.NewLine, lst);
         }
