@@ -5,6 +5,16 @@ using System.Windows.Forms;
 
 namespace KeePassHttp.NativeMessaging
 {
+    [Flags]
+    public enum Browsers
+    {
+        None,
+        Chrome,
+        Chromium,
+        Firefox = 4,
+        Vivaldi = 8
+    }
+
     public abstract class NativeMessagingHost
     {
         protected const string NmhKey = "NativeMessagingHosts";
@@ -15,6 +25,21 @@ namespace KeePassHttp.NativeMessaging
         protected Encoding _utf8 = new UTF8Encoding(false);
 
         public Form ParentForm { get; set; }
+
+        public static NativeMessagingHost GetHost()
+        {
+            switch (Environment.OSVersion.Platform)
+            {
+                case PlatformID.Win32NT:
+                    return new WindowsHost();
+                case PlatformID.Unix:
+                    return new LinuxHost();
+                case PlatformID.MacOSX:
+                    return new MacOsxHost();
+                default:
+                    throw new PlatformNotSupportedException($"{Environment.OSVersion.Platform} is not a supported platform.");
+            }
+        }
 
         protected string GetJsonData(Browsers b)
         {
@@ -72,5 +97,6 @@ namespace KeePassHttp.NativeMessaging
 
         public abstract string ProxyPath { get; }
         public abstract void Install(Browsers browsers);
+        public abstract Browsers GetInstalledBrowsers();
     }
 }

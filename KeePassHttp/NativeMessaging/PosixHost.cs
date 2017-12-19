@@ -19,14 +19,34 @@ namespace KeePassHttp.NativeMessaging
             InstallPosix(browsers);
         }
 
+        public override Browsers GetInstalledBrowsers()
+        {
+            var browsers = Browsers.None;
+            var i = 0;
+
+            foreach (Browsers b in Enum.GetValues(typeof(Browsers)))
+            {
+                if (b != Browsers.None)
+                {
+                    var jsonFile = Path.Combine(_home, BrowserPaths[i], $"{ExtKey}.json");
+                    if (File.Exists(jsonFile))
+                    {
+                        browsers |= b;
+                    }
+                }
+                i++;
+            }
+
+            return browsers;
+        }
+
         protected void InstallPosix(Browsers browsers)
         {
-            var proxyPath = Path.Combine(_home, PosixProxyPath);
-            if (!Directory.Exists(proxyPath))
+            if (!Directory.Exists(ProxyPath))
             {
-                Directory.CreateDirectory(proxyPath);
+                Directory.CreateDirectory(ProxyPath);
             }
-            var monoScript = Path.Combine(proxyPath, "run-proxy.sh");
+            var monoScript = Path.Combine(ProxyPath, "run-proxy.sh");
             File.WriteAllText(monoScript, string.Format(PosixScript, ProxyExecutable), _utf8);
 
             Mono.Unix.Native.Syscall.stat(monoScript, out Mono.Unix.Native.Stat st);

@@ -73,7 +73,6 @@
     <Compile Include="NativeMessaging\LinuxHost.cs" />
     <Compile Include="NativeMessaging\MacOsxHost.cs" />
     <Compile Include="NativeMessaging\NativeMessagingHost.cs" />
-    <Compile Include="NativeMessaging\NativeMessagingInstaller.cs" />
     <Compile Include="NativeMessaging\PosixHost.cs" />
     <Compile Include="NativeMessaging\WindowsHost.cs" />
     <Compile Include="OptionsForm.cs">

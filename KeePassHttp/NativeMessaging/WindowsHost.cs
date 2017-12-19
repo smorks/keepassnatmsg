@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Windows.Forms;
 
@@ -18,7 +19,7 @@ namespace KeePassHttp.NativeMessaging
             {
                 if (b != Browsers.None && browsers.HasFlag(b))
                 {
-                    var key = Microsoft.Win32.Registry.CurrentUser.OpenSubKey(RegKeys[i], true);
+                    var key = Microsoft.Win32.Registry.CurrentUser.CreateSubKey(RegKeys[i]);
                     if (key != null)
                     {
                         var nmhKey = key.CreateSubKey($"{NmhKey}\\{ExtKey}");
@@ -32,6 +33,35 @@ namespace KeePassHttp.NativeMessaging
                 }
                 i++;
             }
+        }
+
+        public override Browsers GetInstalledBrowsers()
+        {
+            var browsers = Browsers.None;
+            var i = 0;
+            foreach (Browsers b in Enum.GetValues(typeof(Browsers)))
+            {
+                if (b != Browsers.None)
+                {
+                    var key = Microsoft.Win32.Registry.CurrentUser.OpenSubKey(RegKeys[i], false);
+                    if (key != null)
+                    {
+                        var nmhKey = key.OpenSubKey($"{NmhKey}\\{ExtKey}", false);
+                        if (nmhKey != null)
+                        {
+                            var jsonFile = (string)nmhKey.GetValue(string.Empty, string.Empty);
+                            if (!string.IsNullOrEmpty(jsonFile) && File.Exists(jsonFile))
+                            {
+                                browsers |= b;
+                            }
+                            nmhKey.Close();
+                        }
+                        key.Close();
+                    }
+                }
+                i++;
+            }
+            return browsers;
         }
 
         private void CreateRegKeyAndFile(Browsers b, Microsoft.Win32.RegistryKey key)

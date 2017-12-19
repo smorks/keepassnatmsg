@@ -1,10 +1,11 @@
-﻿using KeePassLib;
+﻿using KeePassHttp.NativeMessaging;
+using KeePassLib;
 using KeePassLib.Collections;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Windows.Forms;
 using System.Threading.Tasks;
+using System.Windows.Forms;
 
 namespace KeePassHttp
 {
@@ -12,7 +13,7 @@ namespace KeePassHttp
     {
         readonly ConfigOpt _config;
         private bool _restartRequired = false;
-        private NativeMessaging.NativeMessagingInstaller _nmi;
+        private NativeMessagingHost _host;
 
         public OptionsForm(ConfigOpt config)
         {
@@ -204,13 +205,14 @@ namespace KeePassHttp
 
         private void btnInstallNativeMessaging_Click(object sender, EventArgs e)
         {
-            var bsf = new NativeMessaging.BrowserSelectForm();
+            var bsf = new BrowserSelectForm();
 
             if (bsf.ShowDialog(this) == DialogResult.OK)
             {
                 var t = new Task(() =>
                 {
-                    _nmi.Install(bsf.SelectedBrowsers);
+                    _host.Install(bsf.SelectedBrowsers);
+                    _host.UpdateProxy();
                     GetNativeMessagingStatus();
                 });
                 t.Start();
@@ -219,7 +221,7 @@ namespace KeePassHttp
 
         private void CheckNativeMessagingHost()
         {
-            var t = new Task<bool>(() => _nmi.IsInstalled());
+            var t = new Task<bool>(() => _host.GetInstalledBrowsers() != NativeMessaging.Browsers.None);
             
             var t2 = t.ContinueWith((ti) =>
             {
@@ -228,10 +230,11 @@ namespace KeePassHttp
                     var nmiInstall = MessageBox.Show(this, $"The native messaging host was not detected. It must be installed for KeePassHttp to work. Do you want to install it now?", "Native Messaging Host Not Detected", MessageBoxButtons.YesNo, MessageBoxIcon.Question, MessageBoxDefaultButton.Button2);
                     if (nmiInstall == DialogResult.Yes)
                     {
-                        var bsf = new NativeMessaging.BrowserSelectForm();
+                        var bsf = new BrowserSelectForm();
                         if (bsf.ShowDialog(this) == DialogResult.OK)
                         {
-                            _nmi.Install(bsf.SelectedBrowsers);
+                            _host.Install(bsf.SelectedBrowsers);
+                            _host.UpdateProxy();
                         }
                     }
                 }
@@ -243,16 +246,35 @@ namespace KeePassHttp
 
         private void OptionsForm_Shown(object sender, EventArgs e)
         {
-            _nmi = new NativeMessaging.NativeMessagingInstaller(this);
+            _host = NativeMessagingHost.GetHost();
 
             CheckNativeMessagingHost();
         }
 
         private void GetNativeMessagingStatus()
         {
-            var proxyVersion = _nmi.GetProxyVersion();
+            var browsers = _host.GetInstalledBrowsers();
+            var lst = new List<string>();
+
+            foreach (Browsers b in Enum.GetValues(typeof(Browsers)))
+            {
+                if (b != Browsers.None)
+                {
+                    var status = "Not Installed";
+                    if (browsers.HasFlag(b))
+                    {
+                        status = "Installed";
+                    }
+                    lst.Add($"{b}: {status}");
+                }
+            }
+
+            var proxyVersion = _host.GetProxyVersion();
             var proxyDisplay = proxyVersion == null ? "Not Installed" : proxyVersion.ToString();
-            lblProxyVersion.Text = $"Proxy Version: {proxyDisplay}";
+
+            lst.Add($"Proxy: {proxyDisplay}");
+
+            lblProxyVersion.Text = string.Join(Environment.NewLine, lst);
         }
     }
 }
