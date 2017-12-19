@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 
 namespace KeePassHttp.NativeMessaging
@@ -19,25 +20,36 @@ namespace KeePassHttp.NativeMessaging
             InstallPosix(browsers);
         }
 
-        public override Browsers GetInstalledBrowsers()
+        public override Dictionary<Browsers, BrowserStatus> GetBrowserStatuses()
         {
-            var browsers = Browsers.None;
+            var statuses = new Dictionary<Browsers, BrowserStatus>();
             var i = 0;
 
             foreach (Browsers b in Enum.GetValues(typeof(Browsers)))
             {
                 if (b != Browsers.None)
                 {
+                    var status = BrowserStatus.NotInstalled;
                     var jsonFile = Path.Combine(_home, BrowserPaths[i], $"{ExtKey}.json");
+                    var jsonDir = Path.GetDirectoryName(jsonFile);
+                    var jsonDirInfo = new DirectoryInfo(jsonDir);
+                    var jsonParent = jsonDirInfo.Parent.FullName;
+
+                    if (Directory.Exists(jsonParent))
+                    {
+                        status = BrowserStatus.Detected;
+                    }
+
                     if (File.Exists(jsonFile))
                     {
-                        browsers |= b;
+                        status = BrowserStatus.Installed;
                     }
+                    statuses.Add(b, status);
                 }
                 i++;
             }
 
-            return browsers;
+            return statuses;
         }
 
         protected void InstallPosix(Browsers browsers)

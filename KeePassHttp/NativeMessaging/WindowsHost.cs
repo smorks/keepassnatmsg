@@ -35,33 +35,36 @@ namespace KeePassHttp.NativeMessaging
             }
         }
 
-        public override Browsers GetInstalledBrowsers()
+        public override Dictionary<Browsers, BrowserStatus> GetBrowserStatuses()
         {
-            var browsers = Browsers.None;
+            var statuses = new Dictionary<Browsers, BrowserStatus>();
             var i = 0;
             foreach (Browsers b in Enum.GetValues(typeof(Browsers)))
             {
                 if (b != Browsers.None)
                 {
+                    var status = BrowserStatus.NotInstalled;
                     var key = Microsoft.Win32.Registry.CurrentUser.OpenSubKey(RegKeys[i], false);
                     if (key != null)
                     {
+                        status = BrowserStatus.Detected;
                         var nmhKey = key.OpenSubKey($"{NmhKey}\\{ExtKey}", false);
                         if (nmhKey != null)
                         {
                             var jsonFile = (string)nmhKey.GetValue(string.Empty, string.Empty);
                             if (!string.IsNullOrEmpty(jsonFile) && File.Exists(jsonFile))
                             {
-                                browsers |= b;
+                                status = BrowserStatus.Installed;
                             }
                             nmhKey.Close();
                         }
                         key.Close();
                     }
+                    statuses.Add(b, status);
                 }
                 i++;
             }
-            return browsers;
+            return statuses;
         }
 
         private void CreateRegKeyAndFile(Browsers b, Microsoft.Win32.RegistryKey key)

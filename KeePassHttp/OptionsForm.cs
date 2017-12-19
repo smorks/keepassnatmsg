@@ -1,4 +1,5 @@
 ﻿using KeePassHttp.NativeMessaging;
+using KeePassHttp.Utils;
 using KeePassLib;
 using KeePassLib.Collections;
 using System;
@@ -221,7 +222,7 @@ namespace KeePassHttp
 
         private void CheckNativeMessagingHost()
         {
-            var t = new Task<bool>(() => _host.GetInstalledBrowsers() != NativeMessaging.Browsers.None);
+            var t = new Task<bool>(() => _host.GetBrowserStatuses().Any(bs => bs.Value == BrowserStatus.Installed));
             
             var t2 = t.ContinueWith((ti) =>
             {
@@ -253,16 +254,12 @@ namespace KeePassHttp
 
         private void GetNativeMessagingStatus()
         {
-            var browsers = _host.GetInstalledBrowsers();
+            var statuses = _host.GetBrowserStatuses();
             var lst = new List<string>();
 
-            foreach (Browsers b in Enum.GetValues(typeof(Browsers)))
+            foreach (var b in statuses.Keys)
             {
-                if (b != Browsers.None)
-                {
-                    var status = browsers.HasFlag(b) ? "Installed" : "Not Installed";
-                    lst.Add($"{b}: {status}");
-                }
+                lst.Add($"{b.GetDescription()}: {statuses[b].GetDescription()}");
             }
 
             var latestVersion = _host.GetLatestProxyVersion();

@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.ComponentModel;
 using System.IO;
 using System.Text;
 using System.Windows.Forms;
@@ -9,10 +11,19 @@ namespace KeePassHttp.NativeMessaging
     public enum Browsers
     {
         None,
+        [Description("Google Chrome")]
         Chrome,
         Chromium,
         Firefox = 4,
         Vivaldi = 8
+    }
+
+    public enum BrowserStatus
+    {
+        [Description("Not Installed")]
+        NotInstalled,
+        Detected,
+        Installed
     }
 
     public abstract class NativeMessagingHost
@@ -105,6 +116,6 @@ namespace KeePassHttp.NativeMessaging
 
         public abstract string ProxyPath { get; }
         public abstract void Install(Browsers browsers);
-        public abstract Browsers GetInstalledBrowsers();
+        public abstract Dictionary<Browsers, BrowserStatus> GetBrowserStatuses();
     }
 }
