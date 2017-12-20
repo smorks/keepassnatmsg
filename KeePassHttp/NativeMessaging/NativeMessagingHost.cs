@@ -36,6 +36,7 @@ namespace KeePassHttp.NativeMessaging
         protected Encoding _utf8 = new UTF8Encoding(false);
 
         public Form ParentForm { get; set; }
+        public string ProxyExePath => Path.Combine(ProxyPath, ProxyExecutable);
 
         public static NativeMessagingHost GetHost()
         {
@@ -68,9 +69,9 @@ namespace KeePassHttp.NativeMessaging
 
         public Version GetProxyVersion()
         {
-            if (File.Exists(ProxyPath))
+            if (File.Exists(ProxyExePath))
             {
-                var fvi = System.Diagnostics.FileVersionInfo.GetVersionInfo(ProxyPath);
+                var fvi = System.Diagnostics.FileVersionInfo.GetVersionInfo(ProxyExePath);
                 if (Version.TryParse(fvi.FileVersion, out Version exeVer))
                 {
                     return exeVer;
@@ -102,7 +103,7 @@ namespace KeePassHttp.NativeMessaging
                 if (newVersion)
                 {
                     var web = new System.Net.WebClient();
-                    web.DownloadFile($"{GithubRepo}/releases/download/v{latestVersion}/{ProxyExecutable}", ProxyPath);
+                    web.DownloadFile($"{GithubRepo}/releases/download/v{latestVersion}/{ProxyExecutable}", ProxyExePath);
                 }
 
                 return true;

@@ -7,10 +7,9 @@ namespace KeePassHttp.NativeMessaging
 {
     public class WindowsHost : NativeMessagingHost
     {
-        private string KphAppData => Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "KeePassHttp");
         private string[] RegKeys = new[] { string.Empty, "Software\\Google\\Chrome", "Software\\Chromium", "Software\\Mozilla", "Software\\Vivaldi" };
 
-        public override string ProxyPath => Path.Combine(KphAppData, ProxyExecutable);
+        public override string ProxyPath => Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "KeePassHttp");
 
         public override void Install(Browsers browsers)
         {
@@ -71,11 +70,11 @@ namespace KeePassHttp.NativeMessaging
         {
             try
             {
-                var jsonFile = Path.Combine(KphAppData, $"kph_nmh_{b.ToString().ToLower()}.json");
+                var jsonFile = Path.Combine(ProxyPath, $"kph_nmh_{b.ToString().ToLower()}.json");
                 key.SetValue(string.Empty, jsonFile, Microsoft.Win32.RegistryValueKind.String);
-                if (!Directory.Exists(KphAppData))
+                if (!Directory.Exists(ProxyPath))
                 {
-                    Directory.CreateDirectory(KphAppData);
+                    Directory.CreateDirectory(ProxyPath);
                 }
                 File.WriteAllText(jsonFile, string.Format(GetJsonData(b), ProxyExecutable), _utf8);
             }
