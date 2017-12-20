@@ -215,6 +215,7 @@ namespace KeePassHttp
                     _host.Install(bsf.SelectedBrowsers);
                     _host.UpdateProxy();
                     GetNativeMessagingStatus();
+                    MessageBox.Show(this, "The native messaging host installed completed successfully.", "Install Complete", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 });
                 t.Start();
             }
@@ -236,6 +237,7 @@ namespace KeePassHttp
                         {
                             _host.Install(bsf.SelectedBrowsers);
                             _host.UpdateProxy();
+                            MessageBox.Show(this, "The native messaging host installed completed successfully.", "Install Complete", MessageBoxButtons.OK, MessageBoxIcon.Information);
                         }
                     }
                 }
