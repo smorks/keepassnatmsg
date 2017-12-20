@@ -115,6 +115,7 @@
             this.Name = "BrowserSelectForm";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
             this.Text = "Select Browsers";
+            this.Load += new System.EventHandler(this.BrowserSelectForm_Load);
             this.ResumeLayout(false);
             this.PerformLayout();
 

@@ -206,7 +206,7 @@ namespace KeePassHttp
 
         private void btnInstallNativeMessaging_Click(object sender, EventArgs e)
         {
-            var bsf = new BrowserSelectForm();
+            var bsf = new BrowserSelectForm(_host);
 
             if (bsf.ShowDialog(this) == DialogResult.OK)
             {
@@ -231,7 +231,7 @@ namespace KeePassHttp
                     var nmiInstall = MessageBox.Show(this, $"The native messaging host was not detected. It must be installed for KeePassHttp to work. Do you want to install it now?", "Native Messaging Host Not Detected", MessageBoxButtons.YesNo, MessageBoxIcon.Question, MessageBoxDefaultButton.Button2);
                     if (nmiInstall == DialogResult.Yes)
                     {
-                        var bsf = new BrowserSelectForm();
+                        var bsf = new BrowserSelectForm(_host);
                         if (bsf.ShowDialog(this) == DialogResult.OK)
                         {
                             _host.Install(bsf.SelectedBrowsers);
@@ -241,6 +241,8 @@ namespace KeePassHttp
                 }
                 GetNativeMessagingStatus();
             });
+
+            lblProxyVersion.Text = "Loading Native Messaging Status...";
 
             t.Start();
         }
