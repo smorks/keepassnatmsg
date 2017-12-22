@@ -272,17 +272,13 @@ namespace KeePassNatMsg
 
             if (proxyVersion != null && latestVersion != null)
             {
-                if (latestVersion == proxyVersion)
-                {
-                    latestVersionDisplay = " (Up To Date)";
-                }
-                else if (latestVersion > proxyVersion)
+                if (latestVersion > proxyVersion)
                 {
                     latestVersionDisplay = $" New Version Available: {latestVersion}";
                 }
                 else
                 {
-                    latestVersionDisplay = $" Older Version Available: {latestVersion}";
+                    latestVersionDisplay = " (Up To Date)";
                 }
             }
 
