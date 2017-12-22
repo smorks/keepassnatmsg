@@ -1,9 +1,10 @@
 # KeePassNatMsg
 
-is a plugin for KeePass 2.x and provides a secure means of exposing KeePass credentials to a browser via [Native Messaging](https://developer.mozilla.org/en-US/Add-ons/WebExtensions/Native_messaging) for clients to
-consume.
+is a plugin for KeePass 2.x and provides a secure means of exposing KeePass credentials to a browser via [Native Messaging](https://developer.mozilla.org/en-US/Add-ons/WebExtensions/Native_messaging).
 
-This plugin is primarily intended for use with [keepassxc-browser](https://github.com/varjolintu/keepassxc-browser).
+It is based on [KeePassHttp](https://github.com/pfn/keepasshttp).
+
+This plugin is primarily intended for use with the [keepassxc-browser](https://github.com/varjolintu/keepassxc-browser) browser extension.
 
 ## Features
  * returns all matching entries for a given URL
@@ -97,7 +98,7 @@ This is already implemented directly in KeePass.
 
 __First:__ If an error occures it will be shown as notification in system tray or as message box in KeePass.
 
-Otherwise please check if it could be an error of the client you are using. For passIFox and chromeIPass you can [report an error here](https://github.com/varjolintu/keepassxc-browser/issues/).
+Otherwise please check if it could be an error of the client you are using. For keepassxc-browser issues you can [report an error here](https://github.com/varjolintu/keepassxc-browser/issues/).
 
 
 If you are having problems with KeePassNatMsg, please tell us at least the following information:
