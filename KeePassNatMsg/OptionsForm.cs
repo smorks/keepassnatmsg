@@ -268,14 +268,25 @@ namespace KeePassNatMsg
             var latestVersion = _host.GetLatestProxyVersion();
             var proxyVersion = _host.GetProxyVersion();
             var proxyDisplay = proxyVersion == null ? "Not Installed" : proxyVersion.ToString();
-            var latestVersionDisplay = "(Up To Date)";
+            var latestVersionDisplay = string.Empty;
 
-            if (proxyVersion != null && latestVersion != null && latestVersion > proxyVersion)
+            if (proxyVersion != null && latestVersion != null)
             {
-                latestVersionDisplay = $"New Version Available: {latestVersion}";
+                if (latestVersion == proxyVersion)
+                {
+                    latestVersionDisplay = " (Up To Date)";
+                }
+                else if (latestVersion > proxyVersion)
+                {
+                    latestVersionDisplay = $" New Version Available: {latestVersion}";
+                }
+                else
+                {
+                    latestVersionDisplay = $" Older Version Available: {latestVersion}";
+                }
             }
 
-            lst.Add($"Proxy: {proxyDisplay} {latestVersionDisplay}");
+            lst.Add($"Proxy: {proxyDisplay}{latestVersionDisplay}");
 
             lblProxyVersion.Text = string.Join(Environment.NewLine, lst);
         }

@@ -70,7 +70,7 @@ namespace KeePassNatMsg.NativeMessaging
         {
             try
             {
-                var jsonFile = Path.Combine(ProxyPath, $"kph_nmh_{b.ToString().ToLower()}.json");
+                var jsonFile = Path.Combine(ProxyPath, $"kpnm_{b.ToString().ToLower()}.json");
                 key.SetValue(string.Empty, jsonFile, Microsoft.Win32.RegistryValueKind.String);
                 if (!Directory.Exists(ProxyPath))
                 {
