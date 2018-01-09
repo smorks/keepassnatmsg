@@ -29,7 +29,7 @@ namespace KeePassNatMsg.NativeMessaging
     public abstract class NativeMessagingHost
     {
         protected const string NmhKey = "NativeMessagingHosts";
-        protected const string ExtKey = "com.varjolintu.keepassxc_browser";
+        protected const string ExtKey = "org.keepassxc.keepassxc_browser";
         protected const string ProxyExecutable = "keepassnatmsg-proxy.exe";
         private const string GithubRepo = "https://github.com/smorks/keepassnatmsg-proxy";
 

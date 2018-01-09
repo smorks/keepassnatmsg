@@ -119,13 +119,14 @@
   </resheader>
   <data name="chrome_win" xml:space="preserve">
     <value>{{
-  "name": "com.varjolintu.keepassxc_browser",
+  "name": "org.keepassxc.keepassxc_browser",
   "description": "KeepassXC integration with Native Messaging support",
   "path" : "{0}",
   "type": "stdio",
   "allowed_origins": [
     "chrome-extension://iopaggbpplllidnfmcghoonnokmjoicf/",
-    "chrome-extension://fhakpkpdnjecjfceboihdjpfmgajebii/"
+    "chrome-extension://fhakpkpdnjecjfceboihdjpfmgajebii/",
+    "chrome-extension://jaikbblhommnkeialomogohhdlndpfbi/"
   ]
 }}</value>
   </data>
@@ -135,12 +136,12 @@
   </data>
   <data name="firefox_win" xml:space="preserve">
     <value>{{
-  "name": "com.varjolintu.keepassxc_browser",
+  "name": "org.keepassxc.keepassxc_browser",
   "description": "KeepassXC integration with Firefox with Native Messaging support",
   "path" : "{0}",
   "type": "stdio",
   "allowed_extensions": [
-    "keepassxc-browser@sami.vanttinen"
+    "keepassxc-browser@keepassxc.org"
   ]
 }}</value>
   </data>

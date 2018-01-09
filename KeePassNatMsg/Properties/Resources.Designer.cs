@@ -62,13 +62,14 @@ namespace KeePassNatMsg.Properties {
         
         /// <summary>
         ///   Looks up a localized string similar to {{
-        ///  &quot;name&quot;: &quot;com.varjolintu.keepassxc_browser&quot;,
+        ///  &quot;name&quot;: &quot;org.keepassxc.keepassxc_browser&quot;,
         ///  &quot;description&quot;: &quot;KeepassXC integration with Native Messaging support&quot;,
         ///  &quot;path&quot; : &quot;{0}&quot;,
         ///  &quot;type&quot;: &quot;stdio&quot;,
         ///  &quot;allowed_origins&quot;: [
         ///    &quot;chrome-extension://iopaggbpplllidnfmcghoonnokmjoicf/&quot;,
-        ///    &quot;chrome-extension://fhakpkpdnjecjfceboihdjpfmgajebii/&quot;
+        ///    &quot;chrome-extension://fhakpkpdnjecjfceboihdjpfmgajebii/&quot;,
+        ///    &quot;chrome-extension://jaikbblhommnkeialomogohhdlndpfbi/&quot;
         ///  ]
         ///}}.
         /// </summary>
@@ -90,12 +91,12 @@ namespace KeePassNatMsg.Properties {
         
         /// <summary>
         ///   Looks up a localized string similar to {{
-        ///  &quot;name&quot;: &quot;com.varjolintu.keepassxc_browser&quot;,
+        ///  &quot;name&quot;: &quot;org.keepassxc.keepassxc_browser&quot;,
         ///  &quot;description&quot;: &quot;KeepassXC integration with Firefox with Native Messaging support&quot;,
         ///  &quot;path&quot; : &quot;{0}&quot;,
         ///  &quot;type&quot;: &quot;stdio&quot;,
         ///  &quot;allowed_extensions&quot;: [
-        ///    &quot;keepassxc-browser@sami.vanttinen&quot;
+        ///    &quot;keepassxc-browser@keepassxc.org&quot;
         ///  ]
         ///}}.
         /// </summary>
