@@ -42,6 +42,23 @@ namespace KeePassNatMsg.Protocol
             var handler = GetHandler(req.Action);
             if (handler != null)
             {
+                if (handler != ChangePublicKeys)
+                {
+                    var config = new ConfigOpt(_host.CustomConfig);
+                    if (!_host.Database.IsOpen && config.UnlockDatabaseRequest)
+                    {
+                        _host.MainWindow.Invoke(new System.Action(() => _host.MainWindow.EnsureVisibleForegroundWindow(true, true)));
+                        if (KeePass.UI.GlobalWindowManager.WindowCount == 0)
+                        {
+                            _host.MainWindow.Invoke(new System.Action(() => _host.MainWindow.OpenDatabase(_host.MainWindow.DocumentManager.ActiveDocument.LockedIoc, null, false)));
+                        }
+                    }
+                    if (!_host.Database.IsOpen)
+                    {
+                        return new ErrorResponse(req, ErrorType.DatabaseNotOpened);
+                    }
+                }
+
                 return handler.Invoke(req);
             }
             return new ErrorResponse(req, ErrorType.IncorrectAction);
