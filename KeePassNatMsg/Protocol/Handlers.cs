@@ -182,7 +182,8 @@ namespace KeePassNatMsg.Protocol
 
         private Response LockDatabase(Request req)
         {
-            _host.MainWindow.LockAllDocuments();
+
+            _host.MainWindow.Invoke(new System.Action(() => _host.MainWindow.LockAllDocuments()));
             return req.GetResponse();
         }
     }
