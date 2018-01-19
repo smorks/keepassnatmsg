@@ -13,6 +13,7 @@ namespace KeePassNatMsg.Protocol
         private KeePassNatMsgExt _ext;
         private Dictionary<string, RequestHandler> _handlers;
         private IPluginHost _host;
+        private object _unlockLock;
 
         public delegate Response RequestHandler(Request req);
 
@@ -20,6 +21,7 @@ namespace KeePassNatMsg.Protocol
         {
             _ext = KeePassNatMsgExt.ExtInstance;
             _host = KeePassNatMsgExt.HostInstance;
+            _unlockLock = new object();
         }
 
         public void Initialize()
@@ -44,18 +46,20 @@ namespace KeePassNatMsg.Protocol
             {
                 if (handler != ChangePublicKeys)
                 {
-                    var config = new ConfigOpt(_host.CustomConfig);
-                    if (!_host.Database.IsOpen && config.UnlockDatabaseRequest)
+                    lock (_unlockLock)
                     {
-                        _host.MainWindow.Invoke(new System.Action(() => _host.MainWindow.EnsureVisibleForegroundWindow(true, true)));
-                        if (KeePass.UI.GlobalWindowManager.WindowCount == 0)
+                        var config = new ConfigOpt(_host.CustomConfig);
+                        if (!_host.Database.IsOpen && config.UnlockDatabaseRequest)
                         {
-                            _host.MainWindow.Invoke(new System.Action(() => _host.MainWindow.OpenDatabase(_host.MainWindow.DocumentManager.ActiveDocument.LockedIoc, null, false)));
+                            if (KeePass.UI.GlobalWindowManager.WindowCount == 0)
+                            {
+                                _host.MainWindow.Invoke(new System.Action(() => _host.MainWindow.OpenDatabase(_host.MainWindow.DocumentManager.ActiveDocument.LockedIoc, null, false)));
+                            }
                         }
-                    }
-                    if (!_host.Database.IsOpen)
-                    {
-                        return new ErrorResponse(req, ErrorType.DatabaseNotOpened);
+                        if (!_host.Database.IsOpen)
+                        {
+                            return new ErrorResponse(req, ErrorType.DatabaseNotOpened);
+                        }
                     }
                 }
 
