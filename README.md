@@ -4,7 +4,7 @@ is a plugin for KeePass 2.x and provides a secure means of exposing KeePass cred
 
 It is based on [KeePassHttp](https://github.com/pfn/keepasshttp).
 
-This plugin is primarily intended for use with the [keepassxc-browser](https://github.com/varjolintu/keepassxc-browser) browser extension.
+This plugin is primarily intended for use with the [keepassxc-browser](https://github.com/keepassxreboot/keepassxc-browser) browser extension.
 
 ## Features
  * returns all matching entries for a given URL
