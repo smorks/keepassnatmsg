@@ -38,6 +38,12 @@ namespace KeePassNatMsg.NativeMessaging
         public Form ParentForm { get; set; }
         public string ProxyExePath => Path.Combine(ProxyPath, ProxyExecutable);
 
+        protected NativeMessagingHost()
+        {
+            // enable TLS 1.2
+            System.Net.ServicePointManager.SecurityProtocol = (System.Net.SecurityProtocolType)3072;
+        }
+
         public static NativeMessagingHost GetHost()
         {
             switch (Environment.OSVersion.Platform)
