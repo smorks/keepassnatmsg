@@ -14,6 +14,7 @@ namespace KeePassNatMsg.Protocol.Listener
         private Socket _socket;
         private bool _active;
         private Thread _t;
+        private CancellationTokenSource _cts;
 
         public event EventHandler<PipeMessageReceivedEventArgs> MessageReceived;
 
@@ -26,6 +27,7 @@ namespace KeePassNatMsg.Protocol.Listener
                 path = System.IO.Path.Combine(xdg, SocketName);
             }
             _uep = new UnixEndPoint(path);
+            _cts = new CancellationTokenSource();
         }
 
         public void Start()
@@ -38,6 +40,7 @@ namespace KeePassNatMsg.Protocol.Listener
         public void Stop()
         {
             _active = false;
+            _cts.Cancel();
             _socket.Close();
             _t.Join();
             DeleteSocketFile();
@@ -45,6 +48,8 @@ namespace KeePassNatMsg.Protocol.Listener
 
         private void RunThread()
         {
+            DeleteSocketFile();
+
             _socket = new Socket(AddressFamily.Unix, SocketType.Stream, ProtocolType.IP);
             _socket.Bind(_uep);
             _socket.Listen(5);
@@ -53,7 +58,8 @@ namespace KeePassNatMsg.Protocol.Listener
             {
                 try
                 {
-                    ReadLoop(_socket.Accept());
+                    var ar = _socket.BeginAccept(SocketAccept, null);
+                    ar.AsyncWaitHandle.WaitOne();
                 }
                 catch (Exception ex)
                 {
@@ -62,25 +68,53 @@ namespace KeePassNatMsg.Protocol.Listener
             }
         }
 
-        private void ReadLoop(Socket s)
+        private void SocketAccept(IAsyncResult r)
         {
-            var buffer = new byte[1024 * 16];
-            var read = true;
-
-            while (_active && s.Connected && read)
+            if (r.IsCompleted && _active)
             {
-                var bytes = s.Receive(buffer);
+                var s = _socket.EndAccept(r);
+                var buffer = new byte[1024 * 16];
+                var read = true;
+
+                while (_active && s.Connected && read)
+                {
+                    var srs = new SocketReadState
+                    {
+                        Socket = s,
+                        Data = buffer
+                    };
+                    var ar = s.BeginReceive(buffer, 0, buffer.Length, SocketFlags.None, SocketRead, srs);
+                    try
+                    {
+                        srs.WaitHandle.Wait(_cts.Token);
+                        read = srs.Active;
+                    }
+                    catch (OperationCanceledException)
+                    {
+                        read = false;
+                    }
+                }
+            }
+        }
+
+        private void SocketRead(IAsyncResult r)
+        {
+            var srs = r.AsyncState as SocketReadState;
+            if (r.IsCompleted)
+            {
+                var bytes = srs.Socket.EndReceive(r);
                 if (bytes > 0)
                 {
                     var data = new byte[bytes];
-                    Array.Copy(buffer, data, bytes);
-                    MessageReceived?.BeginInvoke(this, new PipeMessageReceivedEventArgs(new SocketWriter(s), data), null, null);
+                    Array.Copy(srs.Data, data, bytes);
+                    MessageReceived?.BeginInvoke(this, new PipeMessageReceivedEventArgs(new SocketWriter(srs.Socket), data), null, null);
                 }
                 else if (bytes == 0)
                 {
-                    read = false;
+                    srs.Active = false;
                 }
             }
+            srs.WaitHandle.Set();
         }
 
         private void DeleteSocketFile()
