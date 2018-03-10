@@ -6,6 +6,7 @@ namespace KeePassNatMsg.Protocol.Action
     public class Response : JsonBase
     {
         private JsonBase _msg;
+        private string _clientId;
 
         public Response(Request req, bool createMessage)
         {
@@ -25,7 +26,7 @@ namespace KeePassNatMsg.Protocol.Action
         {
             if (_msg != null)
             {
-                AddBytes("message", KeePassNatMsgExt.CryptoHelper.EncryptMessage(_msg.ToString(), Nonce));
+                AddBytes("message", KeePassNatMsgExt.CryptoHelper.EncryptMessage(_clientId, _msg.ToString(), Nonce));
             }
             return ToString();
         }
@@ -35,6 +36,7 @@ namespace KeePassNatMsg.Protocol.Action
             Add("action", new JValue(req.Action));
             AddBytes("nonce", Helper.GenerateNonce(req.NonceBytes));
             if (createMessage) CreateMessage();
+            _clientId = req.ClientId;
         }
 
         private void CreateMessage()

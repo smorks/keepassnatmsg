@@ -111,7 +111,7 @@ namespace KeePassNatMsg.Protocol
             {
                 var msg = req.Message;
                 var keyBytes = msg.GetBytes("key");
-                if (keyBytes.SequenceEqual(KeePassNatMsgExt.CryptoHelper.ClientPublicKey))
+                if (keyBytes.SequenceEqual(KeePassNatMsgExt.CryptoHelper.ClientPublicKey(req.ClientId)))
                 {
                     var id = _ext.ShowConfirmAssociationDialog(msg.GetString("key"));
                     var resp = req.GetResponse();
@@ -135,10 +135,9 @@ namespace KeePassNatMsg.Protocol
             if (string.IsNullOrEmpty(publicKey))
                 return new ErrorResponse(req, ErrorType.ClientPublicKeyNotReceived);
 
-            crypto.ClientPublicKey = Convert.FromBase64String(publicKey);
-            var pair = crypto.GenerateKeyPair();
+            var serverPublicKey = crypto.GenerateKeyPair(req.ClientId, Convert.FromBase64String(publicKey));
             var resp = req.GetResponse(false);
-            resp.AddBytes("publicKey", pair.PublicKey);
+            resp.AddBytes("publicKey", serverPublicKey);
             resp.Add("version", KeePassNatMsgExt.GetVersion());
             resp.Add("success", "true");
             return resp;

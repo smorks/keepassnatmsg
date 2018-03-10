@@ -25,6 +25,8 @@ namespace KeePassNatMsg.Protocol.Action
             return new Request((JObject)ReadFrom(rdr));
         }
 
+        public string ClientId => GetString("clientID");
+
         public string Action => GetString("action");
 
         public string Nonce => GetString("nonce");
@@ -41,7 +43,7 @@ namespace KeePassNatMsg.Protocol.Action
         {
             try
             {
-                _msg = KeePassNatMsgExt.CryptoHelper.DecryptMessage(GetBytes("message"), GetBytes("nonce"));
+                _msg = KeePassNatMsgExt.CryptoHelper.DecryptMessage(ClientId, GetBytes("message"), GetBytes("nonce"));
                 return true;
             }
             catch (Exception)
