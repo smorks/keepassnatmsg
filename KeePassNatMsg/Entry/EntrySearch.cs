@@ -167,14 +167,14 @@ namespace KeePassNatMsg.Entry
                     var fields = GetFields(configOpt, item);
                     if (fields != null)
                     {
-                        fldArr = new JArray(fields.Select(f => new JObject { f.Key, f.Value }));
+                        fldArr = new JArray(fields.Select(f => new JObject { { f.Key, f.Value } }));
                     }
                     return new JObject {
                         { "name", item.entry.Strings.ReadSafe(PwDefs.TitleField) },
                         { "login", up[0] },
                         { "password", up[1] },
                         { "uuid", item.entry.Uuid.ToHexString() },
-                        { "fields", fldArr }
+                        { "stringFields", fldArr }
                     };
                 }));
 
