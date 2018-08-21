@@ -45,7 +45,7 @@ namespace KeePassNatMsg
 
         private IListener _listener;
 
-        public override string UpdateUrl => "https://raw.githubusercontent.com/smorks/keepassnatmsg/master/latest-version.txt";
+        public override string UpdateUrl => "https://dev.brandt.tech/keepass-plugin.txt";
 
         private Handlers _handlers;
 
