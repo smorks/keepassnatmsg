@@ -52,11 +52,11 @@ KeePassNatMsg works out-of-the-box. You don't have to explicitly configure it.
 
 You can open the options dialog with menu: Tools > KeePassNatMsg Options
 
-![KeePassNatMsg Options Menu](https://raw.github.com/smorks/KeePassNatMsg/master/documentation/images/menu.png)
+![KeePassNatMsg Options Menu](documentation/images/menu.png)
 
 The options dialog will appear:
 
-![KeePassNatMsg Options Dialog](https://raw.github.com/smorks/KeePassNatMsg/master/documentation/images/options-general.png)
+![KeePassNatMsg Options Dialog](documentation/images/options-general.png)
 
 General tab
 
@@ -73,7 +73,7 @@ General tab
 9. Shows the status of the Native Messaging Host installations for the supported browsers, and the current Proxy version.
 10. Installs or Updates the Native Messaging Host, and updates the Proxy if an update is available.
 
-![KeePassNatMsg Options Advanced](https://raw.github.com/smorks/KeePassNatMsg/master/documentation/images/options-advanced.png)
+![KeePassNatMsg Options Advanced](documentation/images/options-advanced.png)
 
 Advanced tab
 
