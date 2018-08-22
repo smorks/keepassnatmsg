@@ -64,7 +64,7 @@ General tab
 2. returns only the best matching entries for the given url, otherwise all entries for a domain are send.
   - e.g. of two entries with the URLs http://example.org and http://example.org/, only the second one will returned if the requested URL is http://example.org/index.html
 3. if the active database in KeePass is locked, KeePassNatMsg sends a request to unlock the database. Now KeePass opens and the user has to enter the master password to unlock the database. Otherwise KeePassNatMsg tells the inquirer that the database is closed.
-4. expired entries are not ignored if enabled.
+4. expired entries are ignored if enabled.
 5. KeePassNatMsg returns only these entries which match the scheme of the given URL.
   - given URL: https://example.org --> scheme: https:// --> only entries whose URL starts with https://
 6. sort found entries by username or title.
