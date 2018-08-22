@@ -52,11 +52,11 @@ KeePassNatMsg works out-of-the-box. You don't have to explicitly configure it.
 
 You can open the options dialog with menu: Tools > KeePassNatMsg Options
 
-[<img src="https://raw.github.com/smorks/KeePassNatMsg/master/documentation/images/menu.jpg" alt="menu" width="300px" />](https://raw.github.com/smorks/KeePassNatMsg/master/documentation/images/menu.jpg)
+![KeePassNatMsg Options Menu](https://raw.github.com/smorks/KeePassNatMsg/master/documentation/images/menu.png)
 
 The options dialog will appear:
 
-[<img src="https://raw.github.com/smorks/KeePassNatMsg/master/documentation/images/options-general.png" alt="options-general" width="300px" />](https://raw.github.com/smorks/KeePassNatMsg/master/documentation/images/options-general.png)
+![KeePassNatMsg Options Dialog](https://raw.github.com/smorks/KeePassNatMsg/master/documentation/images/options-general.png)
 
 General tab
 
@@ -64,21 +64,24 @@ General tab
 2. returns only the best matching entries for the given url, otherwise all entries for a domain are send.
   - e.g. of two entries with the URLs http://example.org and http://example.org/, only the second one will returned if the requested URL is http://example.org/index.html
 3. if the active database in KeePass is locked, KeePassNatMsg sends a request to unlock the database. Now KeePass opens and the user has to enter the master password to unlock the database. Otherwise KeePassNatMsg tells the inquirer that the database is closed.
-4. KeePassNatMsg returns only these entries which match the scheme of the given URL.
+4. expired entries are not ignored if enabled.
+5. KeePassNatMsg returns only these entries which match the scheme of the given URL.
   - given URL: https://example.org --> scheme: https:// --> only entries whose URL starts with https://
-5. sort found entries by username or title.
-6. removes all shared encryption-keys which are stored in the currently selected database. Every inquirer has to reauthenticate.
-7. removes all stored permissions in the entries of the currently selected database.
+6. sort found entries by username or title.
+7. removes all shared encryption-keys which are stored in the currently selected database. Every inquirer has to reauthenticate.
+8. removes all stored permissions in the entries of the currently selected database.
+9. Shows the status of the Native Messaging Host installations for the supported browsers, and the current Proxy version.
+10. Installs or Updates the Native Messaging Host, and updates the Proxy if an update is available.
 
-[<img src="https://raw.github.com/smorks/KeePassNatMsg/master/documentation/images/options-advanced.png" alt="options-advanced" width="300px" />](https://raw.github.com/smorks/KeePassNatMsg/master/documentation/images/options-advanced.png)
+![KeePassNatMsg Options Advanced](https://raw.github.com/smorks/KeePassNatMsg/master/documentation/images/options-advanced.png)
 
 Advanced tab
 
-8. KeePassNatMsg no longer asks for permissions to retrieve entries, it always allows access.
-9. KeePassNatMsg no longer asks for permission to update an entry, it always allows updating them.
-10. Searching for entries is no longer restricted to the current active database in KeePass but is extended to all opened databases!
+11. KeePassNatMsg no longer asks for permissions to retrieve entries, it always allows access.
+12. KeePassNatMsg no longer asks for permission to update an entry, it always allows updating them.
+13. Searching for entries is no longer restricted to the current active database in KeePass but is extended to all opened databases!
   - __Important:__ Even if another database is not connected with the inquirer, KeePassNatMsg will search and retrieve entries of all opened databases if the active one is connected to KeePassNatMsg!
-11. if activated KeePassNatMsg also search for string fields which are defined in the found entries and start with "KPH: " (note the space after colon). __The string fields will be transfered to the client in alphabetical order__. You can set string fields in the tab _Advanced_ of an entry.  
+14. if activated KeePassNatMsg also search for string fields which are defined in the found entries and start with "KPH: " (note the space after colon). __The string fields will be transfered to the client in alphabetical order__. You can set string fields in the tab _Advanced_ of an entry.  
 [<img src="https://raw.github.com/smorks/KeePassNatMsg/master/documentation/images/advanced-string-fields.png" alt="advanced tab of an entry" width="300px" />](https://raw.github.com/smorks/KeePassNatMsg/master/documentation/images/advanced-string-fields.png)
 
 ## Tips and Tricks
