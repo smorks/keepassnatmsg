@@ -135,4 +135,4 @@ __Result:__ second entry is returned
 
 ## Protocol
 
-View [detailed protocol information](https://github.com/varjolintu/keepassxc-browser/blob/master/keepassxc-protocol.md).
+View [detailed protocol information](https://github.com/keepassxreboot/keepassxc-browser/blob/develop/keepassxc-protocol.md).
