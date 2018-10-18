@@ -113,7 +113,7 @@ namespace KeePassNatMsg.Protocol
                 var keyBytes = msg.GetBytes("key");
                 if (keyBytes.SequenceEqual(KeePassNatMsgExt.CryptoHelper.ClientPublicKey(req.ClientId)))
                 {
-                    var id = _ext.ShowConfirmAssociationDialog(msg.GetString("key"));
+                    var id = _ext.ShowConfirmAssociationDialog(msg.GetString("idKey"));
                     var resp = req.GetResponse();
                     resp.Message.Add("id", id);
                     return resp;
