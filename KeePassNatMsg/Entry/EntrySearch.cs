@@ -255,7 +255,14 @@ namespace KeePassNatMsg.Entry
                     // follow references
                     sfValue = SprEngine.Compile(sfValue, ctx);
 
-                    if (configOpt.ReturnStringFieldsWithKphOnly)
+                    // KeeOtp support through keepassxc-browser
+                    // KeeOtp stores the TOTP config in a string field "otp" and provides a placeholder "{TOTP}"
+                    // keepassxc-browser needs the value in a string field named "KPH: {TOTP}"
+                    if (sf.Key == "otp")
+                    {
+                        fields.Add(new KeyValuePair<string, string>("KPH: {TOTP}", SprEngine.Compile("{TOTP}", ctx)));
+                    }
+                    else if (configOpt.ReturnStringFieldsWithKphOnly)
                     {
                         if (sf.Key.StartsWith("KPH: "))
                         {
@@ -266,14 +273,6 @@ namespace KeePassNatMsg.Entry
                     {
                         fields.Add(new KeyValuePair<string, string>(sf.Key, sfValue));
                     }
-                }
-
-                // KeeOtp support through keepassxc-browser
-                // KeeOtp stores the TOTP config in a string field "otp" and provides a placeholder "{TOTP}"
-                // keepassxc-browser needs the value in a string field named "KPH: {TOTP}"
-                if (fields.Exists(p => p.Key == "otp"))
-                {
-                    fields.Add(new KeyValuePair<string, string>("KPH: {TOTP}", SprEngine.Compile("{TOTP}", ctx)));
                 }
 
                 if (fields.Count > 0)
