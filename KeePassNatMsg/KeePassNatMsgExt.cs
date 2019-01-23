@@ -43,6 +43,8 @@ namespace KeePassNatMsg
         public const string AssociateKeyPrefix = "Public Key: ";
         private const string PipeName = "kpxc_server";
 
+        private static readonly Version KeePassXcVersion = new Version(2, 3, 4);
+
         private IListener _listener;
 
         public override string UpdateUrl => "https://dev.brandt.tech/keepass-plugin.txt";
@@ -378,6 +380,6 @@ namespace KeePassNatMsg
             return null;
         }
 
-        public static string GetVersion() => typeof(KeePassNatMsgExt).Assembly.GetName().Version.ToString();
+        public static string GetVersion() => KeePassXcVersion.ToString();
     }
 }
