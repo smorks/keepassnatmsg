@@ -380,15 +380,13 @@ namespace KeePassNatMsg.Entry
 
                 if (entryUrl != null)
                 {
-                    var entryUri = new Uri(entryUrl);
-                    if (entryUri.Scheme == hostUri.Scheme)
+                    if (Uri.TryCreate(entryUrl, UriKind.Absolute, out var entryUri) && entryUri.Scheme == hostUri.Scheme)
                     {
                         return true;
                     }
                 }
 
-                var titleUri = new Uri(title);
-                if (titleUri.Scheme == hostUri.Scheme)
+                if (Uri.TryCreate(title, UriKind.Absolute, out var titleUri) && titleUri.Scheme == hostUri.Scheme)
                 {
                     return true;
                 }
