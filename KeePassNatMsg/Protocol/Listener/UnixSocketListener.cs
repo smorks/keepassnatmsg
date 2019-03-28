@@ -6,7 +6,7 @@ using System.Threading;
 
 namespace KeePassNatMsg.Protocol.Listener
 {
-    public class UnixSocketListener : IListener
+    public class UnixSocketListener : IListener, IDisposable
     {
         private const string SocketName = "kpxc_server";
 
@@ -44,6 +44,23 @@ namespace KeePassNatMsg.Protocol.Listener
             _socket.Close();
             _t.Join();
             DeleteSocketFile();
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        private void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                // dispose managed resources
+                _socket.Close();
+                _cts.Dispose();
+            }
+            // free native resources
         }
 
         private void RunThread()

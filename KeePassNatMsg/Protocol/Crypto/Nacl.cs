@@ -49,8 +49,13 @@ namespace KeePassNatMsg.Protocol.Crypto
         public static readonly Int32 SignBytes = 64;
 
 
+        [Serializable]
         public class InvalidSignatureException : CryptographicException { }
+
+        [Serializable]
         public class InvalidCipherTextException : CryptographicException { }
+
+        [Serializable]
         public class InvalidEncryptionKeypair : CryptographicException { }
 
         /// <summary>

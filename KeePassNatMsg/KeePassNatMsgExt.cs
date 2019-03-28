@@ -22,7 +22,7 @@ using System.Windows.Forms;
 
 namespace KeePassNatMsg
 {
-    public sealed class KeePassNatMsgExt : Plugin
+    public sealed class KeePassNatMsgExt : Plugin, IDisposable
     {
 
         /// <summary>
@@ -381,5 +381,22 @@ namespace KeePassNatMsg
         }
 
         public static string GetVersion() => KeePassXcVersion.ToString();
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        private void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                // dispose managed resources
+                IDisposable disposable = (IDisposable)_listener;
+                disposable?.Dispose();
+            }
+            // free native resources
+        }
     }
 }
