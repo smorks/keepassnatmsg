@@ -79,7 +79,7 @@ namespace KeePassNatMsg
         {
             var root = HostInstance.Database.RootGroup;
             var uuid = new PwUuid(KeePassNatMsgGroupUuid);
-            var group = root.FindGroup(uuid, false);
+            var group = root.FindGroup(uuid, true);
             if (group == null)
             {
                 group = new PwGroup(false, true, KeePassNatMsgGroupName, PwIcon.WorldComputer);
