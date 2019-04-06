@@ -32,6 +32,14 @@ namespace KeePassNatMsg
                 0x34, 0x69, 0x7a, 0x40, 0x8a, 0x5b, 0x41, 0xc0,
                 0x9f, 0x36, 0x89, 0x7d, 0x62, 0x3e, 0xcb, 0x31
         };
+        
+        /// <summary>
+        /// an arbitrarily generated uuid for the keepassnatmsg new password group
+        /// </summary>
+        public static readonly byte[] KeePassNatMsgGroupUuid = {
+                0xa4, 0x36, 0xb6, 0x24, 0xee, 0x2c, 0x44, 0x21,
+                0xb3, 0xe0, 0x94, 0x99, 0x24, 0xe9, 0xc1, 0x8c
+        };
 
         internal static IPluginHost HostInstance;
         internal static KeePassNatMsgExt ExtInstance;
@@ -65,6 +73,21 @@ namespace KeePassNatMsg
                 UpdateUI(null);
             }
             return entry;
+        }
+
+        internal PwGroup GetPasswordsGroup()
+        {
+            var root = HostInstance.Database.RootGroup;
+            var uuid = new PwUuid(KeePassNatMsgGroupUuid);
+            var group = root.FindGroup(uuid, false);
+            if (group == null)
+            {
+                group = new PwGroup(false, true, KeePassNatMsgGroupName, PwIcon.WorldComputer);
+                group.Uuid = uuid;
+                root.AddGroup(group, true);
+                UpdateUI(null);
+            }
+            return group;
         }
 
         private int GetNotificationTime()

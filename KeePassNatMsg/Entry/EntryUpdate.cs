@@ -107,14 +107,7 @@ namespace KeePassNatMsg.Entry
 
         public bool CreateEntry(string username, string password, string url, string submithost, string realm)
         {
-            var root = _host.Database.RootGroup;
-            var group = root.FindCreateGroup(KeePassNatMsgExt.KeePassNatMsgGroupName, false);
-            if (group == null)
-            {
-                group = new PwGroup(true, true, KeePassNatMsgExt.KeePassNatMsgGroupName, PwIcon.WorldComputer);
-                root.AddGroup(group, true);
-                _ext.UpdateUI(null);
-            }
+            var group =_ext.GetPasswordsGroup();
 
             string baseUrl = url;
             // index bigger than https:// <-- this slash
