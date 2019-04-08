@@ -5,7 +5,7 @@ using System.Threading;
 
 namespace KeePassNatMsg.Protocol.Listener
 {
-    public sealed class UdpListener
+    public sealed class UdpListener : IDisposable
     {
         private readonly Thread _thread;
         private UdpClient _client;
@@ -45,6 +45,22 @@ namespace KeePassNatMsg.Protocol.Listener
         {
             var data = _utf8.GetBytes(msg);
             _client.Send(data, data.Length, ep);
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        private void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                // dispose managed resources
+                _client.Close();
+            }
+            // free native resources
         }
 
         private void Run()
