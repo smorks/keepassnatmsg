@@ -128,6 +128,7 @@
             this.Name = "ConfirmAssociationForm";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
             this.Text = "KeePassNatMsg: Confirm New Key Association";
+            this.TopMost = true;
             this.ResumeLayout(false);
             this.PerformLayout();
 

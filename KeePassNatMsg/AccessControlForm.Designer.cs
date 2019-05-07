@@ -107,6 +107,7 @@
             this.Name = "AccessControlForm";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
             this.Text = "KeePassNatMsg: Confirm Access";
+            this.TopMost = true;
             this.ResumeLayout(false);
             this.PerformLayout();
 

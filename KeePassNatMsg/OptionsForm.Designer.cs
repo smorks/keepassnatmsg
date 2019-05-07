@@ -363,6 +363,7 @@
             this.Name = "OptionsForm";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
             this.Text = "KeePassNatMsg Options";
+            this.TopMost = true;
             this.Load += new System.EventHandler(this.OptionsForm_Load);
             this.Shown += new System.EventHandler(this.OptionsForm_Shown);
             this.tabControl1.ResumeLayout(false);
