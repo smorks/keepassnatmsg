@@ -47,6 +47,9 @@ namespace KeePassNatMsg
             SortByTitleRadioButton.Checked = !_config.SortResultByUsername;
 
             this.returnStringFieldsCheckbox_CheckedChanged(null, EventArgs.Empty);
+
+            InitDatabasesDropdown();
+            this.comboBoxDatabases.Text = _config.ConnectionDatabaseName;
         }
 
         private void okButton_Click(object sender, EventArgs e)
@@ -62,6 +65,7 @@ namespace KeePassNatMsg
             _config.ReturnStringFields = returnStringFieldsCheckbox.Checked;
             _config.ReturnStringFieldsWithKphOnly = returnStringFieldsWithKphOnlyCheckBox.Checked;
             _config.SortResultByUsername = SortByUsernameRadioButton.Checked;
+            _config.ConnectionDatabaseName = comboBoxDatabases.Text;
             if (_restartRequired)
             {
                 MessageBox.Show(
@@ -285,6 +289,14 @@ namespace KeePassNatMsg
             lst.Add($"Proxy: {proxyDisplay}{latestVersionDisplay}");
 
             lblProxyVersion.Text = string.Join(Environment.NewLine, lst);
+        }
+
+        private void InitDatabasesDropdown()
+        {
+            foreach (var item in KeePass.Program.MainForm.DocumentManager.Documents)
+            {
+                comboBoxDatabases.Items.Add(item.Database.Name);
+            }
         }
     }
 }

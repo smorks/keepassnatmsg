@@ -16,6 +16,7 @@ namespace KeePassNatMsg
         const string ReturnStringFieldsKey = "KeePassHttp_ReturnStringFields";
         const string ReturnStringFieldsWithKphOnlyKey = "KeePassHttp_ReturnStringFieldsWithKphOnly";
         const string SortResultByUsernameKey = "KeePassHttp_SortResultByUsername";
+        const string ConnectionDatabaseNameKey = "KeePassHttp_ConnectionDatabaseName";
 
         public ConfigOpt(AceCustomConfig config)
         {
@@ -85,6 +86,12 @@ namespace KeePassNatMsg
         {
             get { return _config.GetBool(SortResultByUsernameKey, true); }
             set { _config.SetBool(SortResultByUsernameKey, value); }
+        }
+
+        public string ConnectionDatabaseName
+        {
+            get { return _config.GetString(ConnectionDatabaseNameKey, string.Empty); }
+            set { _config.SetString(ConnectionDatabaseNameKey, value); }
         }
     }
 }

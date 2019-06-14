@@ -61,7 +61,7 @@ namespace KeePassNatMsg
 
         internal PwEntry GetConfigEntry(bool create)
         {
-            var root = HostInstance.Database.RootGroup;
+            var root = GetConnectionDatabase().RootGroup;
             var uuid = new PwUuid(KeePassNatMsgUuid);
             var entry = root.FindEntry(uuid, false);
             if (entry == null && create)
@@ -77,7 +77,7 @@ namespace KeePassNatMsg
 
         internal PwGroup GetPasswordsGroup()
         {
-            var root = HostInstance.Database.RootGroup;
+            var root = GetConnectionDatabase().RootGroup;
             var uuid = new PwUuid(KeePassNatMsgGroupUuid);
             var group = root.FindGroup(uuid, true);
             if (group == null)
@@ -235,7 +235,7 @@ namespace KeePassNatMsg
         internal void UpdateUI(PwGroup group)
         {
             var win = HostInstance.MainWindow;
-            if (group == null) group = HostInstance.Database.RootGroup;
+            if (group == null) group = GetConnectionDatabase().RootGroup;
             var f = (MethodInvoker) delegate {
                 win.UpdateUI(false, null, true, group, true, null, true);
             };
@@ -282,8 +282,8 @@ namespace KeePassNatMsg
         internal string GetDbHash()
         {
             var ms = new MemoryStream();
-            ms.Write(HostInstance.Database.RootGroup.Uuid.UuidBytes, 0, 16);
-            ms.Write(HostInstance.Database.RecycleBinUuid.UuidBytes, 0, 16);
+            ms.Write(GetConnectionDatabase().RootGroup.Uuid.UuidBytes, 0, 16);
+            ms.Write(GetConnectionDatabase().RecycleBinUuid.UuidBytes, 0, 16);
             var sha256 = new SHA256CryptoServiceProvider();
             var hashBytes = sha256.ComputeHash(ms.ToArray());
             return ByteToHexBitFiddle(hashBytes);
@@ -420,6 +420,23 @@ namespace KeePassNatMsg
                 disposable?.Dispose();
             }
             // free native resources
+        }
+
+        private PwDatabase GetConnectionDatabase()
+        {
+            var options = new ConfigOpt(HostInstance.CustomConfig);
+            if (string.IsNullOrEmpty(options.ConnectionDatabaseName))
+            {
+                return HostInstance.Database;
+            }
+            else
+            {
+                var document = HostInstance.MainWindow.DocumentManager.Documents.Find(p => p.Database.Name == options.ConnectionDatabaseName);
+                if (document != null)
+                    return document.Database;
+                else
+                    return HostInstance.Database;
+            }
         }
     }
 }
