@@ -16,6 +16,7 @@ namespace KeePassNatMsg
         const string ReturnStringFieldsKey = "KeePassHttp_ReturnStringFields";
         const string ReturnStringFieldsWithKphOnlyKey = "KeePassHttp_ReturnStringFieldsWithKphOnly";
         const string SortResultByUsernameKey = "KeePassHttp_SortResultByUsername";
+        const string OverrideKeePassXcVersionKey = "KeePassNatMsg_OverrideKeePassXcVersion";
 
         public ConfigOpt(AceCustomConfig config)
         {
@@ -85,6 +86,12 @@ namespace KeePassNatMsg
         {
             get { return _config.GetBool(SortResultByUsernameKey, true); }
             set { _config.SetBool(SortResultByUsernameKey, value); }
+        }
+
+        public string OverrideKeePassXcVersion
+        {
+            get => _config.GetString(OverrideKeePassXcVersionKey);
+            set => _config.SetString(OverrideKeePassXcVersionKey, value);
         }
     }
 }

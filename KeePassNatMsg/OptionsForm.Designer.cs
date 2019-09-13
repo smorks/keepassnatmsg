@@ -53,6 +53,8 @@
             this.label1 = new System.Windows.Forms.Label();
             this.credAllowUpdatesCheckbox = new System.Windows.Forms.CheckBox();
             this.credAllowAccessCheckbox = new System.Windows.Forms.CheckBox();
+            this.label5 = new System.Windows.Forms.Label();
+            this.txtKPXCVerOverride = new System.Windows.Forms.TextBox();
             this.tabControl1.SuspendLayout();
             this.tabPage1.SuspendLayout();
             this.tabPage2.SuspendLayout();
@@ -237,6 +239,8 @@
             // 
             // tabPage2
             // 
+            this.tabPage2.Controls.Add(this.txtKPXCVerOverride);
+            this.tabPage2.Controls.Add(this.label5);
             this.tabPage2.Controls.Add(this.returnStringFieldsWithKphOnlyCheckBox);
             this.tabPage2.Controls.Add(this.label4);
             this.tabPage2.Controls.Add(this.label3);
@@ -347,6 +351,22 @@
             this.credAllowAccessCheckbox.Text = "Always allow &access to entries";
             this.credAllowAccessCheckbox.UseVisualStyleBackColor = true;
             // 
+            // label5
+            // 
+            this.label5.AutoSize = true;
+            this.label5.Location = new System.Drawing.Point(8, 292);
+            this.label5.Name = "label5";
+            this.label5.Size = new System.Drawing.Size(147, 13);
+            this.label5.TabIndex = 32;
+            this.label5.Text = "KeePassXC Version Override:";
+            // 
+            // txtKPXCVerOverride
+            // 
+            this.txtKPXCVerOverride.Location = new System.Drawing.Point(161, 289);
+            this.txtKPXCVerOverride.Name = "txtKPXCVerOverride";
+            this.txtKPXCVerOverride.Size = new System.Drawing.Size(100, 20);
+            this.txtKPXCVerOverride.TabIndex = 33;
+            // 
             // OptionsForm
             // 
             this.AcceptButton = this.okButton;
@@ -402,5 +422,7 @@
         private System.Windows.Forms.CheckBox returnStringFieldsWithKphOnlyCheckBox;
         private System.Windows.Forms.Button btnInstallNativeMessaging;
         private System.Windows.Forms.Label lblProxyVersion;
+        private System.Windows.Forms.TextBox txtKPXCVerOverride;
+        private System.Windows.Forms.Label label5;
     }
 }

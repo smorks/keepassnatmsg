@@ -45,6 +45,7 @@ namespace KeePassNatMsg
             returnStringFieldsWithKphOnlyCheckBox.Checked = _config.ReturnStringFieldsWithKphOnly;
             SortByUsernameRadioButton.Checked = _config.SortResultByUsername;
             SortByTitleRadioButton.Checked = !_config.SortResultByUsername;
+            txtKPXCVerOverride.Text = _config.OverrideKeePassXcVersion;
 
             this.returnStringFieldsCheckbox_CheckedChanged(null, EventArgs.Empty);
         }
@@ -62,6 +63,7 @@ namespace KeePassNatMsg
             _config.ReturnStringFields = returnStringFieldsCheckbox.Checked;
             _config.ReturnStringFieldsWithKphOnly = returnStringFieldsWithKphOnlyCheckBox.Checked;
             _config.SortResultByUsername = SortByUsernameRadioButton.Checked;
+            _config.OverrideKeePassXcVersion = txtKPXCVerOverride.Text;
             if (_restartRequired)
             {
                 MessageBox.Show(
