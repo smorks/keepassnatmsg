@@ -45,12 +45,13 @@ namespace KeePassNatMsg
             returnStringFieldsWithKphOnlyCheckBox.Checked = _config.ReturnStringFieldsWithKphOnly;
             SortByUsernameRadioButton.Checked = _config.SortResultByUsername;
             SortByTitleRadioButton.Checked = !_config.SortResultByUsername;
+            txtKPXCVerOverride.Text = _config.OverrideKeePassXcVersion;
 
             this.returnStringFieldsCheckbox_CheckedChanged(null, EventArgs.Empty);
 
-            InitDatabasesDropdown();
-            this.comboBoxDatabases.Text = _config.ConnectionDatabaseName;
-        }
+			InitDatabasesDropdown();
+			this.comboBoxDatabases.Text = _config.ConnectionDatabaseName;
+		}
 
         private void okButton_Click(object sender, EventArgs e)
         {
@@ -65,8 +66,9 @@ namespace KeePassNatMsg
             _config.ReturnStringFields = returnStringFieldsCheckbox.Checked;
             _config.ReturnStringFieldsWithKphOnly = returnStringFieldsWithKphOnlyCheckBox.Checked;
             _config.SortResultByUsername = SortByUsernameRadioButton.Checked;
-            _config.ConnectionDatabaseName = comboBoxDatabases.Text;
-            if (_restartRequired)
+            _config.OverrideKeePassXcVersion = txtKPXCVerOverride.Text;
+			_config.ConnectionDatabaseName = comboBoxDatabases.Text;
+			if (_restartRequired)
             {
                 MessageBox.Show(
                     "You have successfully changed the port number and/or the host name.\nA restart of KeePass is required!\n\nPlease restart KeePass now.",
@@ -291,12 +293,12 @@ namespace KeePassNatMsg
             lblProxyVersion.Text = string.Join(Environment.NewLine, lst);
         }
 
-        private void InitDatabasesDropdown()
-        {
-            foreach (var item in KeePass.Program.MainForm.DocumentManager.Documents)
-            {
-                comboBoxDatabases.Items.Add(item.Database.Name);
-            }
-        }
-    }
+		private void InitDatabasesDropdown()
+		{
+			foreach (var item in KeePass.Program.MainForm.DocumentManager.Documents)
+			{
+				comboBoxDatabases.Items.Add(item.Database.Name);
+			}
+		}
+	}
 }

@@ -44,16 +44,19 @@
 			this.credMatchingCheckbox = new System.Windows.Forms.CheckBox();
 			this.credNotifyCheckbox = new System.Windows.Forms.CheckBox();
 			this.tabPage2 = new System.Windows.Forms.TabPage();
+			this.txtKPXCVerOverride = new System.Windows.Forms.TextBox();
+			this.label5 = new System.Windows.Forms.Label();
 			this.returnStringFieldsWithKphOnlyCheckBox = new System.Windows.Forms.CheckBox();
 			this.label4 = new System.Windows.Forms.Label();
 			this.label3 = new System.Windows.Forms.Label();
 			this.returnStringFieldsCheckbox = new System.Windows.Forms.CheckBox();
+			this.label2 = new System.Windows.Forms.Label();
 			this.credSearchInAllOpenedDatabases = new System.Windows.Forms.CheckBox();
 			this.label1 = new System.Windows.Forms.Label();
 			this.credAllowUpdatesCheckbox = new System.Windows.Forms.CheckBox();
 			this.credAllowAccessCheckbox = new System.Windows.Forms.CheckBox();
-			this.label5 = new System.Windows.Forms.Label();
 			this.comboBoxDatabases = new System.Windows.Forms.ComboBox();
+			this.label6 = new System.Windows.Forms.Label();
 			this.tabControl1.SuspendLayout();
 			this.tabPage1.SuspendLayout();
 			this.tabPage2.SuspendLayout();
@@ -238,12 +241,15 @@
 			// 
 			// tabPage2
 			// 
+			this.tabPage2.Controls.Add(this.label6);
 			this.tabPage2.Controls.Add(this.comboBoxDatabases);
+			this.tabPage2.Controls.Add(this.txtKPXCVerOverride);
 			this.tabPage2.Controls.Add(this.label5);
 			this.tabPage2.Controls.Add(this.returnStringFieldsWithKphOnlyCheckBox);
 			this.tabPage2.Controls.Add(this.label4);
 			this.tabPage2.Controls.Add(this.label3);
 			this.tabPage2.Controls.Add(this.returnStringFieldsCheckbox);
+			this.tabPage2.Controls.Add(this.label2);
 			this.tabPage2.Controls.Add(this.credSearchInAllOpenedDatabases);
 			this.tabPage2.Controls.Add(this.label1);
 			this.tabPage2.Controls.Add(this.credAllowUpdatesCheckbox);
@@ -256,10 +262,26 @@
 			this.tabPage2.Text = "Advanced";
 			this.tabPage2.UseVisualStyleBackColor = true;
 			// 
+			// txtKPXCVerOverride
+			// 
+			this.txtKPXCVerOverride.Location = new System.Drawing.Point(161, 289);
+			this.txtKPXCVerOverride.Name = "txtKPXCVerOverride";
+			this.txtKPXCVerOverride.Size = new System.Drawing.Size(100, 20);
+			this.txtKPXCVerOverride.TabIndex = 33;
+			// 
+			// label5
+			// 
+			this.label5.AutoSize = true;
+			this.label5.Location = new System.Drawing.Point(8, 292);
+			this.label5.Name = "label5";
+			this.label5.Size = new System.Drawing.Size(147, 13);
+			this.label5.TabIndex = 32;
+			this.label5.Text = "KeePassXC Version Override:";
+			// 
 			// returnStringFieldsWithKphOnlyCheckBox
 			// 
 			this.returnStringFieldsWithKphOnlyCheckBox.AutoSize = true;
-			this.returnStringFieldsWithKphOnlyCheckBox.Location = new System.Drawing.Point(55, 264);
+			this.returnStringFieldsWithKphOnlyCheckBox.Location = new System.Drawing.Point(55, 215);
 			this.returnStringFieldsWithKphOnlyCheckBox.Name = "returnStringFieldsWithKphOnlyCheckBox";
 			this.returnStringFieldsWithKphOnlyCheckBox.Size = new System.Drawing.Size(300, 30);
 			this.returnStringFieldsWithKphOnlyCheckBox.TabIndex = 31;
@@ -271,7 +293,7 @@
 			// 
 			this.label4.AutoSize = true;
 			this.label4.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-			this.label4.Location = new System.Drawing.Point(52, 297);
+			this.label4.Location = new System.Drawing.Point(52, 248);
 			this.label4.Name = "label4";
 			this.label4.Size = new System.Drawing.Size(277, 26);
 			this.label4.TabIndex = 22;
@@ -280,7 +302,7 @@
 			// label3
 			// 
 			this.label3.AutoSize = true;
-			this.label3.Location = new System.Drawing.Point(52, 205);
+			this.label3.Location = new System.Drawing.Point(52, 156);
 			this.label3.Name = "label3";
 			this.label3.Size = new System.Drawing.Size(289, 52);
 			this.label3.TabIndex = 21;
@@ -291,7 +313,7 @@
 			// returnStringFieldsCheckbox
 			// 
 			this.returnStringFieldsCheckbox.AutoSize = true;
-			this.returnStringFieldsCheckbox.Location = new System.Drawing.Point(6, 185);
+			this.returnStringFieldsCheckbox.Location = new System.Drawing.Point(7, 136);
 			this.returnStringFieldsCheckbox.Name = "returnStringFieldsCheckbox";
 			this.returnStringFieldsCheckbox.Size = new System.Drawing.Size(186, 17);
 			this.returnStringFieldsCheckbox.TabIndex = 20;
@@ -299,10 +321,19 @@
 			this.returnStringFieldsCheckbox.UseVisualStyleBackColor = true;
 			this.returnStringFieldsCheckbox.CheckedChanged += new System.EventHandler(this.returnStringFieldsCheckbox_CheckedChanged);
 			// 
+			// label2
+			// 
+			this.label2.AutoSize = true;
+			this.label2.Location = new System.Drawing.Point(52, 108);
+			this.label2.Name = "label2";
+			this.label2.Size = new System.Drawing.Size(299, 13);
+			this.label2.TabIndex = 19;
+			this.label2.Text = "Only the selected database has to be connected with a client!";
+			// 
 			// credSearchInAllOpenedDatabases
 			// 
 			this.credSearchInAllOpenedDatabases.AutoSize = true;
-			this.credSearchInAllOpenedDatabases.Location = new System.Drawing.Point(6, 88);
+			this.credSearchInAllOpenedDatabases.Location = new System.Drawing.Point(7, 88);
 			this.credSearchInAllOpenedDatabases.Name = "credSearchInAllOpenedDatabases";
 			this.credSearchInAllOpenedDatabases.Size = new System.Drawing.Size(270, 17);
 			this.credSearchInAllOpenedDatabases.TabIndex = 18;
@@ -314,7 +345,7 @@
 			this.label1.AutoSize = true;
 			this.label1.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
 			this.label1.ForeColor = System.Drawing.Color.Red;
-			this.label1.Location = new System.Drawing.Point(6, 7);
+			this.label1.Location = new System.Drawing.Point(4, 7);
 			this.label1.Name = "label1";
 			this.label1.Size = new System.Drawing.Size(391, 13);
 			this.label1.TabIndex = 17;
@@ -340,23 +371,23 @@
 			this.credAllowAccessCheckbox.Text = "Always allow &access to entries";
 			this.credAllowAccessCheckbox.UseVisualStyleBackColor = true;
 			// 
-			// label5
-			// 
-			this.label5.AutoSize = true;
-			this.label5.Location = new System.Drawing.Point(6, 122);
-			this.label5.Name = "label5";
-			this.label5.Size = new System.Drawing.Size(281, 26);
-			this.label5.TabIndex = 32;
-			this.label5.Text = "Always use this database for KeepassNatMsg connection\r\n(leave empty to always use" +
-    " the current selected database)";
-			// 
 			// comboBoxDatabases
 			// 
 			this.comboBoxDatabases.FormattingEnabled = true;
-			this.comboBoxDatabases.Location = new System.Drawing.Point(6, 151);
+			this.comboBoxDatabases.Location = new System.Drawing.Point(11, 349);
 			this.comboBoxDatabases.Name = "comboBoxDatabases";
-			this.comboBoxDatabases.Size = new System.Drawing.Size(270, 21);
-			this.comboBoxDatabases.TabIndex = 33;
+			this.comboBoxDatabases.Size = new System.Drawing.Size(250, 21);
+			this.comboBoxDatabases.TabIndex = 34;
+			// 
+			// label6
+			// 
+			this.label6.AutoSize = true;
+			this.label6.Location = new System.Drawing.Point(7, 320);
+			this.label6.Name = "label6";
+			this.label6.Size = new System.Drawing.Size(296, 26);
+			this.label6.TabIndex = 35;
+			this.label6.Text = "Always use this database for the KeepassNatMsg connection\r\n(leave empty to always" +
+    " use the current selected database)";
 			// 
 			// OptionsForm
 			// 
@@ -404,6 +435,7 @@
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.CheckBox credAllowUpdatesCheckbox;
         private System.Windows.Forms.CheckBox credAllowAccessCheckbox;
+        private System.Windows.Forms.Label label2;
         private System.Windows.Forms.CheckBox returnStringFieldsCheckbox;
         private System.Windows.Forms.Label label3;
         private System.Windows.Forms.Label label4;
@@ -412,7 +444,9 @@
         private System.Windows.Forms.CheckBox returnStringFieldsWithKphOnlyCheckBox;
         private System.Windows.Forms.Button btnInstallNativeMessaging;
         private System.Windows.Forms.Label lblProxyVersion;
+        private System.Windows.Forms.TextBox txtKPXCVerOverride;
+        private System.Windows.Forms.Label label5;
 		private System.Windows.Forms.ComboBox comboBoxDatabases;
-		private System.Windows.Forms.Label label5;
+		private System.Windows.Forms.Label label6;
 	}
 }

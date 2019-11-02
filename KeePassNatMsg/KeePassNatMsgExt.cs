@@ -51,7 +51,7 @@ namespace KeePassNatMsg
         public const string AssociateKeyPrefix = "Public Key: ";
         private const string PipeName = "kpxc_server";
 
-        private static readonly Version KeePassXcVersion = new Version(2, 4, 0);
+        private static readonly Version KeePassXcVersion = new Version(2, 4, 3);
 
         private IListener _listener;
 
@@ -403,7 +403,12 @@ namespace KeePassNatMsg
             return null;
         }
 
-        public static string GetVersion() => KeePassXcVersion.ToString();
+        public static string GetVersion()
+        {
+            var c = new ConfigOpt(HostInstance.CustomConfig);
+            var verOvr = c.OverrideKeePassXcVersion;
+            return string.IsNullOrWhiteSpace(verOvr) ? KeePassXcVersion.ToString() : verOvr;
+        }
 
         public void Dispose()
         {
