@@ -373,11 +373,13 @@
 			// 
 			// comboBoxDatabases
 			// 
+			this.comboBoxDatabases.DisplayMember = "DatabaseIdentifier";
 			this.comboBoxDatabases.FormattingEnabled = true;
 			this.comboBoxDatabases.Location = new System.Drawing.Point(11, 349);
 			this.comboBoxDatabases.Name = "comboBoxDatabases";
 			this.comboBoxDatabases.Size = new System.Drawing.Size(250, 21);
 			this.comboBoxDatabases.TabIndex = 34;
+			this.comboBoxDatabases.ValueMember = "DatabaseHash";
 			// 
 			// label6
 			// 

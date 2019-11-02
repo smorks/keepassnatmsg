@@ -279,18 +279,23 @@ namespace KeePassNatMsg
             return new string[] { user, pass };
         }
 
-        internal string GetDbHash()
+        internal string GetDbHash(PwDatabase db)
         {
             var ms = new MemoryStream();
-            ms.Write(GetConnectionDatabase().RootGroup.Uuid.UuidBytes, 0, 16);
-            ms.Write(GetConnectionDatabase().RecycleBinUuid.UuidBytes, 0, 16);
+            ms.Write(db.RootGroup.Uuid.UuidBytes, 0, 16);
+            ms.Write(db.RecycleBinUuid.UuidBytes, 0, 16);
             var sha256 = new SHA256CryptoServiceProvider();
             var hashBytes = sha256.ComputeHash(ms.ToArray());
             return ByteToHexBitFiddle(hashBytes);
         }
 
-        // wizard magic courtesy of https://stackoverflow.com/questions/311165/how-do-you-convert-a-byte-array-to-a-hexadecimal-string-and-vice-versa/14333437#14333437
-        static string ByteToHexBitFiddle(byte[] bytes)
+		internal string GetDbHash()
+		{
+			return GetDbHash(GetConnectionDatabase());
+		}
+
+		// wizard magic courtesy of https://stackoverflow.com/questions/311165/how-do-you-convert-a-byte-array-to-a-hexadecimal-string-and-vice-versa/14333437#14333437
+		static string ByteToHexBitFiddle(byte[] bytes)
         {
             char[] c = new char[bytes.Length * 2];
             int b;
@@ -430,13 +435,13 @@ namespace KeePassNatMsg
         private PwDatabase GetConnectionDatabase()
         {
             var options = new ConfigOpt(HostInstance.CustomConfig);
-            if (string.IsNullOrEmpty(options.ConnectionDatabaseName))
+            if (string.IsNullOrEmpty(options.ConnectionDatabaseHash))
             {
                 return HostInstance.Database;
             }
             else
             {
-                var document = HostInstance.MainWindow.DocumentManager.Documents.Find(p => p.Database.Name == options.ConnectionDatabaseName);
+                var document = HostInstance.MainWindow.DocumentManager.Documents.Find(p => GetDbHash(p.Database) == options.ConnectionDatabaseHash);
                 if (document != null)
                     return document.Database;
                 else

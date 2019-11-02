@@ -50,7 +50,13 @@ namespace KeePassNatMsg
             this.returnStringFieldsCheckbox_CheckedChanged(null, EventArgs.Empty);
 
 			InitDatabasesDropdown();
-			this.comboBoxDatabases.Text = _config.ConnectionDatabaseName;
+			foreach (dynamic item in comboBoxDatabases.Items)
+			{
+				if (item.DatabaseHash == _config.ConnectionDatabaseHash)
+				{
+					comboBoxDatabases.SelectedItem = item;
+				}
+			}
 		}
 
         private void okButton_Click(object sender, EventArgs e)
@@ -67,7 +73,7 @@ namespace KeePassNatMsg
             _config.ReturnStringFieldsWithKphOnly = returnStringFieldsWithKphOnlyCheckBox.Checked;
             _config.SortResultByUsername = SortByUsernameRadioButton.Checked;
             _config.OverrideKeePassXcVersion = txtKPXCVerOverride.Text;
-			_config.ConnectionDatabaseName = comboBoxDatabases.Text;
+			_config.ConnectionDatabaseHash = (comboBoxDatabases.SelectedItem as dynamic).DatabaseHash;
 			if (_restartRequired)
             {
                 MessageBox.Show(
@@ -297,7 +303,13 @@ namespace KeePassNatMsg
 		{
 			foreach (var item in KeePass.Program.MainForm.DocumentManager.Documents)
 			{
-				comboBoxDatabases.Items.Add(item.Database.Name);
+				var dbIdentifier = item.Database.Name;
+				if (string.IsNullOrEmpty(dbIdentifier))
+				{
+					dbIdentifier = item.Database.IOConnectionInfo.Path;
+				}
+
+				comboBoxDatabases.Items.Add(new { DatabaseIdentifier = dbIdentifier, DatabaseHash = KeePassNatMsgExt.ExtInstance.GetDbHash(item.Database)});
 			}
 		}
 	}
