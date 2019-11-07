@@ -73,7 +73,7 @@ namespace KeePassNatMsg
             _config.ReturnStringFieldsWithKphOnly = returnStringFieldsWithKphOnlyCheckBox.Checked;
             _config.SortResultByUsername = SortByUsernameRadioButton.Checked;
             _config.OverrideKeePassXcVersion = txtKPXCVerOverride.Text;
-			_config.ConnectionDatabaseHash = (comboBoxDatabases.SelectedItem as dynamic).DatabaseHash;
+			_config.ConnectionDatabaseHash = (comboBoxDatabases.SelectedItem as dynamic)?.DatabaseHash;
 			if (_restartRequired)
             {
                 MessageBox.Show(
