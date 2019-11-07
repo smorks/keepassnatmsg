@@ -48,7 +48,16 @@ namespace KeePassNatMsg
             txtKPXCVerOverride.Text = _config.OverrideKeePassXcVersion;
 
             this.returnStringFieldsCheckbox_CheckedChanged(null, EventArgs.Empty);
-        }
+
+			InitDatabasesDropdown();
+			foreach (dynamic item in comboBoxDatabases.Items)
+			{
+				if (item.DatabaseHash == _config.ConnectionDatabaseHash)
+				{
+					comboBoxDatabases.SelectedItem = item;
+				}
+			}
+		}
 
         private void okButton_Click(object sender, EventArgs e)
         {
@@ -64,7 +73,8 @@ namespace KeePassNatMsg
             _config.ReturnStringFieldsWithKphOnly = returnStringFieldsWithKphOnlyCheckBox.Checked;
             _config.SortResultByUsername = SortByUsernameRadioButton.Checked;
             _config.OverrideKeePassXcVersion = txtKPXCVerOverride.Text;
-            if (_restartRequired)
+			_config.ConnectionDatabaseHash = (comboBoxDatabases.SelectedItem as dynamic)?.DatabaseHash;
+			if (_restartRequired)
             {
                 MessageBox.Show(
                     "You have successfully changed the port number and/or the host name.\nA restart of KeePass is required!\n\nPlease restart KeePass now.",
@@ -288,5 +298,19 @@ namespace KeePassNatMsg
 
             lblProxyVersion.Text = string.Join(Environment.NewLine, lst);
         }
-    }
+
+		private void InitDatabasesDropdown()
+		{
+			foreach (var item in KeePass.Program.MainForm.DocumentManager.Documents)
+			{
+				var dbIdentifier = item.Database.Name;
+				if (string.IsNullOrEmpty(dbIdentifier))
+				{
+					dbIdentifier = item.Database.IOConnectionInfo.Path;
+				}
+
+				comboBoxDatabases.Items.Add(new { DatabaseIdentifier = dbIdentifier, DatabaseHash = KeePassNatMsgExt.ExtInstance.GetDbHash(item.Database)});
+			}
+		}
+	}
 }

@@ -17,8 +17,9 @@ namespace KeePassNatMsg
         const string ReturnStringFieldsWithKphOnlyKey = "KeePassHttp_ReturnStringFieldsWithKphOnly";
         const string SortResultByUsernameKey = "KeePassHttp_SortResultByUsername";
         const string OverrideKeePassXcVersionKey = "KeePassNatMsg_OverrideKeePassXcVersion";
+		const string ConnectionDatabaseHashKey = "KeePassHttp_ConnectionDatabaseHash";
 
-        public ConfigOpt(AceCustomConfig config)
+		public ConfigOpt(AceCustomConfig config)
         {
             _config = config;
         }
@@ -93,5 +94,11 @@ namespace KeePassNatMsg
             get => _config.GetString(OverrideKeePassXcVersionKey);
             set => _config.SetString(OverrideKeePassXcVersionKey, value);
         }
-    }
+
+		public string ConnectionDatabaseHash
+		{
+			get { return _config.GetString(ConnectionDatabaseHashKey, string.Empty); }
+			set { _config.SetString(ConnectionDatabaseHashKey, value); }
+		}
+	}
 }
