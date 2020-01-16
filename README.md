@@ -26,6 +26,7 @@ This plugin is primarily intended for use with the [keepassxc-browser](https://g
 ## Installation
 
  1. Download the latest [KeePassNatMsg](https://github.com/smorks/keepassnatmsg/releases) release
+ 	* Arch Linux (AUR): https://aur.archlinux.org/packages/keepass-natmsg/
  2. Unzip it into the KeePass\Plugins directory
 	* default directory in Ubuntu14.04: /usr/lib/keepass2/
 	* default directory in Arch: /usr/share/keepass
