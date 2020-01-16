@@ -303,7 +303,10 @@ namespace KeePassNatMsg
 		{
 			foreach (var item in KeePass.Program.MainForm.DocumentManager.Documents)
 			{
-				var dbIdentifier = item.Database.Name;
+                if (!item.Database.IsOpen)
+                    continue;
+
+                var dbIdentifier = item.Database.Name;
 				if (string.IsNullOrEmpty(dbIdentifier))
 				{
 					dbIdentifier = item.Database.IOConnectionInfo.Path;
