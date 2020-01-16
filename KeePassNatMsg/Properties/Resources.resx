@@ -117,7 +117,7 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="chrome_win" xml:space="preserve">
+  <data name="chrome_json" xml:space="preserve">
     <value>{{
   "name": "org.keepassxc.keepassxc_browser",
   "description": "KeepassXC integration with Native Messaging support",
@@ -133,7 +133,20 @@
   <data name="earth_lock" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\earth_lock.png;System.Drawing.Bitmap, System.Drawing, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
-  <data name="firefox_win" xml:space="preserve">
+  <data name="edge_json" xml:space="preserve">
+    <value>{{
+  "name": "org.keepassxc.keepassxc_browser",
+  "description": "KeepassXC integration with Native Messaging support",
+  "path" : "{0}",
+  "type": "stdio",
+  "allowed_origins": [
+    "chrome-extension://iopaggbpplllidnfmcghoonnokmjoicf/",
+    "chrome-extension://oboonakemofpalcgghocfoadofidjkkk/",
+    "chrome-extension://pdffhmdngciaglkoonimfcmckehcpafo/"
+  ]
+}}</value>
+  </data>
+  <data name="firefox_json" xml:space="preserve">
     <value>{{
   "name": "org.keepassxc.keepassxc_browser",
   "description": "KeepassXC integration with Firefox with Native Messaging support",

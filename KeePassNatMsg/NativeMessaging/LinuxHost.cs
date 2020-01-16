@@ -8,7 +8,8 @@
             ".config/google-chrome/NativeMessagingHosts",
             ".config/chromium/NativeMessagingHosts",
             ".mozilla/native-messaging-hosts",
-            ".config/vivaldi/NativeMessagingHosts"
+            ".config/vivaldi/NativeMessagingHosts",
+            ".config/microsoft edge/NativeMessagingHosts",
         };
     }
 }

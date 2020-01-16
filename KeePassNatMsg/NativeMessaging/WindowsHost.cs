@@ -7,7 +7,14 @@ namespace KeePassNatMsg.NativeMessaging
 {
     public class WindowsHost : NativeMessagingHost
     {
-        private string[] RegKeys = new[] { string.Empty, "Software\\Google\\Chrome", "Software\\Chromium", "Software\\Mozilla", "Software\\Vivaldi" };
+        private readonly string[] RegKeys = new[] {
+            string.Empty,
+            "Software\\Google\\Chrome",
+            "Software\\Chromium",
+            "Software\\Mozilla",
+            "Software\\Vivaldi",
+            "Software\\Microsoft\\Edge",
+        };
 
         public override string ProxyPath => Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "KeePassNatMsg");
 

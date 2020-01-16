@@ -19,7 +19,7 @@ namespace KeePassNatMsg.Properties {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "15.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "16.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class Resources {
@@ -72,9 +72,9 @@ namespace KeePassNatMsg.Properties {
         ///  ]
         ///}}.
         /// </summary>
-        internal static string chrome_win {
+        internal static string chrome_json {
             get {
-                return ResourceManager.GetString("chrome_win", resourceCulture);
+                return ResourceManager.GetString("chrome_json", resourceCulture);
             }
         }
         
@@ -91,6 +91,25 @@ namespace KeePassNatMsg.Properties {
         /// <summary>
         ///   Looks up a localized string similar to {{
         ///  &quot;name&quot;: &quot;org.keepassxc.keepassxc_browser&quot;,
+        ///  &quot;description&quot;: &quot;KeepassXC integration with Native Messaging support&quot;,
+        ///  &quot;path&quot; : &quot;{0}&quot;,
+        ///  &quot;type&quot;: &quot;stdio&quot;,
+        ///  &quot;allowed_origins&quot;: [
+        ///    &quot;chrome-extension://iopaggbpplllidnfmcghoonnokmjoicf/&quot;,
+        ///    &quot;chrome-extension://oboonakemofpalcgghocfoadofidjkkk/&quot;,
+        ///    &quot;chrome-extension://pdffhmdngciaglkoonimfcmckehcpafo/&quot;
+        ///  ]
+        ///}}.
+        /// </summary>
+        internal static string edge_json {
+            get {
+                return ResourceManager.GetString("edge_json", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {{
+        ///  &quot;name&quot;: &quot;org.keepassxc.keepassxc_browser&quot;,
         ///  &quot;description&quot;: &quot;KeepassXC integration with Firefox with Native Messaging support&quot;,
         ///  &quot;path&quot; : &quot;{0}&quot;,
         ///  &quot;type&quot;: &quot;stdio&quot;,
@@ -99,9 +118,9 @@ namespace KeePassNatMsg.Properties {
         ///  ]
         ///}}.
         /// </summary>
-        internal static string firefox_win {
+        internal static string firefox_json {
             get {
-                return ResourceManager.GetString("firefox_win", resourceCulture);
+                return ResourceManager.GetString("firefox_json", resourceCulture);
             }
         }
     }

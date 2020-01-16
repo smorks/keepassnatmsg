@@ -11,11 +11,16 @@ namespace KeePassNatMsg.NativeMessaging
     public enum Browsers
     {
         None,
+
         [Description("Google Chrome")]
         Chrome,
+
         Chromium,
         Firefox = 4,
-        Vivaldi = 8
+        Vivaldi = 8,
+
+        [Description("Microsoft Edge")]
+        Edge = 16,
     }
 
     public enum BrowserStatus
@@ -66,9 +71,11 @@ namespace KeePassNatMsg.NativeMessaging
                 case Browsers.Chrome:
                 case Browsers.Chromium:
                 case Browsers.Vivaldi:
-                    return Properties.Resources.chrome_win;
+                    return Properties.Resources.chrome_json;
                 case Browsers.Firefox:
-                    return Properties.Resources.firefox_win;
+                    return Properties.Resources.firefox_json;
+                case Browsers.Edge:
+                    return Properties.Resources.edge_json;
             }
             return null;
         }
