@@ -57,7 +57,7 @@ namespace KeePassNatMsg.Entry
             var resp = req.GetResponse();
             resp.Message.Add("id", id);
 
-            var items = FindMatchingEntries(url, submitUrl, null);
+            var items = FindMatchingEntries(url, null);
             if (items.ToList().Count > 0)
             {
                 Func<PwEntry, bool> filter = delegate (PwEntry e)
@@ -289,9 +289,8 @@ namespace KeePassNatMsg.Entry
             return fields;
         }
 
-        private IEnumerable<PwEntryDatabase> FindMatchingEntries(string url, string submitUrl, string realm)
+        private IEnumerable<PwEntryDatabase> FindMatchingEntries(string url, string realm)
         {
-            string submitHost = null;
             var listResult = new List<PwEntryDatabase>();
             var hostUri = new Uri(url);
 
@@ -349,9 +348,9 @@ namespace KeePassNatMsg.Entry
                 var c = _ext.GetEntryConfig(e);
                 if (c != null)
                 {
-                    if (c.Allow.Contains(formHost) && (submitHost == null || c.Allow.Contains(submitHost)))
+                    if (c.Allow.Contains(formHost))
                         return true;
-                    if (c.Deny.Contains(formHost) || (submitHost != null && c.Deny.Contains(submitHost)))
+                    if (c.Deny.Contains(formHost))
                         return false;
                     if (realm != null && c.Realm != realm)
                         return false;
