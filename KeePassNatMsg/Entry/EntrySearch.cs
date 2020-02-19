@@ -17,6 +17,7 @@ namespace KeePassNatMsg.Entry
     {
         private readonly IPluginHost _host;
         private readonly KeePassNatMsgExt _ext;
+        private readonly List<string> _allowedSchemes = new List<string>(new[] { "http", "https", "ftp", "sftp" });
 
         public EntrySearch()
         {
@@ -350,19 +351,12 @@ namespace KeePassNatMsg.Entry
                         return false;
                 }
 
-                if (entryUrl != null && (entryUrl.StartsWith("http://") || entryUrl.StartsWith("https://") || title.StartsWith("ftp://") || title.StartsWith("sftp://")))
-                {
-                    var uHost = new Uri(entryUrl);
-                    if (formHost.EndsWith(uHost.Host))
-                        return true;
-                }
+                if (Uri.TryCreate(entryUrl, UriKind.Absolute, out var entryUri) && _allowedSchemes.Contains(entryUri.Scheme) && formHost.EndsWith(entryUri.Host))
+                    return true;
 
-                if (title.StartsWith("http://") || title.StartsWith("https://") || title.StartsWith("ftp://") || title.StartsWith("sftp://"))
-                {
-                    var uHost = new Uri(title);
-                    if (formHost.EndsWith(uHost.Host))
-                        return true;
-                }
+                if (Uri.TryCreate(title, UriKind.Absolute, out var titleUri) && _allowedSchemes.Contains(titleUri.Scheme) && formHost.EndsWith(titleUri.Host))
+                    return true;
+
                 return formHost.Contains(title) || (entryUrl != null && formHost.Contains(entryUrl));
             }
 
