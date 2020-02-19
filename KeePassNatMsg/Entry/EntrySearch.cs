@@ -15,8 +15,8 @@ namespace KeePassNatMsg.Entry
 {
     public sealed class EntrySearch
     {
-        private IPluginHost _host;
-        private KeePassNatMsgExt _ext;
+        private readonly IPluginHost _host;
+        private readonly KeePassNatMsgExt _ext;
 
         public EntrySearch()
         {
@@ -60,7 +60,7 @@ namespace KeePassNatMsg.Entry
             var items = FindMatchingEntries(url, null);
             if (items.ToList().Count > 0)
             {
-                Func<PwEntry, bool> filter = delegate (PwEntry e)
+                bool filter(PwEntry e)
                 {
                     var c = _ext.GetEntryConfig(e);
 
@@ -68,15 +68,15 @@ namespace KeePassNatMsg.Entry
                     var entryUrl = e.Strings.ReadSafe(PwDefs.UrlField);
                     if (c != null)
                     {
-                        return title != hostUri.Host && entryUrl != hostUri.Host && !c.Allow.Contains(hostUri.Host) || (submitUri.Host != null && !c.Allow.Contains(submitUri.Host) && submitUri.Host != title && submitUri.Host != entryUrl);
+                        return (title != hostUri.Host && entryUrl != hostUri.Host && !c.Allow.Contains(hostUri.Host)) || (submitUri.Host != null && !c.Allow.Contains(submitUri.Host) && submitUri.Host != title && submitUri.Host != entryUrl);
                     }
-                    return title != hostUri.Host && entryUrl != hostUri.Host || (submitUri.Host != null && title != submitUri.Host && entryUrl != submitUri.Host);
-                };
+                    return (title != hostUri.Host && entryUrl != hostUri.Host) || (submitUri.Host != null && title != submitUri.Host && entryUrl != submitUri.Host);
+                }
 
                 var configOpt = new ConfigOpt(_host.CustomConfig);
                 var config = _ext.GetConfigEntry(true);
                 var autoAllowS = config.Strings.ReadSafe("Auto Allow");
-                var autoAllow = autoAllowS != null && autoAllowS.Trim() != "";
+                var autoAllow = !string.IsNullOrWhiteSpace(autoAllowS);
                 autoAllow = autoAllow || configOpt.AlwaysAllowAccess;
                 var needPrompting = from e in items where filter(e.entry) select e;
 
@@ -92,22 +92,19 @@ namespace KeePassNatMsg.Entry
                             f.Plugin = _ext;
                             f.Entries = (from e in items where filter(e.entry) select e.entry).ToList();
                             //f.Entries = needPrompting.ToList();
-                            f.Host = submitUri.Host != null ? submitUri.Host : hostUri.Host;
+                            f.Host = submitUri.Host ?? hostUri.Host;
                             f.Load += delegate { f.Activate(); };
                             f.ShowDialog(win);
                             if (f.Remember && (f.Allowed || f.Denied))
                             {
                                 foreach (var e in needPrompting)
                                 {
-                                    var c = _ext.GetEntryConfig(e.entry);
-                                    if (c == null)
-                                        c = new EntryConfig();
+                                    var c = _ext.GetEntryConfig(e.entry) ?? new EntryConfig();
                                     var set = f.Allowed ? c.Allow : c.Deny;
                                     set.Add(hostUri.Host);
                                     if (submitUri.Host != null && submitUri.Host != hostUri.Host)
                                         set.Add(submitUri.Host);
                                     _ext.SetEntryConfig(e.entry, c);
-
                                 }
                             }
                             if (!f.Allowed)
@@ -127,7 +124,6 @@ namespace KeePassNatMsg.Entry
                     entryUrl = entryUrl.ToLower();
 
                     entryDatabase.entry.UsageCount = (ulong)LevenshteinDistance(submitUrl.ToLower(), entryUrl);
-
                 }
 
                 var itemsList = items.ToList();
@@ -146,7 +142,6 @@ namespace KeePassNatMsg.Entry
                                  where e.entry.UsageCount == lowestDistance
                                  orderby e.entry.UsageCount
                                  select e).ToList();
-
                 }
 
                 if (configOpt.SortResultByUsername)
@@ -200,7 +195,7 @@ namespace KeePassNatMsg.Entry
         }
 
         //http://en.wikibooks.org/wiki/Algorithm_Implementation/Strings/Levenshtein_distance#C.23
-        private int LevenshteinDistance(string source, string target)
+        private static int LevenshteinDistance(string source, string target)
         {
             if (String.IsNullOrEmpty(source))
             {
@@ -240,7 +235,7 @@ namespace KeePassNatMsg.Entry
             return distance[currentRow, m];
         }
 
-        private IEnumerable<KeyValuePair<string, string>> GetFields(ConfigOpt configOpt, PwEntryDatabase entryDatabase)
+        private static IEnumerable<KeyValuePair<string, string>> GetFields(ConfigOpt configOpt, PwEntryDatabase entryDatabase)
         {
             SprContext ctx = new SprContext(entryDatabase.entry, entryDatabase.database, SprCompileFlags.All, false, false);
 
@@ -340,8 +335,7 @@ namespace KeePassNatMsg.Entry
                 listCount = listResult.Count;
             }
 
-
-            Func<PwEntry, bool> filter = delegate (PwEntry e)
+            bool filter(PwEntry e)
             {
                 var title = e.Strings.ReadSafe(PwDefs.TitleField);
                 var entryUrl = e.Strings.ReadSafe(PwDefs.UrlField);
@@ -370,19 +364,16 @@ namespace KeePassNatMsg.Entry
                         return true;
                 }
                 return formHost.Contains(title) || (entryUrl != null && formHost.Contains(entryUrl));
-            };
+            }
 
-            Func<PwEntry, bool> filterSchemes = delegate (PwEntry e)
+            bool filterSchemes(PwEntry e)
             {
                 var title = e.Strings.ReadSafe(PwDefs.TitleField);
                 var entryUrl = e.Strings.ReadSafe(PwDefs.UrlField);
 
-                if (entryUrl != null)
+                if (entryUrl != null && Uri.TryCreate(entryUrl, UriKind.Absolute, out var entryUri) && entryUri.Scheme == hostUri.Scheme)
                 {
-                    if (Uri.TryCreate(entryUrl, UriKind.Absolute, out var entryUri) && entryUri.Scheme == hostUri.Scheme)
-                    {
-                        return true;
-                    }
+                    return true;
                 }
 
                 if (Uri.TryCreate(title, UriKind.Absolute, out var titleUri) && titleUri.Scheme == hostUri.Scheme)
@@ -391,7 +382,7 @@ namespace KeePassNatMsg.Entry
                 }
 
                 return false;
-            };
+            }
 
             var result = from e in listResult where filter(e.entry) select e;
 
@@ -400,27 +391,15 @@ namespace KeePassNatMsg.Entry
                 result = from e in result where filterSchemes(e.entry) select e;
             }
 
-            Func<PwEntry, bool> hideExpired = delegate (PwEntry e)
-            {
-                DateTime dtNow = DateTime.UtcNow;
-
-                if (e.Expires && (e.ExpiryTime <= dtNow))
-                {
-                    return false;
-                }
-
-                return true;
-            };
-
             if (configOpt.HideExpired)
             {
-                result = from e in result where hideExpired(e.entry) select e;
+                result = result.Where(x => !(x.entry.Expires && x.entry.ExpiryTime <= DateTime.UtcNow));
             }
 
             return result;
         }
 
-        private SearchParameters MakeSearchParameters()
+        private static SearchParameters MakeSearchParameters()
         {
             return new SearchParameters
             {
