@@ -18,6 +18,7 @@ namespace KeePassNatMsg
         const string SortResultByUsernameKey = "KeePassHttp_SortResultByUsername";
         const string OverrideKeePassXcVersionKey = "KeePassNatMsg_OverrideKeePassXcVersion";
 		const string ConnectionDatabaseHashKey = "KeePassHttp_ConnectionDatabaseHash";
+        const string SearchUrlsKey = "KeePassHttp_SearchUrls";
 
 		public ConfigOpt(AceCustomConfig config)
         {
@@ -100,5 +101,11 @@ namespace KeePassNatMsg
 			get { return _config.GetString(ConnectionDatabaseHashKey, string.Empty); }
 			set { _config.SetString(ConnectionDatabaseHashKey, value); }
 		}
+
+        public bool SearchUrls
+        {
+            get => _config.GetBool(SearchUrlsKey, false);
+            set => _config.SetBool(SearchUrlsKey, value);
+        }
 	}
 }

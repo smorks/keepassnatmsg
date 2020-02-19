@@ -46,6 +46,7 @@ namespace KeePassNatMsg
             SortByUsernameRadioButton.Checked = _config.SortResultByUsername;
             SortByTitleRadioButton.Checked = !_config.SortResultByUsername;
             txtKPXCVerOverride.Text = _config.OverrideKeePassXcVersion;
+            chkSearchUrls.Checked = _config.SearchUrls;
 
             this.returnStringFieldsCheckbox_CheckedChanged(null, EventArgs.Empty);
 
@@ -74,7 +75,9 @@ namespace KeePassNatMsg
             _config.SortResultByUsername = SortByUsernameRadioButton.Checked;
             _config.OverrideKeePassXcVersion = txtKPXCVerOverride.Text;
 			_config.ConnectionDatabaseHash = (comboBoxDatabases.SelectedItem as dynamic)?.DatabaseHash;
-			if (_restartRequired)
+            _config.SearchUrls = chkSearchUrls.Checked;
+			
+            if (_restartRequired)
             {
                 MessageBox.Show(
                     "You have successfully changed the port number and/or the host name.\nA restart of KeePass is required!\n\nPlease restart KeePass now.",

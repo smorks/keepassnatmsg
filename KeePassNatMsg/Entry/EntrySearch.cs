@@ -336,6 +336,8 @@ namespace KeePassNatMsg.Entry
                 listCount = listResult.Count;
             }
 
+            var searchUrls = configOpt.SearchUrls;
+
             bool filter(PwEntry e)
             {
                 var title = e.Strings.ReadSafe(PwDefs.TitleField);
@@ -351,11 +353,21 @@ namespace KeePassNatMsg.Entry
                         return false;
                 }
 
-                if (Uri.TryCreate(entryUrl, UriKind.Absolute, out var entryUri) && _allowedSchemes.Contains(entryUri.Scheme) && formHost.EndsWith(entryUri.Host))
+                if (IsValidUrl(entryUrl, formHost))
                     return true;
 
-                if (Uri.TryCreate(title, UriKind.Absolute, out var titleUri) && _allowedSchemes.Contains(titleUri.Scheme) && formHost.EndsWith(titleUri.Host))
+                if (IsValidUrl(title, formHost))
                     return true;
+
+                if (searchUrls)
+                {
+                    foreach(var sf in e.Strings.Where(s => s.Key.StartsWith("URL", StringComparison.InvariantCultureIgnoreCase)))
+                    {
+                        var sfv = e.Strings.ReadSafe(sf.Key);
+                        if (IsValidUrl(sfv, formHost))
+                            return true;
+                    }
+                }
 
                 return formHost.Contains(title) || (entryUrl != null && formHost.Contains(entryUrl));
             }
@@ -392,6 +404,8 @@ namespace KeePassNatMsg.Entry
 
             return result;
         }
+
+        private bool IsValidUrl(string url, string host) => Uri.TryCreate(url, UriKind.Absolute, out var uri) && _allowedSchemes.Contains(uri.Scheme) && host.EndsWith(uri.Host);
 
         private static SearchParameters MakeSearchParameters()
         {
