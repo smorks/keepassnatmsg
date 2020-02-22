@@ -349,7 +349,7 @@ namespace KeePassNatMsg.Entry
                         return true;
                     if (c.Deny.Contains(formHost))
                         return false;
-                    if (realm != null && c.Realm != realm)
+                    if (!string.IsNullOrEmpty(realm) && c.Realm != realm)
                         return false;
                 }
 
@@ -364,12 +364,19 @@ namespace KeePassNatMsg.Entry
                     foreach(var sf in e.Strings.Where(s => s.Key.StartsWith("URL", StringComparison.InvariantCultureIgnoreCase)))
                     {
                         var sfv = e.Strings.ReadSafe(sf.Key);
+
+                        if (sf.Key.IndexOf("regex", StringComparison.OrdinalIgnoreCase) >= 0
+                            && System.Text.RegularExpressions.Regex.IsMatch(formHost, sfv))
+                        {
+                            return true;
+                        }
+
                         if (IsValidUrl(sfv, formHost))
                             return true;
                     }
                 }
 
-                return formHost.Contains(title) || (entryUrl != null && formHost.Contains(entryUrl));
+                return formHost.Contains(title) || (!string.IsNullOrEmpty(entryUrl) && formHost.Contains(entryUrl));
             }
 
             bool filterSchemes(PwEntry e)
@@ -390,11 +397,11 @@ namespace KeePassNatMsg.Entry
                 return false;
             }
 
-            var result = from e in listResult where filter(e.entry) select e;
+            var result = listResult.Where(e => filter(e.entry));
 
             if (configOpt.MatchSchemes)
             {
-                result = from e in result where filterSchemes(e.entry) select e;
+                result = result.Where(e => filterSchemes(e.entry));
             }
 
             if (configOpt.HideExpired)
@@ -415,7 +422,7 @@ namespace KeePassNatMsg.Entry
                 RegularExpression = true,
                 SearchInGroupNames = false,
                 SearchInNotes = false,
-                SearchInOther = false,
+                SearchInOther = true,
                 SearchInPasswords = false,
                 SearchInTags = false,
                 SearchInUrls = true,
