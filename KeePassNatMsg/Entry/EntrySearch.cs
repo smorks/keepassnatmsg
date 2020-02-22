@@ -253,8 +253,9 @@ namespace KeePassNatMsg.Entry
 
                     // KeeOtp support through keepassxc-browser
                     // KeeOtp stores the TOTP config in a string field "otp" and provides a placeholder "{TOTP}"
+                    // KeeTrayTOTP uses by default a "TOTP Seed" string field, and the {TOTP} placeholder.
                     // keepassxc-browser needs the value in a string field named "KPH: {TOTP}"
-                    if (sf.Key == "otp")
+                    if (sf.Key == "otp" || sf.Key.Equals("TOTP Seed", StringComparison.InvariantCultureIgnoreCase))
                     {
                         fields.Add(new KeyValuePair<string, string>("KPH: {TOTP}", SprEngine.Compile("{TOTP}", ctx)));
                     }
