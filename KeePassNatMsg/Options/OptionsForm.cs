@@ -1,14 +1,14 @@
-﻿using KeePassNatMsg.NativeMessaging;
-using KeePassNatMsg.Utils;
-using KeePassLib;
+﻿using KeePassLib;
 using KeePassLib.Collections;
+using KeePassNatMsg.NativeMessaging;
+using KeePassNatMsg.Utils;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
-namespace KeePassNatMsg
+namespace KeePassNatMsg.Options
 {
     public partial class OptionsForm : Form
     {
@@ -50,15 +50,15 @@ namespace KeePassNatMsg
 
             this.returnStringFieldsCheckbox_CheckedChanged(null, EventArgs.Empty);
 
-			InitDatabasesDropdown();
-			foreach (dynamic item in comboBoxDatabases.Items)
-			{
-				if (item.DatabaseHash == _config.ConnectionDatabaseHash)
-				{
-					comboBoxDatabases.SelectedItem = item;
-				}
-			}
-		}
+            InitDatabasesDropdown();
+            foreach (DatabaseItem item in comboBoxDatabases.Items)
+            {
+                if (item.DbHash == _config.ConnectionDatabaseHash)
+                {
+                    comboBoxDatabases.SelectedItem = item;
+                }
+            }
+        }
 
         private void okButton_Click(object sender, EventArgs e)
         {
@@ -74,9 +74,9 @@ namespace KeePassNatMsg
             _config.ReturnStringFieldsWithKphOnly = returnStringFieldsWithKphOnlyCheckBox.Checked;
             _config.SortResultByUsername = SortByUsernameRadioButton.Checked;
             _config.OverrideKeePassXcVersion = txtKPXCVerOverride.Text;
-			_config.ConnectionDatabaseHash = (comboBoxDatabases.SelectedItem as dynamic)?.DatabaseHash;
+            _config.ConnectionDatabaseHash = (comboBoxDatabases.SelectedItem as DatabaseItem)?.DbHash;
             _config.SearchUrls = chkSearchUrls.Checked;
-			
+            
             if (_restartRequired)
             {
                 MessageBox.Show(
@@ -302,21 +302,21 @@ namespace KeePassNatMsg
             lblProxyVersion.Text = string.Join(Environment.NewLine, lst);
         }
 
-		private void InitDatabasesDropdown()
-		{
-			foreach (var item in KeePass.Program.MainForm.DocumentManager.Documents)
-			{
+        private void InitDatabasesDropdown()
+        {
+            foreach (var item in KeePass.Program.MainForm.DocumentManager.Documents)
+            {
                 if (!item.Database.IsOpen)
                     continue;
 
                 var dbIdentifier = item.Database.Name;
-				if (string.IsNullOrEmpty(dbIdentifier))
-				{
-					dbIdentifier = item.Database.IOConnectionInfo.Path;
-				}
+                if (string.IsNullOrEmpty(dbIdentifier))
+                {
+                    dbIdentifier = item.Database.IOConnectionInfo.Path;
+                }
 
-				comboBoxDatabases.Items.Add(new { DatabaseIdentifier = dbIdentifier, DatabaseHash = KeePassNatMsgExt.ExtInstance.GetDbHash(item.Database)});
-			}
-		}
-	}
+                comboBoxDatabases.Items.Add(new DatabaseItem { Id = dbIdentifier, DbHash = KeePassNatMsgExt.ExtInstance.GetDbHash(item.Database) });
+            }
+        }
+    }
 }

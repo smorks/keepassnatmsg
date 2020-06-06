@@ -2,16 +2,17 @@
 using KeePass.Plugins;
 using KeePass.UI;
 using KeePass.Util.Spr;
-using KeePassNatMsg.Entry;
-using KeePassNatMsg.Protocol;
-using KeePassNatMsg.Protocol.Action;
-using KeePassNatMsg.Protocol.Crypto;
-using KeePassNatMsg.Protocol.Listener;
 using KeePassLib;
 using KeePassLib.Cryptography;
 using KeePassLib.Cryptography.PasswordGenerator;
 using KeePassLib.Security;
 using KeePassLib.Utility;
+using KeePassNatMsg.Entry;
+using KeePassNatMsg.Options;
+using KeePassNatMsg.Protocol;
+using KeePassNatMsg.Protocol.Action;
+using KeePassNatMsg.Protocol.Crypto;
+using KeePassNatMsg.Protocol.Listener;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
@@ -289,13 +290,13 @@ namespace KeePassNatMsg
             return ByteToHexBitFiddle(hashBytes);
         }
 
-		internal string GetDbHash()
-		{
-			return GetDbHash(GetConnectionDatabase());
-		}
+        internal string GetDbHash()
+        {
+            return GetDbHash(GetConnectionDatabase());
+        }
 
-		// wizard magic courtesy of https://stackoverflow.com/questions/311165/how-do-you-convert-a-byte-array-to-a-hexadecimal-string-and-vice-versa/14333437#14333437
-		static string ByteToHexBitFiddle(byte[] bytes)
+        // wizard magic courtesy of https://stackoverflow.com/questions/311165/how-do-you-convert-a-byte-array-to-a-hexadecimal-string-and-vice-versa/14333437#14333437
+        static string ByteToHexBitFiddle(byte[] bytes)
         {
             char[] c = new char[bytes.Length * 2];
             int b;

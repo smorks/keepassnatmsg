@@ -65,6 +65,13 @@
     </Compile>
     <Compile Include="Entry\EntryConfig.cs" />
     <Compile Include="ConfigOpt.cs" />
+    <Compile Include="Options\DatabaseItem.cs" />
+    <Compile Include="Options\OptionsForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Options\OptionsForm.Designer.cs">
+      <DependentUpon>OptionsForm.cs</DependentUpon>
+    </Compile>
     <Compile Include="Protocol\Listener\SocketReadState.cs" />
     <Compile Include="Utils\EnumExtension.cs" />
     <Compile Include="NativeMessaging\BrowserSelectForm.cs">
@@ -78,12 +85,6 @@
     <Compile Include="NativeMessaging\NativeMessagingHost.cs" />
     <Compile Include="NativeMessaging\PosixHost.cs" />
     <Compile Include="NativeMessaging\WindowsHost.cs" />
-    <Compile Include="OptionsForm.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="OptionsForm.Designer.cs">
-      <DependentUpon>OptionsForm.cs</DependentUpon>
-    </Compile>
     <Compile Include="Properties\Resources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
@@ -129,7 +130,7 @@
     <EmbeddedResource Include="NativeMessaging\BrowserSelectForm.resx">
       <DependentUpon>BrowserSelectForm.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="OptionsForm.resx">
+    <EmbeddedResource Include="Options\OptionsForm.resx">
       <DependentUpon>OptionsForm.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
@@ -140,6 +141,7 @@
   <ItemGroup>
     <None Include="Resources\earth_lock.png" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

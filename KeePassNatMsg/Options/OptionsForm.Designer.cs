@@ -1,4 +1,4 @@
-﻿namespace KeePassNatMsg
+﻿namespace KeePassNatMsg.Options
 {
     partial class OptionsForm
     {
