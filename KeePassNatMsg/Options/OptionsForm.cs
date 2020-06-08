@@ -86,6 +86,15 @@ namespace KeePassNatMsg.Options
                     MessageBoxIcon.Information
                 );
             }
+
+            DialogResult = DialogResult.OK;
+            Close();
+        }
+
+        private void cancelButton_Click(object sender, EventArgs e)
+        {
+            DialogResult = DialogResult.Cancel;
+            Close();
         }
 
         private void removeButton_Click(object sender, EventArgs e)
@@ -229,7 +238,7 @@ namespace KeePassNatMsg.Options
                     _host.Install(bsf.SelectedBrowsers);
                     _host.UpdateProxy();
                     GetNativeMessagingStatus();
-                    MessageBox.Show(this, "The native messaging host installed completed successfully.", "Install Complete", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    Invoke(new Action(() => MessageBox.Show(this, "The native messaging host installed completed successfully.", "Install Complete", MessageBoxButtons.OK, MessageBoxIcon.Information)));
                 });
                 t.Start();
             }
@@ -243,17 +252,7 @@ namespace KeePassNatMsg.Options
             {
                 if (ti.IsCompleted && !ti.Result)
                 {
-                    var nmiInstall = MessageBox.Show(this, $"The native messaging host was not detected. It must be installed for KeePassNatMsg to work. Do you want to install it now?", "Native Messaging Host Not Detected", MessageBoxButtons.YesNo, MessageBoxIcon.Question, MessageBoxDefaultButton.Button2);
-                    if (nmiInstall == DialogResult.Yes)
-                    {
-                        var bsf = new BrowserSelectForm(_host);
-                        if (bsf.ShowDialog(this) == DialogResult.OK)
-                        {
-                            _host.Install(bsf.SelectedBrowsers);
-                            _host.UpdateProxy();
-                            MessageBox.Show(this, "The native messaging host installed completed successfully.", "Install Complete", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                        }
-                    }
+                    Invoke(new Action(() => PromptInstall()));
                 }
                 GetNativeMessagingStatus();
             });
@@ -261,6 +260,21 @@ namespace KeePassNatMsg.Options
             lblProxyVersion.Text = "Loading Native Messaging Status...";
 
             t.Start();
+        }
+
+        private void PromptInstall()
+        {
+            var nmiInstall = MessageBox.Show(this, $"The native messaging host was not detected. It must be installed for KeePassNatMsg to work. Do you want to install it now?", "Native Messaging Host Not Detected", MessageBoxButtons.YesNo, MessageBoxIcon.Question, MessageBoxDefaultButton.Button2);
+            if (nmiInstall == DialogResult.Yes)
+            {
+                var bsf = new BrowserSelectForm(_host);
+                if (bsf.ShowDialog(this) == DialogResult.OK)
+                {
+                    _host.Install(bsf.SelectedBrowsers);
+                    _host.UpdateProxy();
+                    MessageBox.Show(this, "The native messaging host installed completed successfully.", "Install Complete", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                }
+            }
         }
 
         private void OptionsForm_Shown(object sender, EventArgs e)

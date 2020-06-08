@@ -44,6 +44,7 @@
             this.credMatchingCheckbox = new System.Windows.Forms.CheckBox();
             this.credNotifyCheckbox = new System.Windows.Forms.CheckBox();
             this.tabPage2 = new System.Windows.Forms.TabPage();
+            this.chkSearchUrls = new System.Windows.Forms.CheckBox();
             this.label6 = new System.Windows.Forms.Label();
             this.comboBoxDatabases = new System.Windows.Forms.ComboBox();
             this.txtKPXCVerOverride = new System.Windows.Forms.TextBox();
@@ -57,7 +58,6 @@
             this.label1 = new System.Windows.Forms.Label();
             this.credAllowUpdatesCheckbox = new System.Windows.Forms.CheckBox();
             this.credAllowAccessCheckbox = new System.Windows.Forms.CheckBox();
-            this.chkSearchUrls = new System.Windows.Forms.CheckBox();
             this.tabControl1.SuspendLayout();
             this.tabPage1.SuspendLayout();
             this.tabPage2.SuspendLayout();
@@ -66,18 +66,17 @@
             // cancelButton
             // 
             this.cancelButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.cancelButton.DialogResult = System.Windows.Forms.DialogResult.Cancel;
             this.cancelButton.Location = new System.Drawing.Point(313, 470);
             this.cancelButton.Name = "cancelButton";
             this.cancelButton.Size = new System.Drawing.Size(88, 28);
             this.cancelButton.TabIndex = 2;
             this.cancelButton.Text = "&Cancel";
             this.cancelButton.UseVisualStyleBackColor = true;
+            this.cancelButton.Click += new System.EventHandler(this.cancelButton_Click);
             // 
             // okButton
             // 
             this.okButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.okButton.DialogResult = System.Windows.Forms.DialogResult.OK;
             this.okButton.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.okButton.Location = new System.Drawing.Point(219, 470);
             this.okButton.Name = "okButton";
@@ -264,6 +263,16 @@
             this.tabPage2.Text = "Advanced";
             this.tabPage2.UseVisualStyleBackColor = true;
             // 
+            // chkSearchUrls
+            // 
+            this.chkSearchUrls.AutoSize = true;
+            this.chkSearchUrls.Location = new System.Drawing.Point(7, 134);
+            this.chkSearchUrls.Name = "chkSearchUrls";
+            this.chkSearchUrls.Size = new System.Drawing.Size(340, 17);
+            this.chkSearchUrls.TabIndex = 36;
+            this.chkSearchUrls.Text = "Search string fields for URL (matches any field starting with \"URL\")";
+            this.chkSearchUrls.UseVisualStyleBackColor = true;
+            // 
             // label6
             // 
             this.label6.AutoSize = true;
@@ -276,13 +285,13 @@
             // 
             // comboBoxDatabases
             // 
-            this.comboBoxDatabases.DisplayMember = "DatabaseIdentifier";
+            this.comboBoxDatabases.DisplayMember = "Id";
             this.comboBoxDatabases.FormattingEnabled = true;
             this.comboBoxDatabases.Location = new System.Drawing.Point(11, 380);
             this.comboBoxDatabases.Name = "comboBoxDatabases";
             this.comboBoxDatabases.Size = new System.Drawing.Size(250, 21);
             this.comboBoxDatabases.TabIndex = 34;
-            this.comboBoxDatabases.ValueMember = "DatabaseHash";
+            this.comboBoxDatabases.ValueMember = "DbHash";
             // 
             // txtKPXCVerOverride
             // 
@@ -392,16 +401,6 @@
             this.credAllowAccessCheckbox.TabIndex = 15;
             this.credAllowAccessCheckbox.Text = "Always allow &access to entries";
             this.credAllowAccessCheckbox.UseVisualStyleBackColor = true;
-            // 
-            // chkSearchUrls
-            // 
-            this.chkSearchUrls.AutoSize = true;
-            this.chkSearchUrls.Location = new System.Drawing.Point(7, 134);
-            this.chkSearchUrls.Name = "chkSearchUrls";
-            this.chkSearchUrls.Size = new System.Drawing.Size(340, 17);
-            this.chkSearchUrls.TabIndex = 36;
-            this.chkSearchUrls.Text = "Search string fields for URL (matches any field starting with \"URL\")";
-            this.chkSearchUrls.UseVisualStyleBackColor = true;
             // 
             // OptionsForm
             // 
