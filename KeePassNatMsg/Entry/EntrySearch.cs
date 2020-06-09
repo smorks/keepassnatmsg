@@ -124,7 +124,7 @@ namespace KeePassNatMsg.Entry
 
                     entryUrl = entryUrl.ToLower();
 
-                    entryDatabase.entry.UsageCount = (ulong)LevenshteinDistance(submitUrl.ToLower(), entryUrl);
+                    entryDatabase.entry.UsageCount = (ulong)LevenshteinDistance(submitUri.ToString().ToLower(), entryUrl);
                 }
 
                 var itemsList = items.ToList();
