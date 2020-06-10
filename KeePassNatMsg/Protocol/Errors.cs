@@ -15,10 +15,13 @@
         NoSavedDatabasesFound,
         IncorrectAction,
         EmptyMessageReceived,
-        NoUrlProvided
+        NoUrlProvided,
+        NoLoginsFound,
+        NoGroupsFound,
+        CannotCreateNewGroup
     }
 
-    public class Errors
+    public static class Errors
     {
         public static string GetErrorMessage(ErrorType error)
         {
@@ -52,6 +55,12 @@
                     return "Empty message received";
                 case ErrorType.NoUrlProvided:
                     return "No URL provided";
+                case ErrorType.NoLoginsFound:
+                    return "No Logins Found";
+                case ErrorType.NoGroupsFound:
+                    return "No Groups Found";
+                case ErrorType.CannotCreateNewGroup:
+                    return "Cannot Create New Group";
                 default:
                     return error.ToString();
             }

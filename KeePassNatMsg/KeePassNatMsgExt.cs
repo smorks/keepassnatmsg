@@ -461,7 +461,7 @@ namespace KeePassNatMsg
             // free native resources
         }
 
-        private PwDatabase GetConnectionDatabase()
+        public PwDatabase GetConnectionDatabase()
         {
             var options = new ConfigOpt(HostInstance.CustomConfig);
             if (string.IsNullOrEmpty(options.ConnectionDatabaseHash))

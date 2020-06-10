@@ -1,6 +1,8 @@
 ﻿using KeePass.Plugins;
+using KeePassLib;
 using KeePassNatMsg.Entry;
 using KeePassNatMsg.Protocol.Action;
+using Mono.Unix.Native;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
@@ -35,7 +37,9 @@ namespace KeePassNatMsg.Protocol
                 {Actions.GET_LOGINS, GetLogins},
                 {Actions.SET_LOGIN, SetLogin},
                 {Actions.GENERATE_PASSWORD, GeneratePassword},
-                {Actions.LOCK_DATABASE, LockDatabase}
+                {Actions.LOCK_DATABASE, LockDatabase},
+                {Actions.GET_DATABASE_GROUPS, GetDatabaseGroups},
+                {Actions.CREATE_NEW_GROUP, CreateNewGroup},
             };
         }
 
@@ -191,6 +195,54 @@ namespace KeePassNatMsg.Protocol
         {
 
             _host.MainWindow.Invoke(new System.Action(() => _host.MainWindow.LockAllDocuments()));
+            return req.GetResponse();
+        }
+
+        private Response GetDatabaseGroups(Request req)
+        {
+            var db = _ext.GetConnectionDatabase();
+
+            if (db.RootGroup == null)
+            {
+                return new ErrorResponse(req, ErrorType.NoGroupsFound);
+            }
+
+            var root = new JObject
+            {
+                { "name", db.RootGroup.Name },
+                { "uuid", db.RootGroup.Uuid.ToHexString() },
+                { "children", GetGroupChildren(db.RootGroup) }
+            };
+
+            var resp = req.GetResponse();
+
+            resp.Message.Add("groups", new JObject
+            {
+                { "groups", new JArray { root } }
+            });
+
+            return resp;
+        }
+
+        private JArray GetGroupChildren(PwGroup group)
+        {
+            var groups = new JArray();
+
+            foreach(var grp in group.GetGroups(false))
+            {
+                groups.Add(new JObject
+                {
+                    { "name", grp.Name },
+                    { "uuid", grp.Uuid.ToHexString() },
+                    { "children", GetGroupChildren(grp) }
+                });
+            }
+
+            return groups;
+        }
+
+        private Response CreateNewGroup(Request req)
+        {
             return req.GetResponse();
         }
     }

@@ -13,5 +13,7 @@ namespace KeePassNatMsg.Protocol
         public const string LOCK_DATABASE = "lock-database";
         public const string DATABASE_LOCKED = "database-locked";
         public const string DATABASE_UNLOCKED = "database-unlocked";
+        public const string GET_DATABASE_GROUPS = "get-database-groups";
+        public const string CREATE_NEW_GROUP = "create-new-group";
     }
 }
