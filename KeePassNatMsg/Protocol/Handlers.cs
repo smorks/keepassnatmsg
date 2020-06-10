@@ -2,7 +2,6 @@
 using KeePassLib;
 using KeePassNatMsg.Entry;
 using KeePassNatMsg.Protocol.Action;
-using Mono.Unix.Native;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
@@ -168,14 +167,13 @@ namespace KeePassNatMsg.Protocol
                 var login = reqMsg.GetString("login");
                 var pw = reqMsg.GetString("password");
                 var submitUrl = reqMsg.GetString("submitUrl");
-                var group = reqMsg.GetString("group");
                 var groupUuid = reqMsg.GetString("groupUuid");
 
                 bool result;
 
                 if (string.IsNullOrEmpty(uuid))
                 {
-                    result = eu.CreateEntry(login, pw, url, submitUrl, null);
+                    result = eu.CreateEntry(login, pw, url, submitUrl, null, groupUuid);
                 }
                 else
                 {
