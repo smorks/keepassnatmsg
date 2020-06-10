@@ -168,17 +168,27 @@ namespace KeePassNatMsg.Protocol
                 var login = reqMsg.GetString("login");
                 var pw = reqMsg.GetString("password");
                 var submitUrl = reqMsg.GetString("submitUrl");
+                var group = reqMsg.GetString("group");
+                var groupUuid = reqMsg.GetString("groupUuid");
+
+                bool result;
 
                 if (string.IsNullOrEmpty(uuid))
                 {
-                    eu.CreateEntry(login, pw, url, submitUrl, null);
+                    result = eu.CreateEntry(login, pw, url, submitUrl, null);
                 }
                 else
                 {
-                    eu.UpdateEntry(uuid, login, pw, url);
+                    result = eu.UpdateEntry(uuid, login, pw, url);
                 }
 
-                return req.GetResponse();
+                var resp = req.GetResponse();
+
+                resp.Message.Add("count", JValue.CreateNull());
+                resp.Message.Add("entries", JValue.CreateNull());
+                resp.Message.Add("error", result ? "success" : "error");
+
+                return resp;
             }
             return new ErrorResponse(req, ErrorType.CannotDecryptMessage);
         }
