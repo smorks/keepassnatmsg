@@ -44,28 +44,28 @@ namespace KeePassNatMsg.Protocol
             var handler = GetHandler(req.Action);
             if (handler != null)
             {
-                if (handler != ChangePublicKeys)
+                if (handler != ChangePublicKeys && !UnlockDatabase(req.TriggerUnlock))
                 {
-                    lock (_unlockLock)
-                    {
-                        var config = new ConfigOpt(_host.CustomConfig);
-                        if (!_host.Database.IsOpen && config.UnlockDatabaseRequest)
-                        {
-                            if (KeePass.UI.GlobalWindowManager.WindowCount == 0)
-                            {
-                                _host.MainWindow.Invoke(new System.Action(() => _host.MainWindow.OpenDatabase(_host.MainWindow.DocumentManager.ActiveDocument.LockedIoc, null, false)));
-                            }
-                        }
-                        if (!_host.Database.IsOpen)
-                        {
-                            return new ErrorResponse(req, ErrorType.DatabaseNotOpened);
-                        }
-                    }
+                    return new ErrorResponse(req, ErrorType.DatabaseNotOpened);
                 }
 
                 return handler.Invoke(req);
             }
             return new ErrorResponse(req, ErrorType.IncorrectAction);
+        }
+
+        private bool UnlockDatabase(bool triggerUnlock)
+        {
+            lock (_unlockLock)
+            {
+                var config = new ConfigOpt(_host.CustomConfig);
+                if (!_host.Database.IsOpen && config.UnlockDatabaseRequest && KeePass.UI.GlobalWindowManager.WindowCount == 0 && triggerUnlock)
+                {
+                    _host.MainWindow.Invoke(new System.Action(() => _host.MainWindow.OpenDatabase(_host.MainWindow.DocumentManager.ActiveDocument.LockedIoc, null, false)));
+                }
+
+                return _host.Database.IsOpen;
+            }
         }
 
         private RequestHandler GetHandler(string action) => _handlers.ContainsKey(action) ? _handlers[action] : null;

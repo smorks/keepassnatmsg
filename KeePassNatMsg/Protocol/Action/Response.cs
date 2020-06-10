@@ -8,6 +8,11 @@ namespace KeePassNatMsg.Protocol.Action
         private JsonBase _msg;
         private string _clientId;
 
+        public Response(string action)
+        {
+            Add("action", action);
+        }
+
         public Response(Request req, bool createMessage)
         {
             Init(req, createMessage);

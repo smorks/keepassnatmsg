@@ -40,6 +40,16 @@ namespace KeePassNatMsg.Protocol.Listener
             }
         }
 
+        public void Write(string msg)
+        {
+            var pts = _threads.Find(x => x.Server.IsConnected);
+            if (pts != null)
+            {
+                var pw = new PipeWriter(pts.Server);
+                pw.Send(msg);
+            }
+        }
+
         private void CreateAndRunThread()
         {
             var pts = CreateThreadState(new Thread(Run));

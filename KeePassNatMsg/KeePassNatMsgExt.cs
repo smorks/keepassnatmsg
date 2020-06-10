@@ -59,6 +59,7 @@ namespace KeePassNatMsg
         public override string UpdateUrl => "https://dev.brandt.tech/keepass-plugin.txt";
 
         private Handlers _handlers;
+        private bool _isLocked;
 
         internal PwEntry GetConfigEntry(bool create)
         {
@@ -171,6 +172,9 @@ namespace KeePassNatMsg
             //optionsMenu.Image = global::KeePass.Properties.Resources.B16x16_File_Close;
             HostInstance.MainWindow.ToolsMenu.DropDownItems.Add(optionsMenu);
 
+            pluginHost.MainWindow.FileClosingPre += MainWindow_FileClosingPre;
+            pluginHost.MainWindow.FileOpened += MainWindow_FileOpened;
+
             try
             {
                 _handlers = new Handlers();
@@ -201,6 +205,30 @@ namespace KeePassNatMsg
                 MessageBox.Show(HostInstance.MainWindow, e.ToString(), "Unable to start", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
             return true;
+        }
+
+        private void MainWindow_FileOpened(object sender, KeePass.Forms.FileOpenedEventArgs e)
+        {
+            if (_isLocked)
+            {
+                _isLocked = false;
+
+                var resp = new Response(Actions.DATABASE_UNLOCKED);
+
+                _listener.Write(resp.GetEncryptedResponse());
+            }
+        }
+
+        private void MainWindow_FileClosingPre(object sender, KeePass.Forms.FileClosingEventArgs e)
+        {
+            if (e.Flags == KeePass.Forms.FileEventFlags.Locking)
+            {
+                _isLocked = true;
+
+                var resp = new Response(Actions.DATABASE_LOCKED);
+
+                _listener.Write(resp.GetEncryptedResponse());
+            }
         }
 
         private void Listener_MessageReceived(object sender, PipeMessageReceivedEventArgs e)

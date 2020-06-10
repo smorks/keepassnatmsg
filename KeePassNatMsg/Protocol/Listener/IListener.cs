@@ -6,6 +6,7 @@ namespace KeePassNatMsg.Protocol.Listener
     {
         void Start();
         void Stop();
+        void Write(string msg);
         event EventHandler<PipeMessageReceivedEventArgs> MessageReceived;
     }
 }

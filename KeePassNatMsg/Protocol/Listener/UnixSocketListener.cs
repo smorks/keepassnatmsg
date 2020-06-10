@@ -46,6 +46,12 @@ namespace KeePassNatMsg.Protocol.Listener
             DeleteSocketFile();
         }
 
+        public void Write(string msg)
+        {
+            var sw = new SocketWriter(_socket);
+            sw.Send(msg);
+        }
+
         public void Dispose()
         {
             Dispose(true);

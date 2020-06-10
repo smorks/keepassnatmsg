@@ -33,6 +33,8 @@ namespace KeePassNatMsg.Protocol.Action
 
         public byte[] NonceBytes => GetBytes("nonce");
 
+        public bool TriggerUnlock => bool.TryParse(GetString("triggerUnlock"), out var x) && x;
+
         public JsonBase Message => _msg;
 
         public Response GetResponse() => new Response(this);
