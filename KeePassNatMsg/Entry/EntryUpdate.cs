@@ -136,7 +136,7 @@ namespace KeePassNatMsg.Entry
                 entry.Strings.Set(KeePassNatMsgExt.KeePassNatMsgName, new ProtectedString(false, writer.ToString()));
             }
 
-            var group = _ext.GetPasswordsGroup();
+            PwGroup group = null;
 
             if (!string.IsNullOrEmpty(groupUuid))
             {
@@ -144,13 +144,12 @@ namespace KeePassNatMsg.Entry
                 if (db.RootGroup != null)
                 {
                     var uuid = new PwUuid(MemUtil.HexStringToByteArray(groupUuid));
-                    var selectedGroup = db.RootGroup.FindGroup(uuid, true);
-                    if (selectedGroup != null)
-                    {
-                        group = selectedGroup;
-                    }
+                    group = db.RootGroup.FindGroup(uuid, true);
                 }
             }
+
+            if (group == null)
+                group = _ext.GetPasswordsGroup();
 
             group.AddEntry(entry, true);
             _ext.UpdateUI(group);
