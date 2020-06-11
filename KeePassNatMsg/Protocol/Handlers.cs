@@ -251,7 +251,24 @@ namespace KeePassNatMsg.Protocol
 
         private Response CreateNewGroup(Request req)
         {
-            return req.GetResponse();
+            if (!req.TryDecrypt())
+                return new ErrorResponse(req, ErrorType.CannotDecryptMessage);
+
+            var groupName = req.Message.GetString("groupName");
+
+            var db = _ext.GetConnectionDatabase();
+
+            var group = db.RootGroup.FindCreateSubTree(groupName, new[] { '/' }, true);
+
+            if (group == null)
+                return new ErrorResponse(req, ErrorType.CannotCreateNewGroup);
+
+            var resp = req.GetResponse();
+
+            resp.Message.Add("name", group.Name);
+            resp.Message.Add("uuid", group.Uuid.ToHexString());
+
+            return resp;
         }
     }
 }
