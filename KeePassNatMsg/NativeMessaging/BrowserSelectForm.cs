@@ -23,13 +23,14 @@ namespace KeePassNatMsg.NativeMessaging
                 if (chkFirefox.Checked) b |= Browsers.Firefox;
                 if (chkVivaldi.Checked) b |= Browsers.Vivaldi;
                 if (chkMsEdge.Checked) b |= Browsers.Edge;
+                if (chkThunderbird.Checked) b |= Browsers.Thunderbird;
                 return b;
             }
         }
 
         private void btnOk_Click(object sender, System.EventArgs e)
         {
-            if (chkChrome.Checked || chkChromium.Checked || chkFirefox.Checked || chkVivaldi.Checked || chkMsEdge.Checked)
+            if (chkChrome.Checked || chkChromium.Checked || chkFirefox.Checked || chkVivaldi.Checked || chkMsEdge.Checked || chkThunderbird.Checked)
             {
                 DialogResult = DialogResult.OK;
                 Close();
@@ -64,6 +65,9 @@ namespace KeePassNatMsg.NativeMessaging
                         break;
                     case Browsers.Edge:
                         cb = chkMsEdge;
+                        break;
+                    case Browsers.Thunderbird:
+                        cb = chkThunderbird;
                         break;
                 }
 

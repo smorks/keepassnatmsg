@@ -7,13 +7,16 @@ namespace KeePassNatMsg.NativeMessaging
 {
     public class WindowsHost : NativeMessagingHost
     {
+        private const string MozillaNmhKey= "Software\\Mozilla";
+
         private readonly string[] RegKeys = new[] {
             string.Empty,
             "Software\\Google\\Chrome",
             "Software\\Chromium",
-            "Software\\Mozilla",
+            MozillaNmhKey,
             "Software\\Vivaldi",
             "Software\\Microsoft\\Edge",
+            MozillaNmhKey,
         };
 
         public override string ProxyPath => Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "KeePassNatMsg");
@@ -28,7 +31,7 @@ namespace KeePassNatMsg.NativeMessaging
                     var key = Microsoft.Win32.Registry.CurrentUser.CreateSubKey(RegKeys[i]);
                     if (key != null)
                     {
-                        var nmhKey = key.CreateSubKey($"{NmhKey}\\{ExtKey}");
+                        var nmhKey = key.CreateSubKey($"{NmhKey}\\{GetExtKey(b)}");
                         if (nmhKey != null)
                         {
                             CreateRegKeyAndFile(b, nmhKey);
@@ -54,7 +57,7 @@ namespace KeePassNatMsg.NativeMessaging
                     if (key != null)
                     {
                         status = BrowserStatus.Detected;
-                        var nmhKey = key.OpenSubKey($"{NmhKey}\\{ExtKey}", false);
+                        var nmhKey = key.OpenSubKey($"{NmhKey}\\{GetExtKey(b)}", false);
                         if (nmhKey != null)
                         {
                             var jsonFile = (string)nmhKey.GetValue(string.Empty, string.Empty);

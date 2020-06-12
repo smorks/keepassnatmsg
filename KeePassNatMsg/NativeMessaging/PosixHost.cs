@@ -30,7 +30,7 @@ namespace KeePassNatMsg.NativeMessaging
                 if (b != Browsers.None)
                 {
                     var status = BrowserStatus.NotInstalled;
-                    var jsonFile = Path.Combine(_home, BrowserPaths[i], $"{ExtKey}.json");
+                    var jsonFile = Path.Combine(_home, BrowserPaths[i], $"{GetExtKey(b)}.json");
                     var jsonDir = Path.GetDirectoryName(jsonFile);
                     var jsonDirInfo = new DirectoryInfo(jsonDir);
                     var jsonParent = jsonDirInfo.Parent.FullName;
@@ -73,7 +73,7 @@ namespace KeePassNatMsg.NativeMessaging
             {
                 if (b != Browsers.None && browsers.HasFlag(b))
                 {
-                    var jsonFile = Path.Combine(_home, BrowserPaths[i], $"{ExtKey}.json");
+                    var jsonFile = Path.Combine(_home, BrowserPaths[i], $"{GetExtKey(b)}.json");
                     var jsonDir = Path.GetDirectoryName(jsonFile);
 
                     var jsonDirInfo = new DirectoryInfo(jsonDir);

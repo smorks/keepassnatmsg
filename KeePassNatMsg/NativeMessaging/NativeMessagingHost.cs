@@ -21,6 +21,7 @@ namespace KeePassNatMsg.NativeMessaging
 
         [Description("Microsoft Edge")]
         Edge = 16,
+        Thunderbird = 32,
     }
 
     public enum BrowserStatus
@@ -34,9 +35,10 @@ namespace KeePassNatMsg.NativeMessaging
     public abstract class NativeMessagingHost
     {
         protected const string NmhKey = "NativeMessagingHosts";
-        protected const string ExtKey = "org.keepassxc.keepassxc_browser";
         protected const string ProxyExecutable = "keepassnatmsg-proxy.exe";
         private const string GithubRepo = "https://github.com/smorks/keepassnatmsg-proxy";
+        private const string ExtKeyBrowser = "org.keepassxc.keepassxc_browser";
+        private const string ExtKeyThunderbird = "de.kkapsner.keepassxc_mail";
 
         protected Encoding _utf8 = new UTF8Encoding(false);
 
@@ -76,6 +78,8 @@ namespace KeePassNatMsg.NativeMessaging
                     return Properties.Resources.firefox_json;
                 case Browsers.Edge:
                     return Properties.Resources.edge_json;
+                case Browsers.Thunderbird:
+                    return Properties.Resources.thunderbird_json;
             }
             return null;
         }
@@ -126,6 +130,17 @@ namespace KeePassNatMsg.NativeMessaging
                 MessageBox.Show(ParentForm, $"An error occurred attempting to download the proxy application: {ex}", "Proxy Download Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
             return false;
+        }
+
+        protected string GetExtKey(Browsers b)
+        {
+            switch(b)
+            {
+                case Browsers.Thunderbird:
+                    return ExtKeyThunderbird;
+                default:
+                    return ExtKeyBrowser;
+            }
         }
 
         public abstract string ProxyPath { get; }

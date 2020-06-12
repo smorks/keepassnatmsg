@@ -157,4 +157,15 @@
   ]
 }}</value>
   </data>
+  <data name="thunderbird_json" xml:space="preserve">
+    <value>{{
+  "name": "de.kkapsner.keepassxc_mail",
+  "description": "KeepassXC integration with Thunderbird with Native Messaging support",
+  "path" : "{0}",
+  "type": "stdio",
+  "allowed_extensions": [
+    "keepassxc-mail@kkapsner.de"
+  ]
+}}</value>
+  </data>
 </root>

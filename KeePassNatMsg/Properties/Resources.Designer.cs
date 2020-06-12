@@ -123,5 +123,22 @@ namespace KeePassNatMsg.Properties {
                 return ResourceManager.GetString("firefox_json", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {{
+        ///  &quot;name&quot;: &quot;de.kkapsner.keepassxc_mail&quot;,
+        ///  &quot;description&quot;: &quot;KeepassXC integration with Thunderbird with Native Messaging support&quot;,
+        ///  &quot;path&quot; : &quot;{0}&quot;,
+        ///  &quot;type&quot;: &quot;stdio&quot;,
+        ///  &quot;allowed_extensions&quot;: [
+        ///    &quot;keepassxc-mail@kkapsner.de&quot;
+        ///  ]
+        ///}}.
+        /// </summary>
+        internal static string thunderbird_json {
+            get {
+                return ResourceManager.GetString("thunderbird_json", resourceCulture);
+            }
+        }
     }
 }
