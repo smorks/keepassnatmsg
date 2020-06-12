@@ -146,7 +146,7 @@ namespace KeePassNatMsg.Entry
                 var serializer = _ext.NewJsonSerializer();
                 var writer = new StringWriter();
                 serializer.Serialize(writer, config);
-                entry.Strings.Set(KeePassNatMsgExt.KeePassNatMsgName, new ProtectedString(false, writer.ToString()));
+                entry.Strings.Set(KeePassNatMsgExt.KeePassNatMsgNameLegacy, new ProtectedString(false, writer.ToString()));
             }
 
             PwGroup group = null;

@@ -178,7 +178,7 @@ namespace KeePassNatMsg.Options
                 {
                     foreach (var str in entry.Strings)
                     {
-                        if (str.Key == KeePassNatMsgExt.KeePassNatMsgName)
+                        if (str.Key == KeePassNatMsgExt.KeePassNatMsgNameLegacy)
                         {
                             PwObjectList<PwEntry> m_vHistory = entry.History.CloneDeep();
                             entry.History = m_vHistory;

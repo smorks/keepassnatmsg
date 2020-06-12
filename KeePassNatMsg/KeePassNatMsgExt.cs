@@ -17,7 +17,6 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
 using System.IO;
-using System.Linq;
 using System.Security.Cryptography;
 using System.Windows.Forms;
 
@@ -47,7 +46,8 @@ namespace KeePassNatMsg
         internal static Helper CryptoHelper;
 
         private const int DefaultNotificationTime = 5000;
-        public const string KeePassNatMsgName = "KeePassHttp Settings";
+        public const string KeePassNatMsgConfig = "KeePassNatMsg_";
+        public const string KeePassNatMsgNameLegacy = "KeePassHttp Settings";
         public const string KeePassNatMsgGroupName = "KeePassNatMsg Passwords";
         public const string AssociateKeyPrefix = "Public Key: ";
         private const string PipeName = "kpxc_server";
@@ -61,20 +61,11 @@ namespace KeePassNatMsg
         private Handlers _handlers;
         private bool _isLocked;
 
-        internal PwEntry GetConfigEntry(bool create)
+        internal PwEntry GetConfigEntryLegacy()
         {
             var root = GetConnectionDatabase().RootGroup;
             var uuid = new PwUuid(KeePassNatMsgUuid);
-            var entry = root.FindEntry(uuid, false);
-            if (entry == null && create)
-            {
-                entry = new PwEntry(false, true);
-                entry.Uuid = uuid;
-                entry.Strings.Set(PwDefs.TitleField, new ProtectedString(false, KeePassNatMsgName));
-                root.AddEntry(entry, true);
-                UpdateUI(null);
-            }
-            return entry;
+            return root.FindEntry(uuid, false);
         }
 
         internal PwGroup GetPasswordsGroup()
@@ -90,26 +81,6 @@ namespace KeePassNatMsg
                 UpdateUI(null);
             }
             return group;
-        }
-
-        private int GetNotificationTime()
-        {
-            var time = DefaultNotificationTime;
-            var entry = GetConfigEntry(false);
-            if (entry != null)
-            {
-                var s = entry.Strings.ReadSafe("Prompt Timeout");
-                if (s != null && s.Trim() != "")
-                {
-                    try
-                    {
-                        time = Int32.Parse(s) * 1000;
-                    }
-                    catch { }
-                }
-            }
-
-            return time;
         }
 
         internal void ShowNotification(string text)
@@ -149,7 +120,7 @@ namespace KeePassNatMsg
                 //notify.BalloonTipIcon = ToolTipIcon.Info;
                 notify.BalloonTipTitle = "KeePassNatMsg";
                 notify.BalloonTipText = text;
-                notify.ShowBalloonTip(GetNotificationTime());
+                notify.ShowBalloonTip(DefaultNotificationTime);
                 // need to add listeners after showing, or closed is sent right away
                 notify.BalloonTipClosed += closed;
                 notify.BalloonTipClicked += clicked;
@@ -354,13 +325,14 @@ namespace KeePassNatMsg
 
                     if (f.KeyId != null)
                     {
-                        var entry = GetConfigEntry(true);
-
                         bool keyNameExists = true;
+                        var db = GetConnectionDatabase();
+                        var customKey = KeePassNatMsgConfig + f.KeyId;
+
                         while (keyNameExists)
                         {
                             DialogResult keyExistsResult = DialogResult.Yes;
-                            if (entry.Strings.Any(x => x.Key == AssociateKeyPrefix + f.KeyId))
+                            if (db.CustomData.Exists(customKey))
                             {
                                 keyExistsResult = MessageBox.Show(
                                     win,
@@ -384,9 +356,7 @@ namespace KeePassNatMsg
 
                         if (f.KeyId != null)
                         {
-                            entry.Strings.Set(AssociateKeyPrefix + f.KeyId, new ProtectedString(true, key));
-                            entry.Touch(true);
-                            UpdateUI(null);
+                            db.CustomData.Set(customKey, key);
                             id = f.KeyId;
                         }
                     }
@@ -398,9 +368,9 @@ namespace KeePassNatMsg
         internal EntryConfig GetEntryConfig(PwEntry e)
         {
             var serializer = NewJsonSerializer();
-            if (e.Strings.Exists(KeePassNatMsgName))
+            if (e.Strings.Exists(KeePassNatMsgNameLegacy))
             {
-                var json = e.Strings.ReadSafe(KeePassNatMsgName);
+                var json = e.Strings.ReadSafe(KeePassNatMsgNameLegacy);
                 using (var ins = new JsonTextReader(new StringReader(json)))
                 {
                     return serializer.Deserialize<EntryConfig>(ins);
@@ -414,7 +384,7 @@ namespace KeePassNatMsg
             var serializer = NewJsonSerializer();
             var writer = new StringWriter();
             serializer.Serialize(writer, c);
-            e.Strings.Set(KeePassNatMsgName, new ProtectedString(false, writer.ToString()));
+            e.Strings.Set(KeePassNatMsgNameLegacy, new ProtectedString(false, writer.ToString()));
             e.Touch(true);
             UpdateUI(e.ParentGroup);
         }
