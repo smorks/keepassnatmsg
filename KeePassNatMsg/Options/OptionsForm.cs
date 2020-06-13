@@ -23,13 +23,6 @@ namespace KeePassNatMsg.Options
             InitializeComponent();
         }
 
-        private PwEntry GetConfigEntry(PwDatabase db)
-        {
-            var root = db.RootGroup;
-            var uuid = new PwUuid(KeePassNatMsgExt.KeePassNatMsgUuid);
-            return root.FindEntry(uuid, false);
-        }
-
         private void OptionsForm_Load(object sender, EventArgs e)
         {
             credNotifyCheckbox.Checked = _config.ReceiveCredentialNotification;
@@ -75,7 +68,7 @@ namespace KeePassNatMsg.Options
             _config.OverrideKeePassXcVersion = txtKPXCVerOverride.Text;
             _config.ConnectionDatabaseHash = (comboBoxDatabases.SelectedItem as DatabaseItem)?.DbHash;
             _config.SearchUrls = chkSearchUrls.Checked;
-            
+
             if (_restartRequired)
             {
                 MessageBox.Show(
@@ -101,52 +94,38 @@ namespace KeePassNatMsg.Options
             if (KeePass.Program.MainForm.DocumentManager.ActiveDatabase.IsOpen)
             {
                 PwDatabase db = KeePass.Program.MainForm.DocumentManager.ActiveDatabase;
-                var entry = GetConfigEntry(db);
-                if (entry != null)
+                List<string> deleteKeys = new List<string>();
+
+                foreach (var cd in db.CustomData)
                 {
-                    List<string> deleteKeys = new List<string>();
-
-                    foreach (var s in entry.Strings)
+                    if (cd.Key.StartsWith(KeePassNatMsgExt.KeePassNatMsgConfig))
                     {
-                        if (s.Key.IndexOf(KeePassNatMsgExt.AssociateKeyPrefix) == 0)
-                        {
-                            deleteKeys.Add(s.Key);
-                        }
+                        deleteKeys.Add(cd.Key);
+                    }
+                }
+
+                if (deleteKeys.Count > 0)
+                {
+                    foreach (var key in deleteKeys)
+                    {
+                        db.CustomData.Remove(key);
                     }
 
-
-                    if (deleteKeys.Count > 0)
-                    {
-                        PwObjectList<PwEntry> m_vHistory = entry.History.CloneDeep();
-                        entry.History = m_vHistory;
-                        entry.CreateBackup(null);
-
-                        foreach (var key in deleteKeys)
-                        {
-                            entry.Strings.Remove(key);
-                        }
-
-                        entry.Touch(true);
-                        KeePass.Program.MainForm.UpdateUI(false, null, true, db.RootGroup, true, null, true);
-                        MessageBox.Show(
-                            String.Format("Successfully removed {0} encryption-key{1} from KeePassNatMsg Settings.", deleteKeys.Count.ToString(), deleteKeys.Count == 1 ? "" : "s"),
-                            String.Format("Removed {0} key{1} from database", deleteKeys.Count.ToString(), deleteKeys.Count == 1 ? "" : "s"),
-                            MessageBoxButtons.OK,
-                            MessageBoxIcon.Information
-                        );
-                    }
-                    else
-                    {
-                        MessageBox.Show(
-                            "No shared encryption-keys found in KeePassNatMsg Settings.", "No keys found",
-                            MessageBoxButtons.OK,
-                            MessageBoxIcon.Information
-                        );
-                    }
+                    KeePass.Program.MainForm.UpdateUI(false, null, true, db.RootGroup, true, null, true);
+                    MessageBox.Show(
+                        String.Format("Successfully removed {0} encryption-key{1} from KeePassNatMsg Settings.", deleteKeys.Count.ToString(), deleteKeys.Count == 1 ? "" : "s"),
+                        String.Format("Removed {0} key{1} from database", deleteKeys.Count.ToString(), deleteKeys.Count == 1 ? "" : "s"),
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Information
+                    );
                 }
                 else
                 {
-                    MessageBox.Show("The active database does not contain an entry of KeePassNatMsg Settings.", "KeePassNatMsg Settings not available!", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    MessageBox.Show(
+                        "No shared encryption-keys found in KeePassNatMsg Settings.", "No keys found",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Information
+                    );
                 }
             }
             else
@@ -176,19 +155,16 @@ namespace KeePassNatMsg.Options
 
                 foreach (var entry in entries)
                 {
-                    foreach (var str in entry.Strings)
+                    foreach (var str in entry.CustomData)
                     {
-                        if (str.Key == KeePassNatMsgExt.KeePassNatMsgNameLegacy)
+                        if (str.Key.Equals(KeePassNatMsgExt.KeePassNatMsgSettings))
                         {
-                            PwObjectList<PwEntry> m_vHistory = entry.History.CloneDeep();
-                            entry.History = m_vHistory;
+                            entry.History = entry.History.CloneDeep();
                             entry.CreateBackup(null);
-
-                            entry.Strings.Remove(str.Key);
-
+                            entry.CustomData.Remove(str.Key);
                             entry.Touch(true);
 
-                            counter += 1;
+                            counter++;
 
                             break;
                         }
@@ -246,7 +222,7 @@ namespace KeePassNatMsg.Options
         private void CheckNativeMessagingHost()
         {
             var t = new Task<bool>(() => _host.GetBrowserStatuses().Any(bs => bs.Value == BrowserStatus.Installed));
-            
+
             var t2 = t.ContinueWith((ti) =>
             {
                 if (ti.IsCompleted && !ti.Result)

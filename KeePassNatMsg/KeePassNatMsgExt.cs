@@ -46,6 +46,7 @@ namespace KeePassNatMsg
         internal static Helper CryptoHelper;
 
         private const int DefaultNotificationTime = 5000;
+        public const string KeePassNatMsgSettings = "KeePassNatMsg Settings";
         public const string KeePassNatMsgConfig = "KeePassNatMsg_";
         public const string KeePassNatMsgNameLegacy = "KeePassHttp Settings";
         public const string KeePassNatMsgGroupName = "KeePassNatMsg Passwords";
@@ -368,9 +369,9 @@ namespace KeePassNatMsg
         internal EntryConfig GetEntryConfig(PwEntry e)
         {
             var serializer = NewJsonSerializer();
-            if (e.Strings.Exists(KeePassNatMsgNameLegacy))
+            if (e.CustomData.Exists(KeePassNatMsgSettings))
             {
-                var json = e.Strings.ReadSafe(KeePassNatMsgNameLegacy);
+                var json = e.CustomData.Get(KeePassNatMsgSettings);
                 using (var ins = new JsonTextReader(new StringReader(json)))
                 {
                     return serializer.Deserialize<EntryConfig>(ins);
@@ -384,7 +385,7 @@ namespace KeePassNatMsg
             var serializer = NewJsonSerializer();
             var writer = new StringWriter();
             serializer.Serialize(writer, c);
-            e.Strings.Set(KeePassNatMsgNameLegacy, new ProtectedString(false, writer.ToString()));
+            e.CustomData.Set(KeePassNatMsgSettings, writer.ToString());
             e.Touch(true);
             UpdateUI(e.ParentGroup);
         }

@@ -143,10 +143,7 @@ namespace KeePassNatMsg.Entry
                 if (realm != null)
                     config.Realm = realm;
 
-                var serializer = _ext.NewJsonSerializer();
-                var writer = new StringWriter();
-                serializer.Serialize(writer, config);
-                entry.Strings.Set(KeePassNatMsgExt.KeePassNatMsgNameLegacy, new ProtectedString(false, writer.ToString()));
+                _ext.SetEntryConfig(entry, config);
             }
 
             PwGroup group = null;
