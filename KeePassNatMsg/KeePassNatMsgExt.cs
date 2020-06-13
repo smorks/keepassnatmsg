@@ -3,6 +3,7 @@ using KeePass.Plugins;
 using KeePass.UI;
 using KeePass.Util.Spr;
 using KeePassLib;
+using KeePassLib.Collections;
 using KeePassLib.Cryptography;
 using KeePassLib.Cryptography.PasswordGenerator;
 using KeePassLib.Security;
@@ -479,19 +480,24 @@ namespace KeePassNatMsg
                 }
             }
 
-            // move entry allow/deny config
-            foreach (var entry in db.RootGroup.GetEntries(true))
+            var listEntries = new PwObjectList<PwEntry>();
+            db.RootGroup.SearchEntries(new SearchParameters
             {
-                if (entry.Strings.Exists(KeePassNatMsgNameLegacy))
+                SearchInStringNames = true,
+                SearchString = KeePassNatMsgNameLegacy,
+            }, listEntries);
+
+            // move entry allow/deny config
+            if (listEntries.UCount > 0)
+            {
+                foreach (var entry in listEntries)
                 {
-                    var json = entry.Strings.ReadSafe(KeePassNatMsgNameLegacy);
-                    var serializer = NewJsonSerializer();
-                    using (var jtr = new JsonTextReader(new StringReader(json)))
+                    if (entry.Strings.Exists(KeePassNatMsgNameLegacy))
                     {
-                        var entryConfig = serializer.Deserialize<EntryConfig>(jtr);
-                        SetEntryConfig(entry, entryConfig);
+                        var json = entry.Strings.ReadSafe(KeePassNatMsgNameLegacy);
+                        entry.CustomData.Set(KeePassNatMsgSettings, json);
+                        entry.Strings.Remove(KeePassNatMsgNameLegacy);
                     }
-                    entry.Strings.Remove(KeePassNatMsgNameLegacy);
                 }
             }
         }
