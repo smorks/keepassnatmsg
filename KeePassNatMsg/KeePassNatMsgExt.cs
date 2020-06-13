@@ -16,6 +16,7 @@ using KeePassNatMsg.Protocol.Listener;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Security.Cryptography;
 using System.Windows.Forms;
@@ -446,6 +447,52 @@ namespace KeePassNatMsg
                     return document.Database;
                 else
                     return HostInstance.Database;
+            }
+        }
+
+        private void MigrateLegacyConfig()
+        {
+            var db = GetConnectionDatabase();
+
+            // get database keys
+            var config = GetConfigEntryLegacy();
+
+            if (config != null)
+            {
+                var keys = new List<string>();
+
+                foreach (var s in config.Strings)
+                {
+                    if (s.Key.StartsWith(AssociateKeyPrefix))
+                    {
+                        keys.Add(s.Key);
+                    }
+                }
+
+                // move database keys
+                foreach (var key in keys)
+                {
+                    var id = key.Substring(AssociateKeyPrefix.Length).Trim();
+                    var customKey = KeePassNatMsgConfig + id;
+                    db.CustomData.Set(customKey, config.Strings.ReadSafe(key));
+                    config.Strings.Remove(key);
+                }
+            }
+
+            // move entry allow/deny config
+            foreach (var entry in db.RootGroup.GetEntries(true))
+            {
+                if (entry.Strings.Exists(KeePassNatMsgNameLegacy))
+                {
+                    var json = entry.Strings.ReadSafe(KeePassNatMsgNameLegacy);
+                    var serializer = NewJsonSerializer();
+                    using (var jtr = new JsonTextReader(new StringReader(json)))
+                    {
+                        var entryConfig = serializer.Deserialize<EntryConfig>(jtr);
+                        SetEntryConfig(entry, entryConfig);
+                    }
+                    entry.Strings.Remove(KeePassNatMsgNameLegacy);
+                }
             }
         }
     }
