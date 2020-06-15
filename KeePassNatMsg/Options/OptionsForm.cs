@@ -14,21 +14,20 @@ namespace KeePassNatMsg.Options
     {
         readonly ConfigOpt _config;
         private bool _restartRequired = false;
-        private NativeMessagingHost _host;
+        private readonly NativeMessagingHost _host;
 
         public OptionsForm(ConfigOpt config)
         {
+            _host = NativeMessagingHost.GetHost();
             _config = config;
             InitializeComponent();
         }
-
 
         private PwEntry GetConfigEntry(PwDatabase db)
         {
             var root = db.RootGroup;
             var uuid = new PwUuid(KeePassNatMsgExt.KeePassNatMsgUuid);
-            var entry = root.FindEntry(uuid, false);
-            return entry;
+            return root.FindEntry(uuid, false);
         }
 
         private void OptionsForm_Load(object sender, EventArgs e)
@@ -257,7 +256,7 @@ namespace KeePassNatMsg.Options
                 GetNativeMessagingStatus();
             });
 
-            lblProxyVersion.Text = "Loading Native Messaging Status...";
+            SetProxyVersionText("Loading Native Messaging Status...");
 
             t.Start();
         }
@@ -279,8 +278,6 @@ namespace KeePassNatMsg.Options
 
         private void OptionsForm_Shown(object sender, EventArgs e)
         {
-            _host = NativeMessagingHost.GetHost();
-
             CheckNativeMessagingHost();
         }
 
@@ -313,7 +310,19 @@ namespace KeePassNatMsg.Options
 
             lst.Add($"Proxy: {proxyDisplay}{latestVersionDisplay}");
 
-            lblProxyVersion.Text = string.Join(Environment.NewLine, lst);
+            SetProxyVersionText(string.Join(Environment.NewLine, lst));
+        }
+
+        private void SetProxyVersionText(string text)
+        {
+            if (lblProxyVersion.InvokeRequired)
+            {
+                lblProxyVersion.Invoke(new Action<string>((x) => SetProxyVersionText(x)), text);
+            }
+            else
+            {
+                lblProxyVersion.Text = text;
+            }
         }
 
         private void InitDatabasesDropdown()
