@@ -40,7 +40,6 @@
             this.matchSchemesCheckbox = new System.Windows.Forms.CheckBox();
             this.removePermissionsButton = new System.Windows.Forms.Button();
             this.unlockDatabaseCheckbox = new System.Windows.Forms.CheckBox();
-            this.removeButton = new System.Windows.Forms.Button();
             this.credMatchingCheckbox = new System.Windows.Forms.CheckBox();
             this.credNotifyCheckbox = new System.Windows.Forms.CheckBox();
             this.tabPage2 = new System.Windows.Forms.TabPage();
@@ -58,14 +57,28 @@
             this.label1 = new System.Windows.Forms.Label();
             this.credAllowUpdatesCheckbox = new System.Windows.Forms.CheckBox();
             this.credAllowAccessCheckbox = new System.Windows.Forms.CheckBox();
+            this.tabPage3 = new System.Windows.Forms.TabPage();
+            this.scKeysMain = new System.Windows.Forms.SplitContainer();
+            this.dgvKeys = new System.Windows.Forms.DataGridView();
+            this.colName = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.colKey = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.btnRemoveAllKeys = new System.Windows.Forms.Button();
+            this.btnRemoveSelectedKeys = new System.Windows.Forms.Button();
             this.tabControl1.SuspendLayout();
             this.tabPage1.SuspendLayout();
             this.tabPage2.SuspendLayout();
+            this.tabPage3.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.scKeysMain)).BeginInit();
+            this.scKeysMain.Panel1.SuspendLayout();
+            this.scKeysMain.Panel2.SuspendLayout();
+            this.scKeysMain.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.dgvKeys)).BeginInit();
             this.SuspendLayout();
             // 
             // cancelButton
             // 
             this.cancelButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+            this.cancelButton.DialogResult = System.Windows.Forms.DialogResult.Cancel;
             this.cancelButton.Location = new System.Drawing.Point(313, 470);
             this.cancelButton.Name = "cancelButton";
             this.cancelButton.Size = new System.Drawing.Size(88, 28);
@@ -93,11 +106,13 @@
             | System.Windows.Forms.AnchorStyles.Right)));
             this.tabControl1.Controls.Add(this.tabPage1);
             this.tabControl1.Controls.Add(this.tabPage2);
+            this.tabControl1.Controls.Add(this.tabPage3);
             this.tabControl1.Location = new System.Drawing.Point(1, 3);
             this.tabControl1.Name = "tabControl1";
             this.tabControl1.SelectedIndex = 0;
             this.tabControl1.Size = new System.Drawing.Size(410, 460);
             this.tabControl1.TabIndex = 3;
+            this.tabControl1.Selected += new System.Windows.Forms.TabControlEventHandler(this.tabControl1_Selected);
             // 
             // tabPage1
             // 
@@ -109,7 +124,6 @@
             this.tabPage1.Controls.Add(this.matchSchemesCheckbox);
             this.tabPage1.Controls.Add(this.removePermissionsButton);
             this.tabPage1.Controls.Add(this.unlockDatabaseCheckbox);
-            this.tabPage1.Controls.Add(this.removeButton);
             this.tabPage1.Controls.Add(this.credMatchingCheckbox);
             this.tabPage1.Controls.Add(this.credNotifyCheckbox);
             this.tabPage1.Location = new System.Drawing.Point(4, 22);
@@ -122,9 +136,9 @@
             // 
             // lblProxyVersion
             // 
-            this.lblProxyVersion.Location = new System.Drawing.Point(14, 270);
+            this.lblProxyVersion.Location = new System.Drawing.Point(14, 236);
             this.lblProxyVersion.Name = "lblProxyVersion";
-            this.lblProxyVersion.Size = new System.Drawing.Size(372, 95);
+            this.lblProxyVersion.Size = new System.Drawing.Size(372, 129);
             this.lblProxyVersion.TabIndex = 22;
             this.lblProxyVersion.TextAlign = System.Drawing.ContentAlignment.BottomLeft;
             // 
@@ -188,7 +202,7 @@
             this.removePermissionsButton.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.removePermissionsButton.ImageAlign = System.Drawing.ContentAlignment.TopLeft;
-            this.removePermissionsButton.Location = new System.Drawing.Point(14, 239);
+            this.removePermissionsButton.Location = new System.Drawing.Point(14, 205);
             this.removePermissionsButton.Name = "removePermissionsButton";
             this.removePermissionsButton.Size = new System.Drawing.Size(372, 28);
             this.removePermissionsButton.TabIndex = 16;
@@ -205,18 +219,6 @@
             this.unlockDatabaseCheckbox.TabIndex = 15;
             this.unlockDatabaseCheckbox.Text = "Re&quest for unlocking the database if it is locked";
             this.unlockDatabaseCheckbox.UseVisualStyleBackColor = true;
-            // 
-            // removeButton
-            // 
-            this.removeButton.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.removeButton.Location = new System.Drawing.Point(14, 205);
-            this.removeButton.Name = "removeButton";
-            this.removeButton.Size = new System.Drawing.Size(372, 28);
-            this.removeButton.TabIndex = 11;
-            this.removeButton.Text = "R&emove all shared encryption-keys from active database";
-            this.removeButton.UseVisualStyleBackColor = true;
-            this.removeButton.Click += new System.EventHandler(this.removeButton_Click);
             // 
             // credMatchingCheckbox
             // 
@@ -402,6 +404,89 @@
             this.credAllowAccessCheckbox.Text = "Always allow &access to entries";
             this.credAllowAccessCheckbox.UseVisualStyleBackColor = true;
             // 
+            // tabPage3
+            // 
+            this.tabPage3.Controls.Add(this.scKeysMain);
+            this.tabPage3.Location = new System.Drawing.Point(4, 22);
+            this.tabPage3.Name = "tabPage3";
+            this.tabPage3.Size = new System.Drawing.Size(402, 434);
+            this.tabPage3.TabIndex = 2;
+            this.tabPage3.Text = "Keys";
+            this.tabPage3.UseVisualStyleBackColor = true;
+            // 
+            // scKeysMain
+            // 
+            this.scKeysMain.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.scKeysMain.FixedPanel = System.Windows.Forms.FixedPanel.Panel2;
+            this.scKeysMain.Location = new System.Drawing.Point(0, 0);
+            this.scKeysMain.Name = "scKeysMain";
+            this.scKeysMain.Orientation = System.Windows.Forms.Orientation.Horizontal;
+            // 
+            // scKeysMain.Panel1
+            // 
+            this.scKeysMain.Panel1.Controls.Add(this.dgvKeys);
+            // 
+            // scKeysMain.Panel2
+            // 
+            this.scKeysMain.Panel2.Controls.Add(this.btnRemoveAllKeys);
+            this.scKeysMain.Panel2.Controls.Add(this.btnRemoveSelectedKeys);
+            this.scKeysMain.Size = new System.Drawing.Size(402, 434);
+            this.scKeysMain.SplitterDistance = 396;
+            this.scKeysMain.TabIndex = 0;
+            // 
+            // dgvKeys
+            // 
+            this.dgvKeys.AllowUserToAddRows = false;
+            this.dgvKeys.AllowUserToDeleteRows = false;
+            this.dgvKeys.AllowUserToResizeRows = false;
+            this.dgvKeys.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.Fill;
+            this.dgvKeys.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            this.dgvKeys.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
+            this.colName,
+            this.colKey});
+            this.dgvKeys.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.dgvKeys.Location = new System.Drawing.Point(0, 0);
+            this.dgvKeys.Name = "dgvKeys";
+            this.dgvKeys.ReadOnly = true;
+            this.dgvKeys.RowHeadersVisible = false;
+            this.dgvKeys.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.FullRowSelect;
+            this.dgvKeys.Size = new System.Drawing.Size(402, 396);
+            this.dgvKeys.TabIndex = 0;
+            // 
+            // colName
+            // 
+            this.colName.DataPropertyName = "Name";
+            this.colName.HeaderText = "Name";
+            this.colName.Name = "colName";
+            this.colName.ReadOnly = true;
+            // 
+            // colKey
+            // 
+            this.colKey.DataPropertyName = "Key";
+            this.colKey.HeaderText = "Key";
+            this.colKey.Name = "colKey";
+            this.colKey.ReadOnly = true;
+            // 
+            // btnRemoveAllKeys
+            // 
+            this.btnRemoveAllKeys.Location = new System.Drawing.Point(205, 3);
+            this.btnRemoveAllKeys.Name = "btnRemoveAllKeys";
+            this.btnRemoveAllKeys.Size = new System.Drawing.Size(150, 23);
+            this.btnRemoveAllKeys.TabIndex = 1;
+            this.btnRemoveAllKeys.Text = "Remove All Keys";
+            this.btnRemoveAllKeys.UseVisualStyleBackColor = true;
+            this.btnRemoveAllKeys.Click += new System.EventHandler(this.btnRemoveAllKeys_Click);
+            // 
+            // btnRemoveSelectedKeys
+            // 
+            this.btnRemoveSelectedKeys.Location = new System.Drawing.Point(49, 3);
+            this.btnRemoveSelectedKeys.Name = "btnRemoveSelectedKeys";
+            this.btnRemoveSelectedKeys.Size = new System.Drawing.Size(150, 23);
+            this.btnRemoveSelectedKeys.TabIndex = 0;
+            this.btnRemoveSelectedKeys.Text = "Remove Selected Keys";
+            this.btnRemoveSelectedKeys.UseVisualStyleBackColor = true;
+            this.btnRemoveSelectedKeys.Click += new System.EventHandler(this.btnRemoveSelectedKeys_Click);
+            // 
             // OptionsForm
             // 
             this.AcceptButton = this.okButton;
@@ -426,6 +511,12 @@
             this.tabPage1.PerformLayout();
             this.tabPage2.ResumeLayout(false);
             this.tabPage2.PerformLayout();
+            this.tabPage3.ResumeLayout(false);
+            this.scKeysMain.Panel1.ResumeLayout(false);
+            this.scKeysMain.Panel2.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.scKeysMain)).EndInit();
+            this.scKeysMain.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.dgvKeys)).EndInit();
             this.ResumeLayout(false);
 
         }
@@ -440,7 +531,6 @@
         private System.Windows.Forms.CheckBox matchSchemesCheckbox;
         private System.Windows.Forms.Button removePermissionsButton;
         private System.Windows.Forms.CheckBox unlockDatabaseCheckbox;
-        private System.Windows.Forms.Button removeButton;
         private System.Windows.Forms.CheckBox credMatchingCheckbox;
         private System.Windows.Forms.CheckBox credNotifyCheckbox;
         private System.Windows.Forms.TabPage tabPage2;
@@ -459,8 +549,15 @@
         private System.Windows.Forms.Label lblProxyVersion;
         private System.Windows.Forms.TextBox txtKPXCVerOverride;
         private System.Windows.Forms.Label label5;
-		private System.Windows.Forms.ComboBox comboBoxDatabases;
-		private System.Windows.Forms.Label label6;
-		private System.Windows.Forms.CheckBox chkSearchUrls;
-	}
+        private System.Windows.Forms.ComboBox comboBoxDatabases;
+        private System.Windows.Forms.Label label6;
+        private System.Windows.Forms.CheckBox chkSearchUrls;
+        private System.Windows.Forms.TabPage tabPage3;
+        private System.Windows.Forms.SplitContainer scKeysMain;
+        private System.Windows.Forms.DataGridView dgvKeys;
+        private System.Windows.Forms.DataGridViewTextBoxColumn colName;
+        private System.Windows.Forms.DataGridViewTextBoxColumn colKey;
+        private System.Windows.Forms.Button btnRemoveAllKeys;
+        private System.Windows.Forms.Button btnRemoveSelectedKeys;
+    }
 }

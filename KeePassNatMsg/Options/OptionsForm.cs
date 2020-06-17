@@ -89,51 +89,6 @@ namespace KeePassNatMsg.Options
             Close();
         }
 
-        private void removeButton_Click(object sender, EventArgs e)
-        {
-            if (KeePass.Program.MainForm.DocumentManager.ActiveDatabase.IsOpen)
-            {
-                PwDatabase db = KeePass.Program.MainForm.DocumentManager.ActiveDatabase;
-                List<string> deleteKeys = new List<string>();
-
-                foreach (var cd in db.CustomData)
-                {
-                    if (cd.Key.StartsWith(KeePassNatMsgExt.KeePassNatMsgConfig))
-                    {
-                        deleteKeys.Add(cd.Key);
-                    }
-                }
-
-                if (deleteKeys.Count > 0)
-                {
-                    foreach (var key in deleteKeys)
-                    {
-                        db.CustomData.Remove(key);
-                    }
-
-                    KeePass.Program.MainForm.UpdateUI(false, null, true, db.RootGroup, true, null, true);
-                    MessageBox.Show(
-                        String.Format("Successfully removed {0} encryption-key{1} from KeePassNatMsg Settings.", deleteKeys.Count.ToString(), deleteKeys.Count == 1 ? "" : "s"),
-                        String.Format("Removed {0} key{1} from database", deleteKeys.Count.ToString(), deleteKeys.Count == 1 ? "" : "s"),
-                        MessageBoxButtons.OK,
-                        MessageBoxIcon.Information
-                    );
-                }
-                else
-                {
-                    MessageBox.Show(
-                        "No shared encryption-keys found in KeePassNatMsg Settings.", "No keys found",
-                        MessageBoxButtons.OK,
-                        MessageBoxIcon.Information
-                    );
-                }
-            }
-            else
-            {
-                MessageBox.Show("The active database is locked!\nPlease unlock the selected database or choose another one which is unlocked.", "Database locked!", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
-        }
-
         private void removePermissionsButton_Click(object sender, EventArgs e)
         {
             if (KeePass.Program.MainForm.DocumentManager.ActiveDatabase.IsOpen)
@@ -315,6 +270,103 @@ namespace KeePassNatMsg.Options
                 }
 
                 comboBoxDatabases.Items.Add(new DatabaseItem { Id = dbIdentifier, DbHash = KeePassNatMsgExt.ExtInstance.GetDbHash(item.Database) });
+            }
+        }
+
+        private void LoadDatabaseKeys()
+        {
+            LoadDatabaseKeys(KeePass.Program.MainForm.DocumentManager.ActiveDatabase);
+        }
+
+        private void LoadDatabaseKeys(PwDatabase db)
+        {
+            if (db.IsOpen)
+            {
+                var keys = new List<DatabaseKeyItem>();
+
+                foreach (var cd in db.CustomData)
+                {
+                    if (cd.Key.StartsWith(KeePassNatMsgExt.KeePassNatMsgConfig))
+                    {
+                        var keyName = cd.Key.Substring(KeePassNatMsgExt.KeePassNatMsgConfig.Length);
+                        keys.Add(new DatabaseKeyItem { Name = keyName, Key = cd.Value });
+                    }
+                }
+
+                dgvKeys.DataSource = keys;
+            }
+        }
+
+        private void tabControl1_Selected(object sender, TabControlEventArgs e)
+        {
+            if (e.TabPage == tabPage3)
+            {
+                LoadDatabaseKeys();
+            }
+        }
+
+        private void btnRemoveSelectedKeys_Click(object sender, EventArgs e)
+        {
+            var db = KeePass.Program.MainForm.DocumentManager.ActiveDatabase;
+
+            if (db.IsOpen)
+            {
+                var items = dgvKeys.SelectedRows
+                    .OfType<DataGridViewRow>()
+                    .Select(x => KeePassNatMsgExt.KeePassNatMsgConfig + (x.DataBoundItem as DatabaseKeyItem)?.Name);
+
+                var deleteKeys = db.CustomData
+                    .Where(x => items.Contains(x.Key))
+                    .Select(x => x.Key).ToList();
+
+                RemoveKeys(deleteKeys, db);
+            }
+        }
+
+        private void btnRemoveAllKeys_Click(object sender, EventArgs e)
+        {
+            var db = KeePass.Program.MainForm.DocumentManager.ActiveDatabase;
+
+            if (db.IsOpen)
+            {
+                var deleteKeys = db.CustomData
+                    .Where(x => x.Key.StartsWith(KeePassNatMsgExt.KeePassNatMsgConfig))
+                    .Select(x => x.Key).ToList();
+
+                RemoveKeys(deleteKeys, db);
+            }
+            else
+            {
+                MessageBox.Show("The active database is locked!\nPlease unlock the selected database or choose another one which is unlocked.", "Database locked!", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        private void RemoveKeys(List<string> keys, PwDatabase db)
+        {
+            if (keys.Count > 0)
+            {
+                foreach (var key in keys)
+                {
+                    db.CustomData.Remove(key);
+                }
+
+                LoadDatabaseKeys(db);
+
+                KeePass.Program.MainForm.UpdateUI(false, null, true, db.RootGroup, true, null, true);
+                MessageBox.Show(
+                    $"Successfully removed {keys.Count} encryption-key{(keys.Count == 1 ? "" : "s")} from KeePassNatMsg Settings.",
+                    $"Removed {keys.Count} key{(keys.Count == 1 ? "" : "s")} from database",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Information
+                );
+            }
+            else
+            {
+                MessageBox.Show(
+                    "No shared encryption-keys found in KeePassNatMsg Settings.", "No keys found",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Information
+                );
             }
         }
     }
