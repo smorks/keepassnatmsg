@@ -52,6 +52,7 @@ namespace KeePassNatMsg
         public const string KeePassNatMsgConfig = "KeePassNatMsg_";
         public const string KeePassNatMsgNameLegacy = "KeePassHttp Settings";
         public const string KeePassNatMsgGroupName = "KeePassNatMsg Passwords";
+        public const string KeePassNatMsgLegacyMigrated = "KeePassNatMsg_Migrated";
         public const string AssociateKeyPrefix = "Public Key: ";
         private const string PipeName = "kpxc_server";
 
@@ -64,9 +65,9 @@ namespace KeePassNatMsg
         private Handlers _handlers;
         private bool _isLocked;
 
-        internal PwEntry GetConfigEntryLegacy()
+        private PwEntry GetConfigEntryLegacy(PwDatabase db)
         {
-            var root = GetConnectionDatabase().RootGroup;
+            var root = db.RootGroup;
             var uuid = new PwUuid(KeePassNatMsgUuid);
             return root.FindEntry(uuid, false);
         }
@@ -178,6 +179,9 @@ namespace KeePassNatMsg
             {
                 MessageBox.Show(HostInstance.MainWindow, e.ToString(), "Unable to start", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
+
+            PromptToMigrate();
+
             return true;
         }
 
@@ -451,12 +455,40 @@ namespace KeePassNatMsg
             }
         }
 
-        private void MigrateLegacyConfig()
+        private void PromptToMigrate()
         {
             var db = GetConnectionDatabase();
 
+            if (db.IsOpen && HasLegacyConfig(db))
+            {
+                var result = MessageBox.Show(
+                    HostInstance.MainWindow,
+                    "Your current KeePassNatMsg connection keys and entry settings need to be migrated to Custom Data. It is strongly recommended that you backup your database before proceeding. Do you wish to proceed with the migration?",
+                    "Migrate KeePassNatMsg Settings?",
+                    MessageBoxButtons.YesNo);
+
+                if (result == DialogResult.Yes)
+                {
+                    MigrateLegacyConfig(db);
+                    MessageBox.Show(
+                        HostInstance.MainWindow,
+                        $"Your settings have been migrated. Please manually remove the \"{KeePassNatMsgNameLegacy}\" entry once you have verified everything is working as intended.",
+                        "Migration Successful");
+                }
+            }
+        }
+
+        private bool HasLegacyConfig(PwDatabase db)
+        {
+            var config = GetConfigEntryLegacy(db);
+
+            return config != null && !db.CustomData.Exists(KeePassNatMsgLegacyMigrated);
+        }
+
+        private void MigrateLegacyConfig(PwDatabase db)
+        {
             // get database keys
-            var config = GetConfigEntryLegacy();
+            var config = GetConfigEntryLegacy(db);
 
             if (config != null)
             {
@@ -500,6 +532,8 @@ namespace KeePassNatMsg
                     }
                 }
             }
+
+            db.CustomData.Set(KeePassNatMsgLegacyMigrated, DateTime.UtcNow.ToString("u"));
         }
     }
 }
