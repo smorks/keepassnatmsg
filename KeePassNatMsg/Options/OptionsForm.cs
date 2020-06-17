@@ -286,9 +286,9 @@ namespace KeePassNatMsg.Options
 
                 foreach (var cd in db.CustomData)
                 {
-                    if (cd.Key.StartsWith(KeePassNatMsgExt.KeePassNatMsgConfig))
+                    if (cd.Key.StartsWith(KeePassNatMsgExt.KeePassNatMsgDatabaseKey))
                     {
-                        var keyName = cd.Key.Substring(KeePassNatMsgExt.KeePassNatMsgConfig.Length);
+                        var keyName = cd.Key.Substring(KeePassNatMsgExt.KeePassNatMsgDatabaseKey.Length);
                         keys.Add(new DatabaseKeyItem { Name = keyName, Key = cd.Value });
                     }
                 }
@@ -313,7 +313,7 @@ namespace KeePassNatMsg.Options
             {
                 var items = dgvKeys.SelectedRows
                     .OfType<DataGridViewRow>()
-                    .Select(x => KeePassNatMsgExt.KeePassNatMsgConfig + (x.DataBoundItem as DatabaseKeyItem)?.Name);
+                    .Select(x => KeePassNatMsgExt.KeePassNatMsgDatabaseKey + (x.DataBoundItem as DatabaseKeyItem)?.Name);
 
                 var deleteKeys = db.CustomData
                     .Where(x => items.Contains(x.Key))
@@ -330,7 +330,7 @@ namespace KeePassNatMsg.Options
             if (db.IsOpen)
             {
                 var deleteKeys = db.CustomData
-                    .Where(x => x.Key.StartsWith(KeePassNatMsgExt.KeePassNatMsgConfig))
+                    .Where(x => x.Key.StartsWith(KeePassNatMsgExt.KeePassNatMsgDatabaseKey))
                     .Select(x => x.Key).ToList();
 
                 RemoveKeys(deleteKeys, db);

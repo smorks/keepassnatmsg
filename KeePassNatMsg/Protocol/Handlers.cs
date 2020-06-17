@@ -89,7 +89,7 @@ namespace KeePassNatMsg.Protocol
             {
                 var db = _ext.GetConnectionDatabase();
                 var msg = req.Message;
-                var customKey = KeePassNatMsgExt.KeePassNatMsgConfig + msg.GetString("id");
+                var customKey = KeePassNatMsgExt.KeePassNatMsgDatabaseKey + msg.GetString("id");
                 if (!db.CustomData.Exists(customKey))
                     return new ErrorResponse(req, ErrorType.AssociationFailed);
                 var key = db.CustomData.Get(customKey);

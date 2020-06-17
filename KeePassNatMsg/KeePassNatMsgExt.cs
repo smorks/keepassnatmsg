@@ -49,7 +49,7 @@ namespace KeePassNatMsg
 
         private const int DefaultNotificationTime = 5000;
         public const string KeePassNatMsgSettings = "KeePassNatMsg Settings";
-        public const string KeePassNatMsgConfig = "KeePassNatMsg_";
+        public const string KeePassNatMsgDatabaseKey = "KeePassNatMsgDbKey_";
         public const string KeePassNatMsgNameLegacy = "KeePassHttp Settings";
         public const string KeePassNatMsgGroupName = "KeePassNatMsg Passwords";
         public const string KeePassNatMsgLegacyMigrated = "KeePassNatMsg_Migrated";
@@ -334,7 +334,7 @@ namespace KeePassNatMsg
                     {
                         bool keyNameExists = true;
                         var db = GetConnectionDatabase();
-                        var customKey = KeePassNatMsgConfig + f.KeyId;
+                        var customKey = KeePassNatMsgDatabaseKey + f.KeyId;
 
                         while (keyNameExists)
                         {
@@ -504,7 +504,7 @@ namespace KeePassNatMsg
                 foreach (var key in keys)
                 {
                     var id = key.Substring(AssociateKeyPrefix.Length).Trim();
-                    var customKey = KeePassNatMsgConfig + id;
+                    var customKey = KeePassNatMsgDatabaseKey + id;
                     db.CustomData.Set(customKey, config.Strings.ReadSafe(key));
                     config.Strings.Remove(key);
                 }
