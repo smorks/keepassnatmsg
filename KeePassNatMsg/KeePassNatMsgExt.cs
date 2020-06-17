@@ -180,8 +180,6 @@ namespace KeePassNatMsg
                 MessageBox.Show(HostInstance.MainWindow, e.ToString(), "Unable to start", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
 
-            PromptToMigrate();
-
             return true;
         }
 
@@ -195,6 +193,8 @@ namespace KeePassNatMsg
 
                 _listener.Write(resp.GetEncryptedResponse());
             }
+
+            PromptToMigrate(e.Database);
         }
 
         private void MainWindow_FileClosingPre(object sender, KeePass.Forms.FileClosingEventArgs e)
@@ -455,10 +455,8 @@ namespace KeePassNatMsg
             }
         }
 
-        private void PromptToMigrate()
+        private void PromptToMigrate(PwDatabase db)
         {
-            var db = GetConnectionDatabase();
-
             if (db.IsOpen && HasLegacyConfig(db))
             {
                 var result = MessageBox.Show(
