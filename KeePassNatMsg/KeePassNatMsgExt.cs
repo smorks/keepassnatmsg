@@ -476,14 +476,14 @@ namespace KeePassNatMsg
             }
         }
 
-        private bool HasLegacyConfig(PwDatabase db)
+        internal bool HasLegacyConfig(PwDatabase db)
         {
             var config = GetConfigEntryLegacy(db);
 
             return config != null && !db.CustomData.Exists(KeePassNatMsgLegacyMigrated);
         }
 
-        private void MigrateLegacyConfig(PwDatabase db)
+        internal void MigrateLegacyConfig(PwDatabase db)
         {
             // get database keys
             var config = GetConfigEntryLegacy(db);
@@ -532,6 +532,9 @@ namespace KeePassNatMsg
             }
 
             db.CustomData.Set(KeePassNatMsgLegacyMigrated, DateTime.UtcNow.ToString("u"));
+
+            // set db modified
+            HostInstance.MainWindow.UpdateUI(false, null, false, null, false, null, true);
         }
     }
 }

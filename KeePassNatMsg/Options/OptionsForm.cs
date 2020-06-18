@@ -369,5 +369,31 @@ namespace KeePassNatMsg.Options
                 );
             }
         }
+
+        private void btnCheckForLegacyConfig_Click(object sender, EventArgs e)
+        {
+            var ext = KeePassNatMsgExt.ExtInstance;
+            var db = KeePass.Program.MainForm.DocumentManager.ActiveDatabase;
+
+            if (!db.IsOpen)
+            {
+                MessageBox.Show(this, "The active database is not open, config cannot be migrated.", "Active Database Not Open");
+                return;
+            }
+
+            if (ext.HasLegacyConfig(db))
+            {
+                ext.MigrateLegacyConfig(db);
+
+                MessageBox.Show(
+                    this,
+                    $"Your settings have been migrated. Please manually remove the \"{KeePassNatMsgExt.KeePassNatMsgNameLegacy}\" entry once you have verified everything is working as intended.",
+                    "Migration Successful");
+            }
+            else
+            {
+                MessageBox.Show(this, "Legacy Configuration was not found, or the config has already been migrated for the active database.", "Legacy Config Not Found");
+            }
+        }
     }
 }
