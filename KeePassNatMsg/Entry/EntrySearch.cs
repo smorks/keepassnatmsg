@@ -314,6 +314,8 @@ namespace KeePassNatMsg.Entry
                 listDatabases.Add(_host.Database);
             }
 
+            var searchUrls = configOpt.SearchUrls;
+
             int listCount = 0;
             foreach (PwDatabase db in listDatabases)
             {
@@ -328,6 +330,7 @@ namespace KeePassNatMsg.Entry
                     {
                         listResult.Add(new PwEntryDatabase(le, db));
                     }
+                    if (searchUrls) AddURLCandidates(db, listResult, configOpt.HideExpired, parms.RespectEntrySearchingDisabled);
                     searchHost = searchHost.Substring(searchHost.IndexOf(".") + 1);
 
                     //searchHost contains no dot --> prevent possible infinite loop
@@ -336,8 +339,6 @@ namespace KeePassNatMsg.Entry
                 }
                 listCount = listResult.Count;
             }
-
-            var searchUrls = configOpt.SearchUrls;
 
             bool filter(PwEntry e)
             {
@@ -411,6 +412,26 @@ namespace KeePassNatMsg.Entry
             }
 
             return result;
+        }
+
+        private void AddURLCandidates(PwDatabase db, List<PwEntryDatabase> listResult, bool bExcludeExpired, bool bRespectEntrySearchingDisabled)
+        {
+            var alreadyFound = listResult.Select(x => x.entry);
+            var listEntries = db.RootGroup.GetEntries(true).AsEnumerable();
+            listEntries = listEntries.Where(x => !alreadyFound.Contains(x));
+            if (bExcludeExpired)
+            {
+                DateTime dtNow = DateTime.UtcNow;
+                listEntries = listEntries.Where(x =>!x.Expires || x.ExpiryTime > dtNow);
+            }
+            if (bRespectEntrySearchingDisabled) listEntries = listEntries.Where(x => x.GetSearchingEnabled());
+            foreach (var entry in listEntries)
+            {
+                if (!entry.Strings.Any(x => 
+                    x.Key.StartsWith("URL", StringComparison.InvariantCultureIgnoreCase) 
+                    && x.Key.ToLowerInvariant().Contains("regex"))) continue;
+                listResult.Add(new PwEntryDatabase(entry, db));
+            }
         }
 
         private bool IsValidUrl(string url, string host) => Uri.TryCreate(url, UriKind.Absolute, out var uri) && _allowedSchemes.Contains(uri.Scheme) && host.EndsWith(uri.Host);
