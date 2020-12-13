@@ -175,6 +175,8 @@ namespace KeePassNatMsg
             pluginHost.MainWindow.FileClosingPre += MainWindow_FileClosingPre;
             pluginHost.MainWindow.FileOpened += MainWindow_FileOpened;
 
+            EntryBuffer.Init();
+
             try
             {
                 _handlers = new Handlers();
@@ -258,6 +260,7 @@ namespace KeePassNatMsg
 
         public override void Terminate()
         {
+            EntryBuffer.Close();
             _listener?.Stop();
         }
 
