@@ -314,6 +314,8 @@ namespace KeePassNatMsg.Entry
                 listDatabases.Add(_host.Database);
             }
 
+            var searchUrls = configOpt.SearchUrls;
+
             int listCount = 0;
             foreach (PwDatabase db in listDatabases)
             {
@@ -328,6 +330,7 @@ namespace KeePassNatMsg.Entry
                     {
                         listResult.Add(new PwEntryDatabase(le, db));
                     }
+                    if (searchUrls) AddURLCandidates(db, listResult, configOpt.HideExpired, parms.RespectEntrySearchingDisabled);
                     searchHost = searchHost.Substring(searchHost.IndexOf(".") + 1);
 
                     //searchHost contains no dot --> prevent possible infinite loop
@@ -336,8 +339,6 @@ namespace KeePassNatMsg.Entry
                 }
                 listCount = listResult.Count;
             }
-
-            var searchUrls = configOpt.SearchUrls;
 
             bool filter(PwEntry e)
             {
@@ -413,6 +414,19 @@ namespace KeePassNatMsg.Entry
             return result;
         }
 
+        private void AddURLCandidates(PwDatabase db, List<PwEntryDatabase> listResult, bool bExcludeExpired, bool bRespectEntrySearchingDisabled)
+        {
+            var listEntries = EntryBuffer.GetEntries(db);
+            var alreadyFound = listResult.Select(x => x.entry);
+            listEntries = listEntries.Where(x => !alreadyFound.Contains(x.ped.entry));
+            if (bExcludeExpired) listEntries = listEntries.Where(x => x.ExpiryTime > DateTime.UtcNow);
+            if (bRespectEntrySearchingDisabled) listEntries = listEntries.Where(x => x.SearchingEnabled);
+            foreach (var entry in listEntries)
+            {
+                listResult.Add(entry.ped);
+            }
+        }
+
         private bool IsValidUrl(string url, string host) => Uri.TryCreate(url, UriKind.Absolute, out var uri) && _allowedSchemes.Contains(uri.Scheme) && host.EndsWith(uri.Host);
 
         private static SearchParameters MakeSearchParameters()
@@ -430,6 +444,145 @@ namespace KeePassNatMsg.Entry
                 SearchInUserNames = false,
                 SearchInUuids = false
             };
+        }
+    }
+
+    /// <summary>
+    /// Buffer holding PwEntry objects that contain URL* fields
+    /// These fields can contain regular expressions which are not found using the built-in search
+    /// 
+    /// To avoid searching all entries twice (built-in search + search for URL* fields) the list is loaded
+    /// when the database is opened and single entries get updated when when they are touched
+    /// </summary>
+    internal static class EntryBuffer
+    {
+        private static Dictionary<string, List<EntryDetails>> _dao = new Dictionary<string, List<EntryDetails>>();
+        private static object _lock = new object();
+
+        internal static void Init()
+        {
+            KeePass.Program.MainForm.FileOpened += OnFileOpened;
+            KeePass.Program.MainForm.FileClosed += OnFileClosed;
+            PwGroup.GroupTouched += OnObjectTouched;
+            PwEntry.EntryTouched += OnObjectTouched;
+        }
+
+        internal static void Close()
+        {
+            KeePass.Program.MainForm.FileOpened -= OnFileOpened;
+            KeePass.Program.MainForm.FileClosed -= OnFileClosed;
+            PwGroup.GroupTouched -= OnObjectTouched;
+            PwEntry.EntryTouched -= OnObjectTouched;
+        }
+
+        private static void OnFileOpened(object sender, KeePass.Forms.FileOpenedEventArgs e)
+        {
+            //Fill buffer in a separate thread to avoid a blocked UI
+            System.Threading.ThreadPool.QueueUserWorkItem(AddDatabaseInternal, e.Database);
+        }
+
+        private static void AddDatabaseInternal(object o)
+        {
+            PwDatabase db = o as PwDatabase;
+            if (db == null) return;
+            lock (_lock)
+            {
+                _dao.Remove(db.IOConnectionInfo.Path);
+                _dao[db.IOConnectionInfo.Path] = new List<EntryDetails>();
+                var listEntries = db.RootGroup.GetEntries(true).ToArray();
+                for (int i = 0; i < listEntries.Length; i++)
+                {
+                    PwEntry pe = listEntries[i];
+                    AddOrUpdateSingleEntry(db, pe);
+                }
+            }
+        }
+
+        private static void AddOrUpdateSingleEntry(PwDatabase db, PwEntry pe)
+        {
+            if (db == null) return;
+            //Remove from buffer
+            _dao[db.IOConnectionInfo.Path].RemoveAll(x => x.ped.entry.Uuid.Equals(pe.Uuid));
+
+            //Don't add deleted objects
+            if (db.DeletedObjects.Any(x => x.Uuid.Equals(pe.Uuid))) return;
+
+            if (!pe.Strings.Any(x => 
+                x.Key.StartsWith("URL", StringComparison.InvariantCultureIgnoreCase) 
+                && x.Key.ToLowerInvariant().Contains("regex"))) return;
+            _dao[db.IOConnectionInfo.Path].Add(new EntryDetails()
+            {
+                ped = new PwEntryDatabase(pe, db),
+                ExpiryTime = !pe.Expires ? DateTime.MaxValue : pe.ExpiryTime,
+                SearchingEnabled = pe.GetSearchingEnabled(),
+            });
+        }
+
+        internal static IEnumerable<EntryDetails> GetEntries(PwDatabase db)
+        {
+            lock (_lock)
+            {
+                if (!_dao.ContainsKey(db.IOConnectionInfo.Path)) return null;
+                RemoveDeleted(db, _dao[db.IOConnectionInfo.Path]);
+                return _dao[db.IOConnectionInfo.Path];
+            }
+        }
+
+        private static void RemoveDeleted(PwDatabase db, List<EntryDetails> list)
+        {
+            list.RemoveAll(x => db.DeletedObjects.Any(y => y.Uuid.Equals(x.ped.entry.Uuid)));
+        }
+
+        private static void OnObjectTouched(object sender, ObjectTouchedEventArgs e)
+        {
+            if (!e.Modified) return;
+            PwEntry pe = e.Object as PwEntry;
+            if (pe != null)
+            {
+                PwDatabase db = KeePass.Program.MainForm.DocumentManager.FindContainerOf(pe);
+                lock (_lock) { AddOrUpdateSingleEntry(db, pe); }
+                return;
+            }
+            PwGroup pg = e.Object as PwGroup; //Disable / Enable searching
+            if (pg != null)
+            {
+                //PwGroup.Touched is raised BEFORE values are changed
+                System.Threading.Thread t = new System.Threading.Thread(() =>
+                {
+                    System.Threading.Thread.Sleep(500);
+                    PwDatabase db = null;
+                    lock (_lock)
+                    {
+                        foreach (var entry in pg.GetEntries(true))
+                        {
+                            if (db == null) db = KeePass.Program.MainForm.DocumentManager.FindContainerOf(entry);
+                            AddOrUpdateSingleEntry(db, entry);
+                        }
+                    }
+                });
+                t.IsBackground = true;
+                t.Start();
+            }
+        }
+
+        private static void OnFileClosed(object sender, KeePass.Forms.FileClosedEventArgs e)
+        {
+            RemoveDatabase(e.IOConnectionInfo.Path);
+        }
+
+        private static void RemoveDatabase(string dbPath)
+        {
+            lock (_lock)
+            {
+                _dao.Remove(dbPath);
+            }
+        }
+
+        internal struct EntryDetails
+        {
+            internal PwEntryDatabase ped;
+            internal DateTime ExpiryTime;
+            internal bool SearchingEnabled;
         }
     }
 }
