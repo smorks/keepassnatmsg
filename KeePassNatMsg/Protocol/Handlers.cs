@@ -39,6 +39,7 @@ namespace KeePassNatMsg.Protocol
                 {Actions.LOCK_DATABASE, LockDatabase},
                 {Actions.GET_DATABASE_GROUPS, GetDatabaseGroups},
                 {Actions.CREATE_NEW_GROUP, CreateNewGroup},
+                {Actions.GET_TOTP, GetTOTP}
             };
         }
 
@@ -269,6 +270,27 @@ namespace KeePassNatMsg.Protocol
             resp.Message.Add("uuid", group.Uuid.ToHexString());
 
             return resp;
+        }
+
+        private Response GetTOTP(Request req)
+        {
+            if (!req.TryDecrypt())
+                return new ErrorResponse(req, ErrorType.CannotDecryptMessage);
+
+            var uuid = req.Message.GetString("uuid");
+
+            var eut = new EntryTOTP();
+
+            var totp = eut.GenerateFromUuid(uuid);
+            if (string.IsNullOrEmpty(totp))
+                return new ErrorResponse(req, ErrorType.NoLoginsFound);
+
+            var resp = req.GetResponse();
+
+            resp.Message.Add("totp", totp);
+
+            return resp;
+
         }
     }
 }

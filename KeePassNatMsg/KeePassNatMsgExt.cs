@@ -274,6 +274,26 @@ namespace KeePassNatMsg
                 f.Invoke();
         }
 
+        internal string GetTotpSettings(PwEntry entry)
+        {
+            PwEntryDatabase entryDatabase = new PwEntryDatabase(entry, HostInstance.Database);
+            SprContext ctx = new SprContext(entryDatabase.entry, entryDatabase.database,
+                    SprCompileFlags.All, false, false);
+
+            string settings = SprEngine.Compile(entryDatabase.entry.Strings.ReadSafe("otp"), ctx);
+            var f = (MethodInvoker)delegate
+            {
+                // apparently, SprEngine.Compile might modify the database
+                HostInstance.MainWindow.UpdateUI(false, null, false, null, false, null, false);
+            };
+            if (HostInstance.MainWindow.InvokeRequired)
+                HostInstance.MainWindow.Invoke(f);
+            else
+                f.Invoke();
+
+            return settings;
+        }
+
         internal string[] GetUserPass(PwEntry entry)
         {
             return GetUserPass(new PwEntryDatabase(entry, HostInstance.Database));
