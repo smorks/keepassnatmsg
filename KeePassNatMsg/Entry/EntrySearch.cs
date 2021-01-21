@@ -3,6 +3,7 @@ using KeePass.UI;
 using KeePass.Util.Spr;
 using KeePassNatMsg.Protocol;
 using KeePassNatMsg.Protocol.Action;
+using KeePassNatMsg.Utils;
 using KeePassLib;
 using KeePassLib.Collections;
 using Newtonsoft.Json.Linq;
@@ -159,17 +160,24 @@ namespace KeePassNatMsg.Entry
                 var entries = new JArray(itemsList.Select(item =>
                 {
                     var up = _ext.GetUserPass(item);
+                    var TotpSettings = _ext.GetTotpSettings(item.entry);
                     JArray fldArr = null;
                     var fields = GetFields(configOpt, item);
                     if (fields != null)
                     {
                         fldArr = new JArray(fields.Select(f => new JObject { { f.Key, f.Value } }));
                     }
+                    string fldTotp = null;
+                    if (TotpSettings != null)
+                    {
+                        fldTotp = Totp.Generate(TotpSettings);
+                    }
                     return new JObject {
                         { "name", item.entry.Strings.ReadSafe(PwDefs.TitleField) },
                         { "login", up[0] },
                         { "password", up[1] },
                         { "uuid", item.entry.Uuid.ToHexString() },
+                        { "totp", fldTotp },
                         { "stringFields", fldArr }
                     };
                 }));
