@@ -91,15 +91,18 @@ namespace KeePassNatMsg.Protocol
                 {
                     var msg = req.Message;
                     var x = entry.Strings.FirstOrDefault(e => e.Key.Equals(KeePassNatMsgExt.AssociateKeyPrefix + msg.GetString("id")));
-                    var key = x.Value;
-                    var reqKey = msg.GetBytes("key");
-                    var id = msg.GetString("id");
-                    var dbKey = Convert.FromBase64String(key.ReadString());
-                    if (dbKey.SequenceEqual(reqKey) && !string.IsNullOrWhiteSpace(id))
+                    if (x.Value != null)
                     {
-                        var resp = req.GetResponse();
-                        resp.Message.Add("id", id);
-                        return resp;
+                        var key = x.Value;
+                        var reqKey = msg.GetBytes("key");
+                        var id = msg.GetString("id");
+                        var dbKey = Convert.FromBase64String(key.ReadString());
+                        if (dbKey.SequenceEqual(reqKey) && !string.IsNullOrWhiteSpace(id))
+                        {
+                            var resp = req.GetResponse();
+                            resp.Message.Add("id", id);
+                            return resp;
+                        }
                     }
                     return new ErrorResponse(req, ErrorType.AssociationFailed);
                 }
