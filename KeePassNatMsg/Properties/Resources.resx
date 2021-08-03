@@ -125,7 +125,8 @@
   "type": "stdio",
   "allowed_origins": [
     "chrome-extension://iopaggbpplllidnfmcghoonnokmjoicf/",
-    "chrome-extension://oboonakemofpalcgghocfoadofidjkkk/"
+    "chrome-extension://oboonakemofpalcgghocfoadofidjkkk/",
+    "chrome-extension://pdffhmdngciaglkoonimfcmckehcpafo/"
   ]
 }}</value>
   </data>

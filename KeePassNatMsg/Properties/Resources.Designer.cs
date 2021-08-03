@@ -68,7 +68,8 @@ namespace KeePassNatMsg.Properties {
         ///  &quot;type&quot;: &quot;stdio&quot;,
         ///  &quot;allowed_origins&quot;: [
         ///    &quot;chrome-extension://iopaggbpplllidnfmcghoonnokmjoicf/&quot;,
-        ///    &quot;chrome-extension://oboonakemofpalcgghocfoadofidjkkk/&quot;
+        ///    &quot;chrome-extension://oboonakemofpalcgghocfoadofidjkkk/&quot;,
+        ///    &quot;chrome-extension://pdffhmdngciaglkoonimfcmckehcpafo/&quot;
         ///  ]
         ///}}.
         /// </summary>
