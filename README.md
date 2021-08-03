@@ -35,7 +35,7 @@ This plugin is primarily intended for use with the [keepassxc-browser](https://g
  	`sudo apt-get install libmono-system-xml-linq4.0-cil libmono-system-data-datasetextensions4.0-cil libmono-system-runtime-serialization4.0-cil mono-mcs`
  4. Restart KeePass
  5. Go to Tools -> KeePassNatMsg Options
- 6. Click on "Install/Update Native Messaging Host", wait for message telling you it was intalled.
+ 6. Click on "Install/Update Native Messaging Host", wait for message telling you it was installed.
  7. Install the [KeePassXC-Browser](https://github.com/keepassxreboot/keepassxc-browser) extension for your browser, and Connect to the database from within the extension.
 
 ### KeePassNatMsg on Linux and Mac
@@ -70,7 +70,7 @@ General tab
 5. KeePassNatMsg returns only these entries which match the scheme of the given URL.
   - given URL: https://example.org --> scheme: https:// --> only entries whose URL starts with https://
 6. sort found entries by username or title.
-7. removes all shared encryption-keys which are stored in the currently selected database. Every inquirer has to reauthenticate.
+7. removes all shared encryption-keys which are stored in the currently selected database. Every inquirer has to re-authenticate.
 8. removes all stored permissions in the entries of the currently selected database.
 9. Shows the status of the Native Messaging Host installations for the supported browsers, and the current Proxy version.
 10. Installs or Updates the Native Messaging Host, and updates the Proxy if an update is available.
@@ -83,7 +83,7 @@ Advanced tab
 12. KeePassNatMsg no longer asks for permission to update an entry, it always allows updating them.
 13. Searching for entries is no longer restricted to the current active database in KeePass but is extended to all opened databases!
   - __Important:__ Even if another database is not connected with the inquirer, KeePassNatMsg will search and retrieve entries of all opened databases if the active one is connected to KeePassNatMsg!
-14. if activated KeePassNatMsg also search for string fields which are defined in the found entries and start with "KPH: " (note the space after colon). __The string fields will be transfered to the client in alphabetical order__. You can set string fields in the tab _Advanced_ of an entry.  
+14. if activated KeePassNatMsg also search for string fields which are defined in the found entries and start with "KPH: " (note the space after colon). __The string fields will be transferred to the client in alphabetical order__. You can set string fields in the tab _Advanced_ of an entry.
 [<img src="https://raw.github.com/smorks/KeePassNatMsg/master/documentation/images/advanced-string-fields.png" alt="advanced tab of an entry" width="300px" />](https://raw.github.com/smorks/KeePassNatMsg/master/documentation/images/advanced-string-fields.png)
 
 ## Tips and Tricks
@@ -91,17 +91,23 @@ Advanced tab
 ### Support multiple URLs for one username + password
 This is already implemented directly in KeePass.
 
-1. Open the context menu of an entry by clicking right on it and select _Duplicate entry_:  
+1. Open the context menu of an entry by clicking right on it and select _Duplicate entry_:
 [<img src="https://raw.github.com/smorks/KeePassNatMsg/master/documentation/images/keepass-context-menu.png" alt="context-menu-entry" />](https://raw.github.com/smorks/KeePassNatMsg/master/documentation/images/keepass-context-menu.png)
 
-2. Check the option to use references for username and password:  
+2. Check the option to use references for username and password:
 [<img src="https://raw.github.com/smorks/KeePassNatMsg/master/documentation/images/keepass-duplicate-entry-references.png" alt="mark checkbox references" width="300px" />](https://raw.github.com/smorks/KeePassNatMsg/master/documentation/images/keepass-duplicate-entry-references.png)
 
-3. You can change the title, URL and evertything of the copied entry, but not the username and password. These fields contain a _Reference Key_ which refers to the _master entry_ you copied from.
+3. You can change the title, URL and everything of the copied entry, but not the username and password. These fields contain a _Reference Key_ which refers to the _master entry_ you copied from.
+
+### TOTP Field Support
+
+KeePassNatMsg uses the existence of either KeeOtp (`otp`) or KeeTrayTOTP (`TOTP Seed`) string fields to detect when TOTP entries should be returned in credential requests. If either of these fields are detected, KeePassNatMsg will render the TOTP code using the template `KPH: {TOTP}` (as required by the keepassxc-browser extension).
+
+Note: For TOTP's to be returned, "Return also advanced string fields" MUST be checked in KeePassNatMsg options.
 
 ## Troubleshooting
 
-__First:__ If an error occures it will be shown as notification in system tray or as message box in KeePass.
+__First:__ If an error occurs it will be shown as notification in system tray or as message box in KeePass.
 
 Otherwise please check if it could be an error of the client you are using. For keepassxc-browser issues you can [report an error here](https://github.com/varjolintu/keepassxc-browser/issues/).
 
