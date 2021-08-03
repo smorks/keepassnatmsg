@@ -48,8 +48,11 @@ namespace KeePassNatMsg.Protocol.Listener
 
         public void Write(string msg)
         {
-            var sw = new SocketWriter(_socket);
-            sw.Send(msg);
+            if (_socket.Connected)
+            {
+                var sw = new SocketWriter(_socket);
+                sw.Send(msg);
+            }
         }
 
         public void Dispose()
