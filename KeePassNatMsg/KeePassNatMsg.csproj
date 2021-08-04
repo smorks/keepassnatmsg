@@ -38,6 +38,7 @@
   <ItemGroup>
     <Reference Include="KeePass">
       <HintPath>..\..\..\..\apps\scoop\apps\keepass\current\KeePass.exe</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="Mono.Posix">

@@ -10,11 +10,16 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows.Forms;
+using KeePassLib.Utility;
 
 namespace KeePassNatMsg.Entry
 {
     public sealed class EntrySearch
     {
+        private const string TotpKey = "TimeOtp-Secret";
+        private const string TotpPlaceholder = "{TIMEOTP}";
+        private const string TotpLegacyPlaceholder = "{TOTP}";
+
         private readonly IPluginHost _host;
         private readonly KeePassNatMsgExt _ext;
         private readonly List<string> _allowedSchemes = new List<string>(new[] { "http", "https", "ftp", "sftp" });
@@ -165,13 +170,17 @@ namespace KeePassNatMsg.Entry
                     {
                         fldArr = new JArray(fields.Select(f => new JObject { { f.Key, f.Value } }));
                     }
-                    return new JObject {
+                    var jobj = new JObject {
                         { "name", item.entry.Strings.ReadSafe(PwDefs.TitleField) },
                         { "login", up[0] },
                         { "password", up[1] },
                         { "uuid", item.entry.Uuid.ToHexString() },
-                        { "stringFields", fldArr }
+                        { "stringFields", fldArr },
                     };
+
+                    CheckTotp(item, jobj);
+
+                    return jobj;
                 }));
 
                 resp.Message.Add("count", itemsList.Count);
@@ -193,6 +202,83 @@ namespace KeePassNatMsg.Entry
             resp.Message.Add("entries", new JArray());
 
             return resp;
+        }
+
+        internal string GetTotp(string uuid)
+        {
+            var dbEntry = FindEntry(uuid);
+
+            if (dbEntry == null || !HasTotp(dbEntry.entry))
+                return null;
+
+            var ctx = new SprContext(dbEntry.entry, dbEntry.database, SprCompileFlags.All, false, false);
+
+            return SprEngine.Compile(TotpPlaceholder, ctx);
+        }
+
+        private void CheckTotp(PwEntryDatabase item, JObject obj)
+        {
+            string totp = null;
+
+            if (HasTotp(item.entry))
+            {
+                // add support for keepass totp
+                // https://keepass.info/help/base/placeholders.html#otp
+                totp = GenerateTotp(item, TotpPlaceholder);
+            }
+            else if (HasLegacyTotp(item.entry))
+            {
+                totp = GenerateTotp(item, TotpLegacyPlaceholder);
+            }
+
+            if (!string.IsNullOrEmpty(totp))
+            {
+                obj.Add("totp", totp);
+            }
+        }
+
+        private string GenerateTotp(PwEntryDatabase item, string placeholder)
+        {
+            var ctx = new SprContext(item.entry, item.database, SprCompileFlags.All, false, false);
+            return SprEngine.Compile(placeholder, ctx);
+        }
+
+        private static bool HasTotp(PwEntry entry) => entry.Strings.Any(x => x.Key.StartsWith(TotpKey));
+
+        // KeeOtp support through keepassxc-browser
+        // KeeOtp stores the TOTP config in a string field "otp" and provides a placeholder "{TOTP}"
+        // KeeTrayTOTP uses by default a "TOTP Seed" string field, and the {TOTP} placeholder.
+        // keepassxc-browser needs the value in a string field named "KPH: {TOTP}"
+        private static bool HasLegacyTotp(PwEntry entry) => entry.Strings.Any(x =>
+            x.Key.Equals("otp", StringComparison.InvariantCultureIgnoreCase) ||
+            x.Key.Equals("TOTP Seed", StringComparison.InvariantCultureIgnoreCase));
+
+        private PwEntryDatabase FindEntry(string uuid)
+        {
+            PwUuid id = new PwUuid(MemUtil.HexStringToByteArray(uuid));
+
+            var configOpt = new ConfigOpt(_host.CustomConfig);
+
+            if (configOpt.SearchInAllOpenedDatabases)
+            {
+                foreach (var doc in _host.MainWindow.DocumentManager.Documents)
+                {
+                    if (doc.Database.IsOpen)
+                    {
+                        var entry = doc.Database.RootGroup.FindEntry(id, true);
+                        if (entry != null)
+                            return new PwEntryDatabase(entry, doc.Database);
+                    }
+                }
+            }
+            else
+            {
+                var entry = _host.Database.RootGroup.FindEntry(id, true);
+                if (entry != null)
+                    return new PwEntryDatabase(entry, _host.Database);
+            }
+
+            return null;
         }
 
         //http://en.wikibooks.org/wiki/Algorithm_Implementation/Strings/Levenshtein_distance#C.23
@@ -244,6 +330,7 @@ namespace KeePassNatMsg.Entry
             if (configOpt.ReturnStringFields)
             {
                 fields = new List<KeyValuePair<string, string>>();
+
                 foreach (var sf in entryDatabase.entry.Strings)
                 {
                     var sfValue = entryDatabase.entry.Strings.ReadSafe(sf.Key);
@@ -251,20 +338,9 @@ namespace KeePassNatMsg.Entry
                     // follow references
                     sfValue = SprEngine.Compile(sfValue, ctx);
 
-                    // KeeOtp support through keepassxc-browser
-                    // KeeOtp stores the TOTP config in a string field "otp" and provides a placeholder "{TOTP}"
-                    // KeeTrayTOTP uses by default a "TOTP Seed" string field, and the {TOTP} placeholder.
-                    // keepassxc-browser needs the value in a string field named "KPH: {TOTP}"
-                    if (sf.Key == "otp" || sf.Key.Equals("TOTP Seed", StringComparison.InvariantCultureIgnoreCase))
+                    if (configOpt.ReturnStringFieldsWithKphOnly && sf.Key.StartsWith("KPH: "))
                     {
-                        fields.Add(new KeyValuePair<string, string>("KPH: {TOTP}", SprEngine.Compile("{TOTP}", ctx)));
-                    }
-                    else if (configOpt.ReturnStringFieldsWithKphOnly)
-                    {
-                        if (sf.Key.StartsWith("KPH: "))
-                        {
-                            fields.Add(new KeyValuePair<string, string>(sf.Key.Substring(5), sfValue));
-                        }
+                        fields.Add(new KeyValuePair<string, string>(sf.Key.Substring(5), sfValue));
                     }
                     else
                     {
@@ -445,7 +521,7 @@ namespace KeePassNatMsg.Entry
                 SearchInUuids = false,
                 ExcludeExpired = excludeExpired,
                 SearchMode = PwSearchMode.Regular,
-                ComparisonMode = StringComparison.CurrentCultureIgnoreCase,
+                ComparisonMode = StringComparison.InvariantCultureIgnoreCase,
             };
         }
     }

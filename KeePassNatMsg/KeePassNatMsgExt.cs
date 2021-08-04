@@ -52,7 +52,7 @@ namespace KeePassNatMsg
         public const string AssociateKeyPrefix = "Public Key: ";
         private const string PipeName = "kpxc_server";
 
-        private static readonly Version KeePassXcVersion = new Version(2, 5, 4);
+        private static readonly Version KeePassXcVersion = new Version(2, 6, 6);
 
         private IListener _listener;
 
