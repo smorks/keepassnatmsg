@@ -37,8 +37,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="KeePass">
-      <HintPath>..\..\..\..\data\cloud.brandt.tech\apps\keepass\KeePass.exe</HintPath>
-      <Private>False</Private>
+      <HintPath>..\..\..\..\apps\scoop\apps\keepass\current\KeePass.exe</HintPath>
     </Reference>
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="Mono.Posix">

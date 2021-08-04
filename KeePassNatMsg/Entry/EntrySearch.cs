@@ -294,7 +294,6 @@ namespace KeePassNatMsg.Entry
             var formHost = hostUri.Host;
             var searchHost = hostUri.Host;
             var origSearchHost = hostUri.Host;
-            var parms = MakeSearchParameters();
 
             List<PwDatabase> listDatabases = new List<PwDatabase>();
 
@@ -314,23 +313,21 @@ namespace KeePassNatMsg.Entry
                 listDatabases.Add(_host.Database);
             }
 
+            var parms = MakeSearchParameters(configOpt.HideExpired);
             var searchUrls = configOpt.SearchUrls;
-
             int listCount = 0;
+
             foreach (PwDatabase db in listDatabases)
             {
                 searchHost = origSearchHost;
                 //get all possible entries for given host-name
                 while (listResult.Count == listCount && (origSearchHost == searchHost || searchHost.IndexOf(".") != -1))
                 {
-                    parms.SearchString = String.Format("^{0}$|/{0}/?", searchHost);
+                    parms.SearchString = $"^{searchHost}$|/{searchHost}/?";
                     var listEntries = new PwObjectList<PwEntry>();
                     db.RootGroup.SearchEntries(parms, listEntries);
-                    foreach (var le in listEntries)
-                    {
-                        listResult.Add(new PwEntryDatabase(le, db));
-                    }
-                    if (searchUrls) AddURLCandidates(db, listResult, configOpt.HideExpired, parms.RespectEntrySearchingDisabled);
+                    listResult.AddRange(listEntries.Select(x => new PwEntryDatabase(x, db)));
+                    if (searchUrls) AddURLCandidates(db, listResult, parms.RespectEntrySearchingDisabled);
                     searchHost = searchHost.Substring(searchHost.IndexOf(".") + 1);
 
                     //searchHost contains no dot --> prevent possible infinite loop
@@ -414,21 +411,18 @@ namespace KeePassNatMsg.Entry
             return result;
         }
 
-        private void AddURLCandidates(PwDatabase db, List<PwEntryDatabase> listResult, bool bExcludeExpired, bool bRespectEntrySearchingDisabled)
+        private void AddURLCandidates(PwDatabase db, List<PwEntryDatabase> listResult, bool bRespectEntrySearchingDisabled)
         {
             var alreadyFound = listResult.Select(x => x.entry);
-            var listEntries = db.RootGroup.GetEntries(true).AsEnumerable();
-            listEntries = listEntries.Where(x => !alreadyFound.Contains(x));
-            if (bExcludeExpired)
-            {
-                DateTime dtNow = DateTime.UtcNow;
-                listEntries = listEntries.Where(x =>!x.Expires || x.ExpiryTime > dtNow);
-            }
+            var listEntries = db.RootGroup.GetEntries(true)
+                .AsEnumerable()
+                .Where(x => !alreadyFound.Contains(x));
+
             if (bRespectEntrySearchingDisabled) listEntries = listEntries.Where(x => x.GetSearchingEnabled());
             foreach (var entry in listEntries)
             {
-                if (!entry.Strings.Any(x => 
-                    x.Key.StartsWith("URL", StringComparison.InvariantCultureIgnoreCase) 
+                if (!entry.Strings.Any(x =>
+                    x.Key.StartsWith("URL", StringComparison.InvariantCultureIgnoreCase)
                     && x.Key.ToLowerInvariant().Contains("regex"))) continue;
                 listResult.Add(new PwEntryDatabase(entry, db));
             }
@@ -436,12 +430,11 @@ namespace KeePassNatMsg.Entry
 
         private bool IsValidUrl(string url, string host) => Uri.TryCreate(url, UriKind.Absolute, out var uri) && _allowedSchemes.Contains(uri.Scheme) && host.EndsWith(uri.Host);
 
-        private static SearchParameters MakeSearchParameters()
+        private static SearchParameters MakeSearchParameters(bool excludeExpired)
         {
             return new SearchParameters
             {
                 SearchInTitles = true,
-                RegularExpression = true,
                 SearchInGroupNames = false,
                 SearchInNotes = false,
                 SearchInOther = true,
@@ -449,7 +442,10 @@ namespace KeePassNatMsg.Entry
                 SearchInTags = false,
                 SearchInUrls = true,
                 SearchInUserNames = false,
-                SearchInUuids = false
+                SearchInUuids = false,
+                ExcludeExpired = excludeExpired,
+                SearchMode = PwSearchMode.Regular,
+                ComparisonMode = StringComparison.CurrentCultureIgnoreCase,
             };
         }
     }
