@@ -101,9 +101,9 @@ This is already implemented directly in KeePass.
 
 ### TOTP Field Support
 
-KeePassNatMsg uses the existence of either KeeOtp (`otp`) or KeeTrayTOTP (`TOTP Seed`) string fields to detect when TOTP entries should be returned in credential requests. If either of these fields are detected, KeePassNatMsg will render the TOTP code using the template `KPH: {TOTP}` (as required by the keepassxc-browser extension).
+KeePassNatMsg can use the built-in TOTP support in KeePass (since KeePass v2.47, [official docs](https://keepass.info/help/base/placeholders.html#otp)).
 
-Note: For TOTP's to be returned, "Return also advanced string fields" MUST be checked in KeePassNatMsg options.
+KeePassNatMsg can also use the existence of either KeeOtp (`otp`) or KeeTrayTOTP (`TOTP Seed`) string fields to detect when TOTP entries should be returned in credential requests.
 
 ## Troubleshooting
 
@@ -143,4 +143,3 @@ __Result:__ second entry is returned
 
 ## Protocol
 
-View [detailed protocol information](https://github.com/keepassxreboot/keepassxc-browser/blob/develop/keepassxc-protocol.md).
