@@ -25,7 +25,7 @@ namespace KeePassNatMsg.Entry
         {
             PwEntry entry = null;
             PwUuid id = new PwUuid(MemUtil.HexStringToByteArray(uuid));
-
+            PwDatabase db = null;
             var configOpt = new ConfigOpt(_host.CustomConfig);
             if (configOpt.SearchInAllOpenedDatabases)
             {
@@ -36,6 +36,7 @@ namespace KeePassNatMsg.Entry
                         entry = doc.Database.RootGroup.FindEntry(id, true);
                         if (entry != null)
                         {
+                            db = doc.Database;
                             break;
                         }
                     }
@@ -44,6 +45,7 @@ namespace KeePassNatMsg.Entry
             else
             {
                 entry = _host.Database.RootGroup.FindEntry(id, true);
+                db = _host.Database;
             }
 
             if (entry == null)
@@ -98,11 +100,22 @@ namespace KeePassNatMsg.Entry
                     entry.Touch(true, false);
                     _ext.UpdateUI(entry.ParentGroup);
 
+                    AutoSaveIfRequired(db);
+
                     return true;
                 }
             }
 
             return false;
+        }
+
+        private void AutoSaveIfRequired(PwDatabase db)
+        {
+            if (!KeePass.Program.Config.Application.AutoSaveAfterEntryEdit) return;
+            _host.MainWindow.Invoke(new MethodInvoker(() =>
+            { //different thread access UI elements
+                KeePassNatMsgExt.HostInstance.MainWindow.SaveDatabase(db, null);
+            }));
         }
 
         public bool CreateEntry(string username, string password, string url, string submithost, string realm, string groupUuid)
@@ -153,6 +166,8 @@ namespace KeePassNatMsg.Entry
 
             group.AddEntry(entry, true);
             _ext.UpdateUI(group);
+
+            AutoSaveIfRequired(_ext.GetConnectionDatabase());
 
             return true;
         }
