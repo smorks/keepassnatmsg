@@ -204,37 +204,41 @@ namespace KeePassNatMsg.Entry
             return resp;
         }
 
+        private void CheckTotp(PwEntryDatabase item, JObject obj)
+        {
+            var totp = GetTotpFromEntry(item);
+            if (!string.IsNullOrEmpty(totp))
+            {
+                obj.Add("totp", totp);
+            }
+        }
+
         internal string GetTotp(string uuid)
         {
             var dbEntry = FindEntry(uuid);
 
-            if (dbEntry == null || !HasTotp(dbEntry.entry))
+            if (dbEntry == null)
                 return null;
 
-            var ctx = new SprContext(dbEntry.entry, dbEntry.database, SprCompileFlags.All, false, false);
-
-            return SprEngine.Compile(TotpPlaceholder, ctx);
+            return GetTotpFromEntry(dbEntry);
         }
 
-        private void CheckTotp(PwEntryDatabase item, JObject obj)
+        private string GetTotpFromEntry(PwEntryDatabase item)
         {
             string totp = null;
 
-            if (HasTotp(item.entry))
+            if (HasLegacyTotp(item.entry))
+            {
+                totp = GenerateTotp(item, TotpLegacyPlaceholder);
+            }
+
+            if (string.IsNullOrEmpty(totp) && HasTotp(item.entry))
             {
                 // add support for keepass totp
                 // https://keepass.info/help/base/placeholders.html#otp
                 totp = GenerateTotp(item, TotpPlaceholder);
             }
-            else if (HasLegacyTotp(item.entry))
-            {
-                totp = GenerateTotp(item, TotpLegacyPlaceholder);
-            }
-
-            if (!string.IsNullOrEmpty(totp))
-            {
-                obj.Add("totp", totp);
-            }
+            return totp;
         }
 
         private string GenerateTotp(PwEntryDatabase item, string placeholder)
