@@ -31,8 +31,15 @@ jobs:
           mkdir build
           cp -Recurse KeePassNatMsg\bin\Release\ build\
           mv build\Release build\KeePassNatMsg
-          7z a KeePassNatMsg-${{ steps.tag.outputs.tag }}-binaries.zip .\build\KeePassNatMsg\ "-xr!*.pdb"
+          $zip = 'KeePassNatMsg-${{ steps.tag.outputs.tag }}-binaries.zip'
+          7z a $zip .\build\KeePassNatMsg\ "-xr!*.pdb"
+          [System.IO.File]::ReadAllBytes($zip)
+          $hasher = [System.Security.Cryptography.HashAlogirthm]::Create('sha256')
+          $hash = $hasher.ComputeHash([System.IO.File]::ReadAllBytes($zip))
+          $hashstr = [System.Convert]::ToBase64String($hash)
+          Set-Content -Path 'release.txt' -Value ('### SHA256 Hash',('* '+$zip),('  * '+$hashstr))
       - name: Publish Release
         uses: softprops/action-gh-release@v0.1.12
         with:
+          body_path: release.txt
           files: KeePassNatMsg-${{ steps.tag.outputs.tag }}-binaries.zip
