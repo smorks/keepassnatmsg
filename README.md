@@ -1,3 +1,5 @@
+[![Main workflow](https://github.com/smorks/keepassnatmsg/actions/workflows/workflow.yml/badge.svg)](https://github.com/smorks/keepassnatmsg/actions/workflows/workflow.yml)
+
 # KeePassNatMsg
 
 is a plugin for KeePass 2.x and provides a secure means of exposing KeePass credentials to a browser via [Native Messaging](https://developer.mozilla.org/en-US/Add-ons/WebExtensions/Native_messaging).
@@ -143,3 +145,4 @@ __Result:__ second entry is returned
 
 ## Protocol
 
+- View [detailed protocol information](https://github.com/keepassxreboot/keepassxc-browser/blob/develop/keepassxc-protocol.md).
