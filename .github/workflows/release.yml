@@ -23,7 +23,7 @@ jobs:
         run: |
           7z x -o"KeePassNatMsg\lib" ${{ steps.dlkp.outputs.filename }} KeePass.exe
           $ainfo = "KeePassNatMsg\Properties\AssemblyInfo.cs"
-          $content = (Get-Content -Path $ainfo) -replace '[assembly: AssemblyVersion("2.0.13")]', '[assembly: AssemblyVersion("' + "${{ steps.tag.outputs.tag }}".substring(1) + '")]'
+          $content = (Get-Content -Path $ainfo) -replace '\[assembly: AssemblyVersion\("([\d.]+?)"\)\]', ('[assembly: AssemblyVersion("' + "${{ steps.tag.outputs.tag }}".substring(1) + '")]')
           $content | Set-Content -Path $ainfo
           msbuild /p:Configuration=Release
           mkdir build
