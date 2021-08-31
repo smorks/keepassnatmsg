@@ -35,7 +35,7 @@ jobs:
           7z a $zip .\build\KeePassNatMsg\ "-xr!*.pdb"
           $hasher = [System.Security.Cryptography.HashAlgorithm]::Create('sha256')
           $hash = $hasher.ComputeHash([System.IO.File]::ReadAllBytes($zip))
-          $hashstr = [System.Convert]::ToBase64String($hash)
+          $hashstr = [System.BitConverter]::ToString($hash).Replace("-","").ToLower()
           Set-Content -Path 'release.txt' -Value ('### SHA256 Hash',('* '+$zip),('  * '+$hashstr))
       - name: Publish Release
         uses: softprops/action-gh-release@v0.1.12
