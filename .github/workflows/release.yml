@@ -33,8 +33,7 @@ jobs:
           mv build\Release build\KeePassNatMsg
           $zip = 'KeePassNatMsg-${{ steps.tag.outputs.tag }}-binaries.zip'
           7z a $zip .\build\KeePassNatMsg\ "-xr!*.pdb"
-          [System.IO.File]::ReadAllBytes($zip)
-          $hasher = [System.Security.Cryptography.HashAlogirthm]::Create('sha256')
+          $hasher = [System.Security.Cryptography.HashAlgorithm]::Create('sha256')
           $hash = $hasher.ComputeHash([System.IO.File]::ReadAllBytes($zip))
           $hashstr = [System.Convert]::ToBase64String($hash)
           Set-Content -Path 'release.txt' -Value ('### SHA256 Hash',('* '+$zip),('  * '+$hashstr))
