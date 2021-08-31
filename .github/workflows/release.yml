@@ -1,0 +1,36 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+
+jobs:
+  build:
+    runs-on: 'windows-latest'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Get tag
+        id: tag
+        uses: dawidd6/action-get-tag@v1.0.0
+      - id: dlkp
+        name: Download Keepass
+        uses: smorks/keepass-download-action@v0.0.4
+      - name: Add msbuild to PATH
+        uses: microsoft/setup-msbuild@v1.0.2
+      - name: Extract KeePass and Build
+        run: |
+          7z x -o"KeePassNatMsg\lib" ${{ steps.dlkp.outputs.filename }} KeePass.exe
+          $ainfo = "KeePassNatMsg\Properties\AssemblyInfo.cs"
+          $content = (Get-Content -Path $ainfo) -replace '[assembly: AssemblyVersion("2.0.13")]', '[assembly: AssemblyVersion("' + "${{ steps.tag.outputs.tag }}".substring(1) + '")]'
+          $content | Set-Content -Path $ainfo
+          msbuild /p:Configuration=Release
+          mkdir build
+          cp KeePassNatMsg\bin\Release\ build\
+          mv build\Release build\KeePassNatMsg
+          7z a KeePassNatMsg-${{ steps.tag.outputs.tag }}-binaries.zip .\build\KeePassNatMsg\ "-xr!*.pdb"
+      - name: Publish Release
+        uses: softprops/action-gh-release@v0.1.12
+        with:
+          files: KeePassNatMsg-${{ steps.tag.outputs.tag }}-binaries.zip
