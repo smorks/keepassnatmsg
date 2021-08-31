@@ -1,0 +1,24 @@
+name: Main workflow
+
+on:
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - '**.md'
+
+jobs:
+  build:
+    runs-on: 'windows-latest'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - id: dlkp
+        name: Download Keepass
+        uses: smorks/keepass-download-action@v0.0.4
+      - name: Add msbuild to PATH
+        uses: microsoft/setup-msbuild@v1.0.2
+      - name: Extract KeePass and Build
+        run: |
+          7z x -o"KeePassNatMsg\lib" ${{ steps.dlkp.outputs.filename }} KeePass.exe
+          msbuild

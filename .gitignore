@@ -10,3 +10,4 @@ create-plgx.bat
 /KeePassHttp/KeePassHttp.dll
 .vs/
 /packages/
+/KeePassNatMsg/lib/KeePass.exe
