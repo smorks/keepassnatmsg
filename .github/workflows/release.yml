@@ -26,8 +26,10 @@ jobs:
           $content = (Get-Content -Path $ainfo) -replace '\[assembly: AssemblyVersion\("([\d.]+?)"\)\]', ('[assembly: AssemblyVersion("' + "${{ steps.tag.outputs.tag }}".substring(1) + '")]')
           $content | Set-Content -Path $ainfo
           msbuild /p:Configuration=Release
+      - name: Prepare Release
+        run: |
           mkdir build
-          cp KeePassNatMsg\bin\Release\ build\
+          cp -Recurse KeePassNatMsg\bin\Release\ build\
           mv build\Release build\KeePassNatMsg
           7z a KeePassNatMsg-${{ steps.tag.outputs.tag }}-binaries.zip .\build\KeePassNatMsg\ "-xr!*.pdb"
       - name: Publish Release
