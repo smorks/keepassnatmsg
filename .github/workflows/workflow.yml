@@ -2,8 +2,6 @@ name: Main workflow
 
 on:
   push:
-    branches:
-      - main
     paths-ignore:
       - '**.md'
 
