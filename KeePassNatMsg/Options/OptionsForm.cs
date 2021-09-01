@@ -1,5 +1,4 @@
 ﻿using KeePassLib;
-using KeePassLib.Collections;
 using KeePassNatMsg.NativeMessaging;
 using KeePassNatMsg.Utils;
 using System;
@@ -16,11 +15,26 @@ namespace KeePassNatMsg.Options
         private bool _restartRequired = false;
         private readonly NativeMessagingHost _host;
 
+        private string AssemblyVersion
+        {
+            get
+            {
+                try
+                {
+                    return System.Reflection.Assembly.GetExecutingAssembly().GetName().Version.ToString();
+                }
+                catch { }
+
+                return "unknown";
+            }
+        }
+
         public OptionsForm(ConfigOpt config)
         {
             _host = NativeMessagingHost.GetHost();
             _config = config;
             InitializeComponent();
+            lblVersion.Text = $"KeePassNatMsg v{AssemblyVersion}";
         }
 
         private void OptionsForm_Load(object sender, EventArgs e)
@@ -39,6 +53,7 @@ namespace KeePassNatMsg.Options
             SortByTitleRadioButton.Checked = !_config.SortResultByUsername;
             txtKPXCVerOverride.Text = _config.OverrideKeePassXcVersion;
             chkSearchUrls.Checked = _config.SearchUrls;
+            chkUseKpxcSettingsKey.Checked = _config.UseKeePassXcSettings;
 
             this.returnStringFieldsCheckbox_CheckedChanged(null, EventArgs.Empty);
 
@@ -68,6 +83,7 @@ namespace KeePassNatMsg.Options
             _config.OverrideKeePassXcVersion = txtKPXCVerOverride.Text;
             _config.ConnectionDatabaseHash = (comboBoxDatabases.SelectedItem as DatabaseItem)?.DbHash;
             _config.SearchUrls = chkSearchUrls.Checked;
+            _config.UseKeePassXcSettings = chkUseKpxcSettingsKey.Checked;
 
             if (_restartRequired)
             {
@@ -112,7 +128,7 @@ namespace KeePassNatMsg.Options
                 {
                     foreach (var str in entry.CustomData)
                     {
-                        if (str.Key.Equals(KeePassNatMsgExt.KeePassNatMsgSettings))
+                        if (str.Key.Equals(KeePassNatMsgExt.SettingKey))
                         {
                             entry.History = entry.History.CloneDeep();
                             entry.CreateBackup(null);
@@ -283,12 +299,13 @@ namespace KeePassNatMsg.Options
             if (db.IsOpen)
             {
                 var keys = new List<DatabaseKeyItem>();
+                var dbKey = KeePassNatMsgExt.GetDbKey(chkUseKpxcSettingsKey.Checked);
 
                 foreach (var cd in db.CustomData)
                 {
-                    if (cd.Key.StartsWith(KeePassNatMsgExt.KeePassNatMsgDatabaseKey))
+                    if (cd.Key.StartsWith(dbKey))
                     {
-                        var keyName = cd.Key.Substring(KeePassNatMsgExt.KeePassNatMsgDatabaseKey.Length);
+                        var keyName = cd.Key.Substring(dbKey.Length);
                         keys.Add(new DatabaseKeyItem { Name = keyName, Key = cd.Value });
                     }
                 }
@@ -311,9 +328,11 @@ namespace KeePassNatMsg.Options
 
             if (db.IsOpen)
             {
+                var dbKey = KeePassNatMsgExt.GetDbKey(chkUseKpxcSettingsKey.Checked);
+
                 var items = dgvKeys.SelectedRows
                     .OfType<DataGridViewRow>()
-                    .Select(x => KeePassNatMsgExt.KeePassNatMsgDatabaseKey + (x.DataBoundItem as DatabaseKeyItem)?.Name);
+                    .Select(x => dbKey + (x.DataBoundItem as DatabaseKeyItem)?.Name);
 
                 var deleteKeys = db.CustomData
                     .Where(x => items.Contains(x.Key))
@@ -329,8 +348,10 @@ namespace KeePassNatMsg.Options
 
             if (db.IsOpen)
             {
+                var dbKey = KeePassNatMsgExt.GetDbKey(chkUseKpxcSettingsKey.Checked);
+
                 var deleteKeys = db.CustomData
-                    .Where(x => x.Key.StartsWith(KeePassNatMsgExt.KeePassNatMsgDatabaseKey))
+                    .Where(x => x.Key.StartsWith(dbKey))
                     .Select(x => x.Key).ToList();
 
                 RemoveKeys(deleteKeys, db);
@@ -393,6 +414,41 @@ namespace KeePassNatMsg.Options
             else
             {
                 MessageBox.Show(this, "Legacy Configuration was not found, or the config has already been migrated for the active database.", "Legacy Config Not Found");
+            }
+        }
+
+        private void btnMigrateSettings_Click(object sender, EventArgs e)
+        {
+            var ext = KeePassNatMsgExt.ExtInstance;
+            var db = KeePass.Program.MainForm.DocumentManager.ActiveDatabase;
+
+            if (!db.IsOpen)
+            {
+                MessageBox.Show(this, "The active database is not open, config cannot be migrated.", "Active Database Not Open");
+                return;
+            }
+
+            var fromKpnm = chkUseKpxcSettingsKey.Checked;
+            var from = fromKpnm ? "KeePassNatMsg" : "KeePassXC";
+            var to = fromKpnm ? "KeePassXC" : "KeePassNatMsg";
+
+            if (ext.HasConfig(db, fromKpnm))
+            {
+                var result = MessageBox.Show(
+                    this,
+                    $"CAUTION: This will move all {from} Settings to {to}. Any existing {to} settings will be overwritten. You should create a backup of the database before proceeding. Are you sure you want to migrate settings from {from} to {to}?",
+                    "Confirm Migrate Settings", MessageBoxButtons.YesNo, MessageBoxIcon.Question, MessageBoxDefaultButton.Button2);
+
+                if (result == DialogResult.Yes)
+                {
+                    UseWaitCursor = true;
+                    ext.MoveConfig(db, fromKpnm);
+                    UseWaitCursor = false;
+                }
+            }
+            else
+            {
+                MessageBox.Show(this, $"No {from} Settings found.", "No Settings to be Migrated");
             }
         }
     }

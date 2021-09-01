@@ -19,7 +19,9 @@ using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Security.Cryptography;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace KeePassNatMsg
@@ -48,8 +50,10 @@ namespace KeePassNatMsg
         internal static Helper CryptoHelper;
 
         private const int DefaultNotificationTime = 5000;
-        public const string KeePassNatMsgSettings = "KeePassNatMsg Settings";
-        public const string KeePassNatMsgDatabaseKey = "KeePassNatMsgDbKey_";
+        private const string KeePassNatMsgSettings = "KeePassNatMsg Settings";
+        private const string KeePassXcSettings = "KeePassXC-Browser Settings";
+        private const string KeePassNatMsgDbKey = "KeePassNatMsgDbKey_";
+        private const string KeePassXcDbKey = "KPXC_BROWSER_";
         public const string KeePassNatMsgNameLegacy = "KeePassHttp Settings";
         public const string KeePassNatMsgGroupName = "KeePassNatMsg Passwords";
         public const string KeePassNatMsgLegacyMigrated = "KeePassNatMsg_Migrated";
@@ -64,6 +68,26 @@ namespace KeePassNatMsg
 
         private Handlers _handlers;
         private bool _isLocked;
+
+        internal static string SettingKey
+        {
+            get
+            {
+                var opts = new ConfigOpt(HostInstance.CustomConfig);
+                return opts.UseKeePassXcSettings ? KeePassXcSettings : KeePassNatMsgSettings;
+            }
+        }
+
+        internal static string DbKey
+        {
+            get
+            {
+                var opts = new ConfigOpt(HostInstance.CustomConfig);
+                return GetDbKey(opts.UseKeePassXcSettings);
+            }
+        }
+
+        internal static string GetDbKey(bool useKpxc) => useKpxc ? KeePassXcDbKey : KeePassNatMsgDbKey;
 
         private PwEntry GetConfigEntryLegacy(PwDatabase db)
         {
@@ -334,7 +358,7 @@ namespace KeePassNatMsg
                     {
                         bool keyNameExists = true;
                         var db = GetConnectionDatabase();
-                        var customKey = KeePassNatMsgDatabaseKey + f.KeyId;
+                        var customKey = DbKey + f.KeyId;
 
                         while (keyNameExists)
                         {
@@ -375,9 +399,9 @@ namespace KeePassNatMsg
         internal EntryConfig GetEntryConfig(PwEntry e)
         {
             var serializer = NewJsonSerializer();
-            if (e.CustomData.Exists(KeePassNatMsgSettings))
+            if (e.CustomData.Exists(SettingKey))
             {
-                var json = e.CustomData.Get(KeePassNatMsgSettings);
+                var json = e.CustomData.Get(SettingKey);
                 using (var ins = new JsonTextReader(new StringReader(json)))
                 {
                     return serializer.Deserialize<EntryConfig>(ins);
@@ -391,7 +415,7 @@ namespace KeePassNatMsg
             var serializer = NewJsonSerializer();
             var writer = new StringWriter();
             serializer.Serialize(writer, c);
-            e.CustomData.Set(KeePassNatMsgSettings, writer.ToString());
+            e.CustomData.Set(SettingKey, writer.ToString());
             e.Touch(true);
             UpdateUI(e.ParentGroup);
         }
@@ -504,7 +528,7 @@ namespace KeePassNatMsg
                 foreach (var key in keys)
                 {
                     var id = key.Substring(AssociateKeyPrefix.Length).Trim();
-                    var customKey = KeePassNatMsgDatabaseKey + id;
+                    var customKey = DbKey + id;
                     db.CustomData.Set(customKey, config.Strings.ReadSafe(key));
                     config.Strings.Remove(key);
                 }
@@ -525,13 +549,55 @@ namespace KeePassNatMsg
                     if (entry.Strings.Exists(KeePassNatMsgNameLegacy))
                     {
                         var json = entry.Strings.ReadSafe(KeePassNatMsgNameLegacy);
-                        entry.CustomData.Set(KeePassNatMsgSettings, json);
+                        entry.CustomData.Set(SettingKey, json);
                         entry.Strings.Remove(KeePassNatMsgNameLegacy);
                     }
                 }
             }
 
             db.CustomData.Set(KeePassNatMsgLegacyMigrated, DateTime.UtcNow.ToString("u"));
+
+            // set db modified
+            HostInstance.MainWindow.UpdateUI(false, null, false, null, false, null, true);
+        }
+
+        internal bool HasConfig(PwDatabase db, bool useKpnm)
+        {
+            var dbKey = useKpnm ? KeePassNatMsgDbKey : KeePassXcDbKey;
+            var settings = useKpnm ? KeePassNatMsgSettings : KeePassXcSettings;
+
+            var hasCustomData = db.CustomData.Where(x => x.Key.StartsWith(dbKey)).Any();
+            var hasEntries = db.RootGroup.GetEntries(true).Where(x => x.CustomData.Exists(settings)).Any();
+
+            return hasCustomData || hasEntries;
+        }
+
+        internal void MoveConfig(PwDatabase db, bool fromKpnm)
+        {
+            var fromDbKey = fromKpnm ? KeePassNatMsgDbKey : KeePassXcDbKey;
+            var fromSettings = fromKpnm ? KeePassNatMsgSettings : KeePassXcSettings;
+            var toDbKey = fromKpnm ? KeePassXcDbKey : KeePassNatMsgDbKey;
+            var toSettings = fromKpnm ? KeePassXcSettings : KeePassNatMsgSettings;
+
+            // first, move database keys
+            var oldCustomData = db.CustomData.Where(x => x.Key.StartsWith(fromDbKey)).ToList();
+
+            foreach (var cd in oldCustomData)
+            {
+                var id = cd.Key.Substring(fromDbKey.Length).Trim();
+                var newKey = toDbKey + id;
+                db.CustomData.Set(newKey, cd.Value);
+                db.CustomData.Remove(cd.Key);
+            }
+
+            var entries = db.RootGroup.GetEntries(true).Where(x => x.CustomData.Exists(fromSettings));
+
+            foreach (var e in entries)
+            {
+                var json = e.CustomData.Get(fromSettings);
+                e.CustomData.Set(toSettings, json);
+                e.CustomData.Remove(fromSettings);
+            }
 
             // set db modified
             HostInstance.MainWindow.UpdateUI(false, null, false, null, false, null, true);
