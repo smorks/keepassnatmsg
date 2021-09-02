@@ -1,5 +1,4 @@
 ﻿using KeePassLib;
-using KeePassLib.Collections;
 using KeePassNatMsg.NativeMessaging;
 using KeePassNatMsg.Utils;
 using System;
@@ -16,18 +15,26 @@ namespace KeePassNatMsg.Options
         private bool _restartRequired = false;
         private readonly NativeMessagingHost _host;
 
+        private string AssemblyVersion
+        {
+            get
+            {
+                try
+                {
+                    return System.Reflection.Assembly.GetExecutingAssembly().GetName().Version.ToString();
+                }
+                catch { }
+
+                return "unknown";
+            }
+        }
+
         public OptionsForm(ConfigOpt config)
         {
             _host = NativeMessagingHost.GetHost();
             _config = config;
             InitializeComponent();
-        }
-
-        private PwEntry GetConfigEntry(PwDatabase db)
-        {
-            var root = db.RootGroup;
-            var uuid = new PwUuid(KeePassNatMsgExt.KeePassNatMsgUuid);
-            return root.FindEntry(uuid, false);
+            lblVersion.Text = $"KeePassNatMsg v{AssemblyVersion}";
         }
 
         private void OptionsForm_Load(object sender, EventArgs e)
@@ -46,6 +53,7 @@ namespace KeePassNatMsg.Options
             SortByTitleRadioButton.Checked = !_config.SortResultByUsername;
             txtKPXCVerOverride.Text = _config.OverrideKeePassXcVersion;
             chkSearchUrls.Checked = _config.SearchUrls;
+            chkUseKpxcSettingsKey.Checked = _config.UseKeePassXcSettings;
 
             this.returnStringFieldsCheckbox_CheckedChanged(null, EventArgs.Empty);
 
@@ -75,7 +83,8 @@ namespace KeePassNatMsg.Options
             _config.OverrideKeePassXcVersion = txtKPXCVerOverride.Text;
             _config.ConnectionDatabaseHash = (comboBoxDatabases.SelectedItem as DatabaseItem)?.DbHash;
             _config.SearchUrls = chkSearchUrls.Checked;
-            
+            _config.UseKeePassXcSettings = chkUseKpxcSettingsKey.Checked;
+
             if (_restartRequired)
             {
                 MessageBox.Show(
@@ -94,65 +103,6 @@ namespace KeePassNatMsg.Options
         {
             DialogResult = DialogResult.Cancel;
             Close();
-        }
-
-        private void removeButton_Click(object sender, EventArgs e)
-        {
-            if (KeePass.Program.MainForm.DocumentManager.ActiveDatabase.IsOpen)
-            {
-                PwDatabase db = KeePass.Program.MainForm.DocumentManager.ActiveDatabase;
-                var entry = GetConfigEntry(db);
-                if (entry != null)
-                {
-                    List<string> deleteKeys = new List<string>();
-
-                    foreach (var s in entry.Strings)
-                    {
-                        if (s.Key.IndexOf(KeePassNatMsgExt.AssociateKeyPrefix) == 0)
-                        {
-                            deleteKeys.Add(s.Key);
-                        }
-                    }
-
-
-                    if (deleteKeys.Count > 0)
-                    {
-                        PwObjectList<PwEntry> m_vHistory = entry.History.CloneDeep();
-                        entry.History = m_vHistory;
-                        entry.CreateBackup(null);
-
-                        foreach (var key in deleteKeys)
-                        {
-                            entry.Strings.Remove(key);
-                        }
-
-                        entry.Touch(true);
-                        KeePass.Program.MainForm.UpdateUI(false, null, true, db.RootGroup, true, null, true);
-                        MessageBox.Show(
-                            String.Format("Successfully removed {0} encryption-key{1} from KeePassNatMsg Settings.", deleteKeys.Count.ToString(), deleteKeys.Count == 1 ? "" : "s"),
-                            String.Format("Removed {0} key{1} from database", deleteKeys.Count.ToString(), deleteKeys.Count == 1 ? "" : "s"),
-                            MessageBoxButtons.OK,
-                            MessageBoxIcon.Information
-                        );
-                    }
-                    else
-                    {
-                        MessageBox.Show(
-                            "No shared encryption-keys found in KeePassNatMsg Settings.", "No keys found",
-                            MessageBoxButtons.OK,
-                            MessageBoxIcon.Information
-                        );
-                    }
-                }
-                else
-                {
-                    MessageBox.Show("The active database does not contain an entry of KeePassNatMsg Settings.", "KeePassNatMsg Settings not available!", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                }
-            }
-            else
-            {
-                MessageBox.Show("The active database is locked!\nPlease unlock the selected database or choose another one which is unlocked.", "Database locked!", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
         }
 
         private void removePermissionsButton_Click(object sender, EventArgs e)
@@ -176,19 +126,16 @@ namespace KeePassNatMsg.Options
 
                 foreach (var entry in entries)
                 {
-                    foreach (var str in entry.Strings)
+                    foreach (var str in entry.CustomData)
                     {
-                        if (str.Key == KeePassNatMsgExt.KeePassNatMsgName)
+                        if (str.Key.Equals(KeePassNatMsgExt.SettingKey))
                         {
-                            PwObjectList<PwEntry> m_vHistory = entry.History.CloneDeep();
-                            entry.History = m_vHistory;
+                            entry.History = entry.History.CloneDeep();
                             entry.CreateBackup(null);
-
-                            entry.Strings.Remove(str.Key);
-
+                            entry.CustomData.Remove(str.Key);
                             entry.Touch(true);
 
-                            counter += 1;
+                            counter++;
 
                             break;
                         }
@@ -246,7 +193,7 @@ namespace KeePassNatMsg.Options
         private void CheckNativeMessagingHost()
         {
             var t = new Task<bool>(() => _host.GetBrowserStatuses().Any(bs => bs.Value == BrowserStatus.Installed));
-            
+
             var t2 = t.ContinueWith((ti) =>
             {
                 if (ti.IsCompleted && !ti.Result)
@@ -339,6 +286,164 @@ namespace KeePassNatMsg.Options
                 }
 
                 comboBoxDatabases.Items.Add(new DatabaseItem { Id = dbIdentifier, DbHash = KeePassNatMsgExt.ExtInstance.GetDbHash(item.Database) });
+            }
+        }
+
+        private void LoadDatabaseKeys()
+        {
+            LoadDatabaseKeys(KeePass.Program.MainForm.DocumentManager.ActiveDatabase);
+        }
+
+        private void LoadDatabaseKeys(PwDatabase db)
+        {
+            if (db.IsOpen)
+            {
+                var keys = new List<DatabaseKeyItem>();
+                var dbKey = KeePassNatMsgExt.GetDbKey(chkUseKpxcSettingsKey.Checked);
+
+                foreach (var cd in db.CustomData)
+                {
+                    if (cd.Key.StartsWith(dbKey))
+                    {
+                        var keyName = cd.Key.Substring(dbKey.Length);
+                        keys.Add(new DatabaseKeyItem { Name = keyName, Key = cd.Value });
+                    }
+                }
+
+                dgvKeys.DataSource = keys;
+            }
+        }
+
+        private void tabControl1_Selected(object sender, TabControlEventArgs e)
+        {
+            if (e.TabPage == tabPage3)
+            {
+                LoadDatabaseKeys();
+            }
+        }
+
+        private void btnRemoveSelectedKeys_Click(object sender, EventArgs e)
+        {
+            var db = KeePass.Program.MainForm.DocumentManager.ActiveDatabase;
+
+            if (db.IsOpen)
+            {
+                var dbKey = KeePassNatMsgExt.GetDbKey(chkUseKpxcSettingsKey.Checked);
+
+                var items = dgvKeys.SelectedRows
+                    .OfType<DataGridViewRow>()
+                    .Select(x => dbKey + (x.DataBoundItem as DatabaseKeyItem)?.Name);
+
+                var deleteKeys = db.CustomData
+                    .Where(x => items.Contains(x.Key))
+                    .Select(x => x.Key).ToList();
+
+                RemoveKeys(deleteKeys, db);
+            }
+        }
+
+        private void btnRemoveAllKeys_Click(object sender, EventArgs e)
+        {
+            var db = KeePass.Program.MainForm.DocumentManager.ActiveDatabase;
+
+            if (db.IsOpen)
+            {
+                var dbKey = KeePassNatMsgExt.GetDbKey(chkUseKpxcSettingsKey.Checked);
+
+                var deleteKeys = db.CustomData
+                    .Where(x => x.Key.StartsWith(dbKey))
+                    .Select(x => x.Key).ToList();
+
+                RemoveKeys(deleteKeys, db);
+            }
+            else
+            {
+                MessageBox.Show("The active database is locked!\nPlease unlock the selected database or choose another one which is unlocked.", "Database locked!", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        private void RemoveKeys(List<string> keys, PwDatabase db)
+        {
+            if (keys.Count > 0)
+            {
+                foreach (var key in keys)
+                {
+                    db.CustomData.Remove(key);
+                }
+
+                LoadDatabaseKeys(db);
+
+                KeePass.Program.MainForm.UpdateUI(false, null, true, db.RootGroup, true, null, true);
+                MessageBox.Show(
+                    $"Successfully removed {keys.Count} encryption-key{(keys.Count == 1 ? "" : "s")} from KeePassNatMsg Settings.",
+                    $"Removed {keys.Count} key{(keys.Count == 1 ? "" : "s")} from database",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Information
+                );
+            }
+            else
+            {
+                MessageBox.Show(
+                    "No shared encryption-keys found in KeePassNatMsg Settings.", "No keys found",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Information
+                );
+            }
+        }
+
+        private void btnCheckForLegacyConfig_Click(object sender, EventArgs e)
+        {
+            var ext = KeePassNatMsgExt.ExtInstance;
+            var db = KeePass.Program.MainForm.DocumentManager.ActiveDatabase;
+
+            if (!db.IsOpen)
+            {
+                MessageBox.Show(this, "The active database is not open, config cannot be migrated.", "Active Database Not Open");
+                return;
+            }
+
+            if (ext.HasLegacyConfig(db))
+            {
+                ext.PromptToMigrate(db);
+            }
+            else
+            {
+                MessageBox.Show(this, "Legacy Configuration was not found, or the config has already been migrated for the active database.", "Legacy Config Not Found");
+            }
+        }
+
+        private void btnMigrateSettings_Click(object sender, EventArgs e)
+        {
+            var ext = KeePassNatMsgExt.ExtInstance;
+            var db = KeePass.Program.MainForm.DocumentManager.ActiveDatabase;
+
+            if (!db.IsOpen)
+            {
+                MessageBox.Show(this, "The active database is not open, config cannot be migrated.", "Active Database Not Open");
+                return;
+            }
+
+            var fromKpnm = chkUseKpxcSettingsKey.Checked;
+            var from = fromKpnm ? "KeePassNatMsg" : "KeePassXC";
+            var to = fromKpnm ? "KeePassXC" : "KeePassNatMsg";
+
+            if (ext.HasConfig(db, fromKpnm))
+            {
+                var result = MessageBox.Show(
+                    this,
+                    $"CAUTION: This will move all {from} Settings to {to}. Any existing {to} settings will be overwritten. You should create a backup of the database before proceeding. Are you sure you want to migrate settings from {from} to {to}?",
+                    "Confirm Migrate Settings", MessageBoxButtons.YesNo, MessageBoxIcon.Question, MessageBoxDefaultButton.Button2);
+
+                if (result == DialogResult.Yes)
+                {
+                    UseWaitCursor = true;
+                    ext.MoveConfig(db, fromKpnm);
+                    UseWaitCursor = false;
+                }
+            }
+            else
+            {
+                MessageBox.Show(this, $"No {from} Settings found.", "No Settings to be Migrated");
             }
         }
     }

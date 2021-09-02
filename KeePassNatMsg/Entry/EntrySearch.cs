@@ -80,13 +80,9 @@ namespace KeePassNatMsg.Entry
                 }
 
                 var configOpt = new ConfigOpt(_host.CustomConfig);
-                var config = _ext.GetConfigEntry(true);
-                var autoAllowS = config.Strings.ReadSafe("Auto Allow");
-                var autoAllow = !string.IsNullOrWhiteSpace(autoAllowS);
-                autoAllow = autoAllow || configOpt.AlwaysAllowAccess;
                 var needPrompting = from e in items where filter(e.entry) select e;
 
-                if (needPrompting.ToList().Count > 0 && !autoAllow)
+                if (needPrompting.ToList().Count > 0 && !configOpt.AlwaysAllowAccess)
                 {
                     var win = _host.MainWindow;
 

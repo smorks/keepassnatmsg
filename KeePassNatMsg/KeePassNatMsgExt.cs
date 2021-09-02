@@ -3,6 +3,7 @@ using KeePass.Plugins;
 using KeePass.UI;
 using KeePass.Util.Spr;
 using KeePassLib;
+using KeePassLib.Collections;
 using KeePassLib.Cryptography;
 using KeePassLib.Cryptography.PasswordGenerator;
 using KeePassLib.Security;
@@ -16,9 +17,11 @@ using KeePassNatMsg.Protocol.Listener;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace KeePassNatMsg
@@ -47,8 +50,13 @@ namespace KeePassNatMsg
         internal static Helper CryptoHelper;
 
         private const int DefaultNotificationTime = 5000;
-        public const string KeePassNatMsgName = "KeePassHttp Settings";
+        private const string KeePassNatMsgSettings = "KeePassNatMsg Settings";
+        private const string KeePassXcSettings = "KeePassXC-Browser Settings";
+        private const string KeePassNatMsgDbKey = "KeePassNatMsgDbKey_";
+        private const string KeePassXcDbKey = "KPXC_BROWSER_";
+        public const string KeePassNatMsgNameLegacy = "KeePassHttp Settings";
         public const string KeePassNatMsgGroupName = "KeePassNatMsg Passwords";
+        public const string KeePassNatMsgLegacyMigrated = "KeePassNatMsg_Migrated";
         public const string AssociateKeyPrefix = "Public Key: ";
         private const string PipeName = "kpxc_server";
 
@@ -61,20 +69,31 @@ namespace KeePassNatMsg
         private Handlers _handlers;
         private bool _isLocked;
 
-        internal PwEntry GetConfigEntry(bool create)
+        internal static string SettingKey
         {
-            var root = GetConnectionDatabase().RootGroup;
-            var uuid = new PwUuid(KeePassNatMsgUuid);
-            var entry = root.FindEntry(uuid, false);
-            if (entry == null && create)
+            get
             {
-                entry = new PwEntry(false, true);
-                entry.Uuid = uuid;
-                entry.Strings.Set(PwDefs.TitleField, new ProtectedString(false, KeePassNatMsgName));
-                root.AddEntry(entry, true);
-                UpdateUI(null);
+                var opts = new ConfigOpt(HostInstance.CustomConfig);
+                return opts.UseKeePassXcSettings ? KeePassXcSettings : KeePassNatMsgSettings;
             }
-            return entry;
+        }
+
+        internal static string DbKey
+        {
+            get
+            {
+                var opts = new ConfigOpt(HostInstance.CustomConfig);
+                return GetDbKey(opts.UseKeePassXcSettings);
+            }
+        }
+
+        internal static string GetDbKey(bool useKpxc) => useKpxc ? KeePassXcDbKey : KeePassNatMsgDbKey;
+
+        private PwEntry GetConfigEntryLegacy(PwDatabase db)
+        {
+            var root = db.RootGroup;
+            var uuid = new PwUuid(KeePassNatMsgUuid);
+            return root.FindEntry(uuid, false);
         }
 
         internal PwGroup GetPasswordsGroup()
@@ -90,26 +109,6 @@ namespace KeePassNatMsg
                 UpdateUI(null);
             }
             return group;
-        }
-
-        private int GetNotificationTime()
-        {
-            var time = DefaultNotificationTime;
-            var entry = GetConfigEntry(false);
-            if (entry != null)
-            {
-                var s = entry.Strings.ReadSafe("Prompt Timeout");
-                if (s != null && s.Trim() != "")
-                {
-                    try
-                    {
-                        time = Int32.Parse(s) * 1000;
-                    }
-                    catch { }
-                }
-            }
-
-            return time;
         }
 
         internal void ShowNotification(string text)
@@ -149,7 +148,7 @@ namespace KeePassNatMsg
                 //notify.BalloonTipIcon = ToolTipIcon.Info;
                 notify.BalloonTipTitle = "KeePassNatMsg";
                 notify.BalloonTipText = text;
-                notify.ShowBalloonTip(GetNotificationTime());
+                notify.ShowBalloonTip(DefaultNotificationTime);
                 // need to add listeners after showing, or closed is sent right away
                 notify.BalloonTipClosed += closed;
                 notify.BalloonTipClicked += clicked;
@@ -204,6 +203,7 @@ namespace KeePassNatMsg
             {
                 MessageBox.Show(HostInstance.MainWindow, e.ToString(), "Unable to start", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
+
             return true;
         }
 
@@ -217,6 +217,8 @@ namespace KeePassNatMsg
 
                 _listener.Write(resp.GetEncryptedResponse());
             }
+
+            PromptToMigrate(e.Database);
         }
 
         private void MainWindow_FileClosingPre(object sender, KeePass.Forms.FileClosingEventArgs e)
@@ -308,19 +310,34 @@ namespace KeePassNatMsg
             return new string[] { user, pass };
         }
 
-        internal string GetDbHash(PwDatabase db)
+        internal string GetDbHash(PwDatabase db) => GetDbHash(db, true);
+
+        private string GetDbHash(PwDatabase db, bool useNatMsg)
         {
-            var ms = new MemoryStream();
-            ms.Write(db.RootGroup.Uuid.UuidBytes, 0, 16);
-            ms.Write(db.RecycleBinUuid.UuidBytes, 0, 16);
-            var sha256 = new SHA256CryptoServiceProvider();
-            var hashBytes = sha256.ComputeHash(ms.ToArray());
-            return ByteToHexBitFiddle(hashBytes);
+            if (useNatMsg)
+            {
+                var ms = new MemoryStream();
+                ms.Write(db.RootGroup.Uuid.UuidBytes, 0, 16);
+                ms.Write(db.RecycleBinUuid.UuidBytes, 0, 16);
+                return Hash(ms.ToArray());
+            }
+
+            // KeePassXC's method for generating the db hash
+            var utf8 = new System.Text.UTF8Encoding(false);
+            var data = utf8.GetBytes(db.RootGroup.Uuid.ToHexString().ToLower());
+            return Hash(data).ToLower();
         }
 
-        internal string GetDbHash()
+        private string Hash(byte[] data)
         {
-            return GetDbHash(GetConnectionDatabase());
+            var hashProvider = new SHA256CryptoServiceProvider();
+            return ByteToHexBitFiddle(hashProvider.ComputeHash(data));
+        }
+
+        internal string GetDbHashForMessage()
+        {
+            var opts = new ConfigOpt(HostInstance.CustomConfig);
+            return GetDbHash(GetConnectionDatabase(), !opts.UseKeePassXcSettings);
         }
 
         // wizard magic courtesy of https://stackoverflow.com/questions/311165/how-do-you-convert-a-byte-array-to-a-hexadecimal-string-and-vice-versa/14333437#14333437
@@ -354,13 +371,14 @@ namespace KeePassNatMsg
 
                     if (f.KeyId != null)
                     {
-                        var entry = GetConfigEntry(true);
-
                         bool keyNameExists = true;
+                        var db = GetConnectionDatabase();
+                        var customKey = DbKey + f.KeyId;
+
                         while (keyNameExists)
                         {
                             DialogResult keyExistsResult = DialogResult.Yes;
-                            if (entry.Strings.Any(x => x.Key == AssociateKeyPrefix + f.KeyId))
+                            if (db.CustomData.Exists(customKey))
                             {
                                 keyExistsResult = MessageBox.Show(
                                     win,
@@ -384,9 +402,7 @@ namespace KeePassNatMsg
 
                         if (f.KeyId != null)
                         {
-                            entry.Strings.Set(AssociateKeyPrefix + f.KeyId, new ProtectedString(true, key));
-                            entry.Touch(true);
-                            UpdateUI(null);
+                            db.CustomData.Set(customKey, key);
                             id = f.KeyId;
                         }
                     }
@@ -398,9 +414,9 @@ namespace KeePassNatMsg
         internal EntryConfig GetEntryConfig(PwEntry e)
         {
             var serializer = NewJsonSerializer();
-            if (e.Strings.Exists(KeePassNatMsgName))
+            if (e.CustomData.Exists(SettingKey))
             {
-                var json = e.Strings.ReadSafe(KeePassNatMsgName);
+                var json = e.CustomData.Get(SettingKey);
                 using (var ins = new JsonTextReader(new StringReader(json)))
                 {
                     return serializer.Deserialize<EntryConfig>(ins);
@@ -414,7 +430,7 @@ namespace KeePassNatMsg
             var serializer = NewJsonSerializer();
             var writer = new StringWriter();
             serializer.Serialize(writer, c);
-            e.Strings.Set(KeePassNatMsgName, new ProtectedString(false, writer.ToString()));
+            e.CustomData.Set(SettingKey, writer.ToString());
             e.Touch(true);
             UpdateUI(e.ParentGroup);
         }
@@ -476,6 +492,130 @@ namespace KeePassNatMsg
                 else
                     return HostInstance.Database;
             }
+        }
+
+        internal void PromptToMigrate(PwDatabase db)
+        {
+            if (db.IsOpen && HasLegacyConfig(db))
+            {
+                var result = MessageBox.Show(
+                    HostInstance.MainWindow,
+                    "Your current KeePassNatMsg connection keys and entry settings need to be migrated to Custom Data. It is strongly recommended that you backup your database before proceeding. Do you wish to proceed with the migration?",
+                    "Migrate KeePassNatMsg Settings?",
+                    MessageBoxButtons.YesNo);
+
+                if (result == DialogResult.Yes)
+                {
+                    MigrateLegacyConfig(db);
+                    MessageBox.Show(
+                        HostInstance.MainWindow,
+                        $"Your settings have been migrated. Please manually remove the \"{KeePassNatMsgNameLegacy}\" entry once you have verified everything is working as intended.",
+                        "Migration Successful");
+                }
+            }
+        }
+
+        internal bool HasLegacyConfig(PwDatabase db)
+        {
+            var config = GetConfigEntryLegacy(db);
+
+            return config != null && !db.CustomData.Exists(KeePassNatMsgLegacyMigrated);
+        }
+
+        internal void MigrateLegacyConfig(PwDatabase db)
+        {
+            // get database keys
+            var config = GetConfigEntryLegacy(db);
+
+            if (config != null)
+            {
+                var keys = new List<string>();
+
+                foreach (var s in config.Strings)
+                {
+                    if (s.Key.StartsWith(AssociateKeyPrefix))
+                    {
+                        keys.Add(s.Key);
+                    }
+                }
+
+                // move database keys
+                foreach (var key in keys)
+                {
+                    var id = key.Substring(AssociateKeyPrefix.Length).Trim();
+                    var customKey = DbKey + id;
+                    db.CustomData.Set(customKey, config.Strings.ReadSafe(key));
+                    config.Strings.Remove(key);
+                }
+            }
+
+            var listEntries = new PwObjectList<PwEntry>();
+            db.RootGroup.SearchEntries(new SearchParameters
+            {
+                SearchInStringNames = true,
+                SearchString = KeePassNatMsgNameLegacy,
+            }, listEntries);
+
+            // move entry allow/deny config
+            if (listEntries.UCount > 0)
+            {
+                foreach (var entry in listEntries)
+                {
+                    if (entry.Strings.Exists(KeePassNatMsgNameLegacy))
+                    {
+                        var json = entry.Strings.ReadSafe(KeePassNatMsgNameLegacy);
+                        entry.CustomData.Set(SettingKey, json);
+                        entry.Strings.Remove(KeePassNatMsgNameLegacy);
+                    }
+                }
+            }
+
+            db.CustomData.Set(KeePassNatMsgLegacyMigrated, DateTime.UtcNow.ToString("u"));
+
+            // set db modified
+            HostInstance.MainWindow.UpdateUI(false, null, false, null, false, null, true);
+        }
+
+        internal bool HasConfig(PwDatabase db, bool useKpnm)
+        {
+            var dbKey = useKpnm ? KeePassNatMsgDbKey : KeePassXcDbKey;
+            var settings = useKpnm ? KeePassNatMsgSettings : KeePassXcSettings;
+
+            var hasCustomData = db.CustomData.Where(x => x.Key.StartsWith(dbKey)).Any();
+            var hasEntries = db.RootGroup.GetEntries(true).Where(x => x.CustomData.Exists(settings)).Any();
+
+            return hasCustomData || hasEntries;
+        }
+
+        internal void MoveConfig(PwDatabase db, bool fromKpnm)
+        {
+            var fromDbKey = fromKpnm ? KeePassNatMsgDbKey : KeePassXcDbKey;
+            var fromSettings = fromKpnm ? KeePassNatMsgSettings : KeePassXcSettings;
+            var toDbKey = fromKpnm ? KeePassXcDbKey : KeePassNatMsgDbKey;
+            var toSettings = fromKpnm ? KeePassXcSettings : KeePassNatMsgSettings;
+
+            // first, move database keys
+            var oldCustomData = db.CustomData.Where(x => x.Key.StartsWith(fromDbKey)).ToList();
+
+            foreach (var cd in oldCustomData)
+            {
+                var id = cd.Key.Substring(fromDbKey.Length).Trim();
+                var newKey = toDbKey + id;
+                db.CustomData.Set(newKey, cd.Value);
+                db.CustomData.Remove(cd.Key);
+            }
+
+            var entries = db.RootGroup.GetEntries(true).Where(x => x.CustomData.Exists(fromSettings));
+
+            foreach (var e in entries)
+            {
+                var json = e.CustomData.Get(fromSettings);
+                e.CustomData.Set(toSettings, json);
+                e.CustomData.Remove(fromSettings);
+            }
+
+            // set db modified
+            HostInstance.MainWindow.UpdateUI(false, null, false, null, false, null, true);
         }
     }
 }
