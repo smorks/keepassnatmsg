@@ -494,7 +494,7 @@ namespace KeePassNatMsg
             }
         }
 
-        private void PromptToMigrate(PwDatabase db)
+        internal void PromptToMigrate(PwDatabase db)
         {
             if (db.IsOpen && HasLegacyConfig(db))
             {

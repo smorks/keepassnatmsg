@@ -404,12 +404,7 @@ namespace KeePassNatMsg.Options
 
             if (ext.HasLegacyConfig(db))
             {
-                ext.MigrateLegacyConfig(db);
-
-                MessageBox.Show(
-                    this,
-                    $"Your settings have been migrated. Please manually remove the \"{KeePassNatMsgExt.KeePassNatMsgNameLegacy}\" entry once you have verified everything is working as intended.",
-                    "Migration Successful");
+                ext.PromptToMigrate(db);
             }
             else
             {
