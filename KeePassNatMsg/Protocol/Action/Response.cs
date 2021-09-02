@@ -48,7 +48,7 @@ namespace KeePassNatMsg.Protocol.Action
         {
             _msg = new JsonBase
             {
-                {"hash", KeePassNatMsgExt.ExtInstance.GetDbHash()},
+                {"hash", KeePassNatMsgExt.ExtInstance.GetDbHashForMessage()},
                 {"version", KeePassNatMsgExt.GetVersion()},
                 {"success", "true"},
                 {"nonce", Nonce}

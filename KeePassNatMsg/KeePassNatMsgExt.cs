@@ -310,19 +310,34 @@ namespace KeePassNatMsg
             return new string[] { user, pass };
         }
 
-        internal string GetDbHash(PwDatabase db)
+        internal string GetDbHash(PwDatabase db) => GetDbHash(db, true);
+
+        private string GetDbHash(PwDatabase db, bool useNatMsg)
         {
-            var ms = new MemoryStream();
-            ms.Write(db.RootGroup.Uuid.UuidBytes, 0, 16);
-            ms.Write(db.RecycleBinUuid.UuidBytes, 0, 16);
-            var sha256 = new SHA256CryptoServiceProvider();
-            var hashBytes = sha256.ComputeHash(ms.ToArray());
-            return ByteToHexBitFiddle(hashBytes);
+            if (useNatMsg)
+            {
+                var ms = new MemoryStream();
+                ms.Write(db.RootGroup.Uuid.UuidBytes, 0, 16);
+                ms.Write(db.RecycleBinUuid.UuidBytes, 0, 16);
+                return Hash(ms.ToArray());
+            }
+
+            // KeePassXC's method for generating the db hash
+            var utf8 = new System.Text.UTF8Encoding(false);
+            var data = utf8.GetBytes(db.RootGroup.Uuid.ToHexString().ToLower());
+            return Hash(data).ToLower();
         }
 
-        internal string GetDbHash()
+        private string Hash(byte[] data)
         {
-            return GetDbHash(GetConnectionDatabase());
+            var hashProvider = new SHA256CryptoServiceProvider();
+            return ByteToHexBitFiddle(hashProvider.ComputeHash(data));
+        }
+
+        internal string GetDbHashForMessage()
+        {
+            var opts = new ConfigOpt(HostInstance.CustomConfig);
+            return GetDbHash(GetConnectionDatabase(), !opts.UseKeePassXcSettings);
         }
 
         // wizard magic courtesy of https://stackoverflow.com/questions/311165/how-do-you-convert-a-byte-array-to-a-hexadecimal-string-and-vice-versa/14333437#14333437
