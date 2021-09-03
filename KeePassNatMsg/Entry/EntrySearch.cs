@@ -92,6 +92,7 @@ namespace KeePassNatMsg.Entry
                         {
                             f.Icon = win.Icon;
                             f.Plugin = _ext;
+                            f.StartPosition = win.Visible ? FormStartPosition.CenterParent : FormStartPosition.CenterScreen;
                             f.Entries = (from e in items where filter(e.entry) select e.entry).ToList();
                             //f.Entries = needPrompting.ToList();
                             f.Host = submitUri.Host ?? hostUri.Host;
