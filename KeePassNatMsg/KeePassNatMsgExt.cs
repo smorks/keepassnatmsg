@@ -593,6 +593,8 @@ namespace KeePassNatMsg
             var fromSettings = fromKpnm ? KeePassNatMsgSettings : KeePassXcSettings;
             var toDbKey = fromKpnm ? KeePassXcDbKey : KeePassNatMsgDbKey;
             var toSettings = fromKpnm ? KeePassXcSettings : KeePassNatMsgSettings;
+            var dupeKeys = new List<string>();
+            var dupeEntries = new List<PwEntry>();
 
             // first, move database keys
             var oldCustomData = db.CustomData.Where(x => x.Key.StartsWith(fromDbKey)).ToList();
@@ -601,8 +603,15 @@ namespace KeePassNatMsg
             {
                 var id = cd.Key.Substring(fromDbKey.Length).Trim();
                 var newKey = toDbKey + id;
-                db.CustomData.Set(newKey, cd.Value);
-                db.CustomData.Remove(cd.Key);
+                if (!db.CustomData.Exists(newKey))
+                {
+                    db.CustomData.Set(newKey, cd.Value);
+                    db.CustomData.Remove(cd.Key);
+                }
+                else
+                {
+                    dupeKeys.Add(cd.Key);
+                }
             }
 
             var entries = db.RootGroup.GetEntries(true).Where(x => x.CustomData.Exists(fromSettings));
@@ -610,8 +619,15 @@ namespace KeePassNatMsg
             foreach (var e in entries)
             {
                 var json = e.CustomData.Get(fromSettings);
-                e.CustomData.Set(toSettings, json);
-                e.CustomData.Remove(fromSettings);
+                if (!e.CustomData.Exists(toSettings))
+                {
+                    e.CustomData.Set(toSettings, json);
+                    e.CustomData.Remove(fromSettings);
+                }
+                else
+                {
+                    dupeEntries.Add(e);
+                }
             }
 
             // set db modified
