@@ -83,6 +83,12 @@ namespace KeePassNatMsg.Options
             _config.OverrideKeePassXcVersion = txtKPXCVerOverride.Text;
             _config.ConnectionDatabaseHash = (comboBoxDatabases.SelectedItem as DatabaseItem)?.DbHash;
             _config.SearchUrls = chkSearchUrls.Checked;
+
+            if (_config.UseKeePassXcSettings != chkUseKpxcSettingsKey.Checked)
+            {
+                MigrateSettings(true);
+            }
+
             _config.UseKeePassXcSettings = chkUseKpxcSettingsKey.Checked;
 
             if (_restartRequired)
@@ -414,13 +420,19 @@ namespace KeePassNatMsg.Options
 
         private void btnMigrateSettings_Click(object sender, EventArgs e)
         {
+            MigrateSettings(false);
+        }
+
+        private bool MigrateSettings(bool quiet)
+        {
             var ext = KeePassNatMsgExt.ExtInstance;
             var db = KeePass.Program.MainForm.DocumentManager.ActiveDatabase;
 
             if (!db.IsOpen)
             {
-                MessageBox.Show(this, "The active database is not open, config cannot be migrated.", "Active Database Not Open");
-                return;
+                if (!quiet)
+                    MessageBox.Show(this, "The active database is not open, config cannot be migrated.", "Active Database Not Open");
+                return false;
             }
 
             var fromKpnm = chkUseKpxcSettingsKey.Checked;
@@ -429,10 +441,15 @@ namespace KeePassNatMsg.Options
 
             if (ext.HasConfig(db, fromKpnm))
             {
-                var result = MessageBox.Show(
-                    this,
-                    $"CAUTION: This will move all {from} Settings to {to}. Any existing {to} settings will be overwritten. You should create a backup of the database before proceeding. Are you sure you want to migrate settings from {from} to {to}?",
-                    "Confirm Migrate Settings", MessageBoxButtons.YesNo, MessageBoxIcon.Question, MessageBoxDefaultButton.Button2);
+                var result = DialogResult.Yes;
+
+                if (!quiet)
+                {
+                    result = MessageBox.Show(
+                        this,
+                        $"CAUTION: This will move all {from} Settings to {to}. Any existing {to} settings will be overwritten. You should create a backup of the database before proceeding. Are you sure you want to migrate settings from {from} to {to}?",
+                        "Confirm Migrate Settings", MessageBoxButtons.YesNo, MessageBoxIcon.Question, MessageBoxDefaultButton.Button2);
+                }
 
                 if (result == DialogResult.Yes)
                 {
@@ -443,8 +460,13 @@ namespace KeePassNatMsg.Options
             }
             else
             {
-                MessageBox.Show(this, $"No {from} Settings found.", "No Settings to be Migrated");
+                if (!quiet)
+                    MessageBox.Show(this, $"No {from} Settings found.", "No Settings to be Migrated");
+
+                return false;
             }
+
+            return true;
         }
     }
 }
