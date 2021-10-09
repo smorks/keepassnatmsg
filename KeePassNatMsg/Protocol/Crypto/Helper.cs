@@ -60,6 +60,9 @@ namespace KeePassNatMsg.Protocol.Crypto
             return null;
         }
 
-        public static byte[] GenerateNonce(byte[] nonce) => TweetNaCl.Increment(nonce);
+        public static byte[] GenerateNonce(byte[] nonce)
+        {
+            return TweetNaCl.Increment(nonce);
+        }
     }
 }

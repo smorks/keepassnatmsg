@@ -74,7 +74,7 @@ namespace KeePassNatMsg.NativeMessaging
                 if (cb != null)
                 {
                     var status = statuses[b];
-                    cb.Text = $"{b.GetDescription()}: {status.GetDescription()}";
+                    cb.Text = string.Format("{0}: {1}", b.GetDescription(), status.GetDescription());
                     cb.Checked = (status == BrowserStatus.Detected);
                 }
             }

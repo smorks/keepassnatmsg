@@ -21,7 +21,7 @@ namespace KeePassNatMsg.Protocol.Listener
             _port = port;
             _thread = new Thread(new ThreadStart(Run))
             {
-                Name = $"{GetType().Name}_Thread"
+                Name = string.Format("{0}_Thread", GetType().Name),
             };
         }
 
@@ -82,7 +82,8 @@ namespace KeePassNatMsg.Protocol.Listener
                 var ep = new IPEndPoint(IPAddress.Any, 0);
                 var data = _client.EndReceive(ar, ref ep);
                 var str = System.Text.Encoding.UTF8.GetString(data);
-                MessageReceived?.Invoke(this, new UdpMessageReceivedEventArgs(ep, str));
+                if (MessageReceived != null)
+                    MessageReceived.Invoke(this, new UdpMessageReceivedEventArgs(ep, str));
             }
         }
     }

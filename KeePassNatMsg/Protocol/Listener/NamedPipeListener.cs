@@ -104,7 +104,8 @@ namespace KeePassNatMsg.Protocol.Listener
                     {
                         var data = new byte[bytes];
                         Array.Copy(buffer, data, bytes);
-                        MessageReceived?.BeginInvoke(this, new PipeMessageReceivedEventArgs(new PipeWriter(server), data), null, null);
+                        if (MessageReceived != null)
+                            MessageReceived.BeginInvoke(this, new PipeMessageReceivedEventArgs(new PipeWriter(server), data), null, null);
                     }
                     else if (bytes == 0)
                     {

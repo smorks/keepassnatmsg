@@ -34,7 +34,7 @@ namespace KeePassNatMsg.Options
             _host = NativeMessagingHost.GetHost();
             _config = config;
             InitializeComponent();
-            lblVersion.Text = $"KeePassNatMsg v{AssemblyVersion}";
+            lblVersion.Text = string.Format("KeePassNatMsg v{0}", AssemblyVersion);
         }
 
         private void OptionsForm_Load(object sender, EventArgs e)
@@ -81,7 +81,7 @@ namespace KeePassNatMsg.Options
             _config.ReturnStringFieldsWithKphOnly = returnStringFieldsWithKphOnlyCheckBox.Checked;
             _config.SortResultByUsername = SortByUsernameRadioButton.Checked;
             _config.OverrideKeePassXcVersion = txtKPXCVerOverride.Text;
-            _config.ConnectionDatabaseHash = (comboBoxDatabases.SelectedItem as DatabaseItem)?.DbHash;
+            _config.ConnectionDatabaseHash = (comboBoxDatabases.SelectedItem as DatabaseItem) == null ? null : (comboBoxDatabases.SelectedItem as DatabaseItem).DbHash;
             _config.SearchUrls = chkSearchUrls.Checked;
 
             if (_config.UseKeePassXcSettings != chkUseKpxcSettingsKey.Checked)
@@ -216,7 +216,7 @@ namespace KeePassNatMsg.Options
 
         private void PromptInstall()
         {
-            var nmiInstall = MessageBox.Show(this, $"The native messaging host was not detected. It must be installed for KeePassNatMsg to work. Do you want to install it now?", "Native Messaging Host Not Detected", MessageBoxButtons.YesNo, MessageBoxIcon.Question, MessageBoxDefaultButton.Button2);
+            var nmiInstall = MessageBox.Show(this, "The native messaging host was not detected. It must be installed for KeePassNatMsg to work. Do you want to install it now?", "Native Messaging Host Not Detected", MessageBoxButtons.YesNo, MessageBoxIcon.Question, MessageBoxDefaultButton.Button2);
             if (nmiInstall == DialogResult.Yes)
             {
                 var bsf = new BrowserSelectForm(_host);
@@ -241,7 +241,7 @@ namespace KeePassNatMsg.Options
 
             foreach (var b in statuses.Keys)
             {
-                lst.Add($"{b.GetDescription()}: {statuses[b].GetDescription()}");
+                lst.Add(string.Format("{0}: {1}", b.GetDescription(), statuses[b].GetDescription()));
             }
 
             var latestVersion = _host.GetLatestProxyVersion();
@@ -253,7 +253,7 @@ namespace KeePassNatMsg.Options
             {
                 if (latestVersion > proxyVersion)
                 {
-                    latestVersionDisplay = $" New Version Available: {latestVersion}";
+                    latestVersionDisplay = " New Version Available: " + latestVersion;
                 }
                 else
                 {
@@ -261,7 +261,7 @@ namespace KeePassNatMsg.Options
                 }
             }
 
-            lst.Add($"Proxy: {proxyDisplay}{latestVersionDisplay}");
+            lst.Add(string.Format("Proxy: {0}{1}", proxyDisplay, latestVersionDisplay));
 
             SetProxyVersionText(string.Join(Environment.NewLine, lst));
         }
@@ -338,7 +338,7 @@ namespace KeePassNatMsg.Options
 
                 var items = dgvKeys.SelectedRows
                     .OfType<DataGridViewRow>()
-                    .Select(x => dbKey + (x.DataBoundItem as DatabaseKeyItem)?.Name);
+                    .Select(x => dbKey + (x.DataBoundItem as DatabaseKeyItem) == null ? null : (x.DataBoundItem as DatabaseKeyItem).Name);
 
                 var deleteKeys = db.CustomData
                     .Where(x => items.Contains(x.Key))
@@ -381,8 +381,8 @@ namespace KeePassNatMsg.Options
 
                 KeePass.Program.MainForm.UpdateUI(false, null, true, db.RootGroup, true, null, true);
                 MessageBox.Show(
-                    $"Successfully removed {keys.Count} encryption-key{(keys.Count == 1 ? "" : "s")} from KeePassNatMsg Settings.",
-                    $"Removed {keys.Count} key{(keys.Count == 1 ? "" : "s")} from database",
+                    string.Format("Successfully removed {0} encryption-key{1} from KeePassNatMsg Settings.", keys.Count, keys.Count == 1 ? "" : "s"),
+                    string.Format("Removed {0} key{1} from database", keys.Count, keys.Count == 1 ? "" : "s"),
                     MessageBoxButtons.OK,
                     MessageBoxIcon.Information
                 );
@@ -447,7 +447,7 @@ namespace KeePassNatMsg.Options
                 {
                     result = MessageBox.Show(
                         this,
-                        $"CAUTION: This will move all {from} Settings to {to}. Any existing {to} settings will be overwritten. You should create a backup of the database before proceeding. Are you sure you want to migrate settings from {from} to {to}?",
+                        string.Format("CAUTION: This will move all {0} Settings to {1}. Any existing {1} settings will be overwritten. You should create a backup of the database before proceeding. Are you sure you want to migrate settings from {0} to {1}?", from, to),
                         "Confirm Migrate Settings", MessageBoxButtons.YesNo, MessageBoxIcon.Question, MessageBoxDefaultButton.Button2);
                 }
 
@@ -461,7 +461,7 @@ namespace KeePassNatMsg.Options
             else
             {
                 if (!quiet)
-                    MessageBox.Show(this, $"No {from} Settings found.", "No Settings to be Migrated");
+                    MessageBox.Show(this, string.Format("No {0} Settings found.", from), "No Settings to be Migrated");
 
                 return false;
             }

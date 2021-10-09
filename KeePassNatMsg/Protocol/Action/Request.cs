@@ -25,21 +25,64 @@ namespace KeePassNatMsg.Protocol.Action
             return new Request((JObject)ReadFrom(rdr));
         }
 
-        public string ClientId => GetString("clientID");
+        public string ClientId
+        {
+            get
+            {
+                return GetString("clientID");
+            }
+        }
 
-        public string Action => GetString("action");
+        public string Action
+        {
+            get
+            {
+                return GetString("action");
+            }
+        }
 
-        public string Nonce => GetString("nonce");
+        public string Nonce
+        {
+            get
+            {
+                return GetString("nonce");
+            }
+        }
 
-        public byte[] NonceBytes => GetBytes("nonce");
+        public byte[] NonceBytes
+        {
+            get
+            {
+                return GetBytes("nonce");
+            }
+        }
 
-        public bool TriggerUnlock => bool.TryParse(GetString("triggerUnlock"), out var x) && x;
+        public bool TriggerUnlock
+        {
+            get
+            {
+                bool x;
+                return bool.TryParse(GetString("triggerUnlock"), out x) && x;
+            }
+        }
 
-        public JsonBase Message => _msg;
+        public JsonBase Message
+        {
+            get
+            {
+                return _msg;
+            }
+        }
 
-        public Response GetResponse() => new Response(this);
+        public Response GetResponse()
+        {
+            return new Response(this);
+        }
 
-        public Response GetResponse(bool createMessage) => new Response(this, createMessage);
+        public Response GetResponse(bool createMessage)
+        {
+            return new Response(this, createMessage);
+        }
 
         public bool TryDecrypt()
         {

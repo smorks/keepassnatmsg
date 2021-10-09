@@ -5,7 +5,7 @@ namespace KeePassNatMsg.Protocol.Listener
 {
     public class PipeThreadState
     {
-        public Thread Thread { get; }
+        public Thread Thread { get; private set; }
         public NamedPipeServerStream Server { get; set; }
 
         public PipeThreadState(Thread t)

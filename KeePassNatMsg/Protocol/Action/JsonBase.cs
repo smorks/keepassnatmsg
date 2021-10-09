@@ -17,8 +17,15 @@ namespace KeePassNatMsg.Protocol.Action
             Add(key, System.Convert.ToBase64String(data));
         }
 
-        public string GetString(string key) => (this[key] as JValue)?.Value as string;
+        public string GetString(string key)
+        {
+            var value = this[key] as JValue;
+            return value == null ? null : value.Value as string;
+        }
 
-        public byte[] GetBytes(string key) => System.Convert.FromBase64String(GetString(key));
+        public byte[] GetBytes(string key)
+        {
+            return System.Convert.FromBase64String(GetString(key));
+        }
     }
 }

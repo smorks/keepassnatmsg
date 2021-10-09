@@ -21,14 +21,14 @@ jobs:
         uses: microsoft/setup-msbuild@v1.0.2
       - name: Extract KeePass and Build
         run: |
-          7z x -o"KeePassNatMsg\lib" ${{ steps.dlkp.outputs.filename }} KeePass.exe
+          mkdir build
+          7z x -o"build" ${{ steps.dlkp.outputs.filename }} KeePass.exe
           $ainfo = "KeePassNatMsg\Properties\AssemblyInfo.cs"
           $content = (Get-Content -Path $ainfo) -replace '\[assembly: AssemblyVersion\("([\d.]+?)"\)\]', ('[assembly: AssemblyVersion("' + "${{ steps.tag.outputs.tag }}".substring(1) + '")]')
           $content | Set-Content -Path $ainfo
           msbuild /p:Configuration=Release
       - name: Prepare Release
         run: |
-          mkdir build
           cp -Recurse KeePassNatMsg\bin\Release\ build\
           mv build\Release build\KeePassNatMsg
           $zip = 'KeePassNatMsg-${{ steps.tag.outputs.tag }}-binaries.zip'
@@ -37,8 +37,16 @@ jobs:
           $hash = $hasher.ComputeHash([System.IO.File]::ReadAllBytes($zip))
           $hashstr = [System.BitConverter]::ToString($hash).Replace("-","").ToLower()
           Set-Content -Path 'release.txt' -Value ('### SHA256 Hash',('* '+$zip),('  * '+$hashstr))
+          git clean -fx KeePassNatMsg
+          $p = Start-Process -FilePath ".\build\KeePass.exe" -ArgumentList "--plgx-create","$pwd\KeePassNatMsg" -PassThru
+          $p.WaitForExit()
+          $hash = $hasher.ComputeHash([System.IO.File]::ReadAllBytes('KeePassNatMsg.plgx'))
+          $hashstr = [System.BitConverter]::ToString($hash).Replace("-","").ToLower()
+          Add-Content -Path 'release.txt' -Value ('* KeePassNatMsg.plgx',('  * '+$hashstr))
       - name: Publish Release
         uses: softprops/action-gh-release@v0.1.12
         with:
           body_path: release.txt
-          files: KeePassNatMsg-${{ steps.tag.outputs.tag }}-binaries.zip
+          files: |
+            KeePassNatMsg-${{ steps.tag.outputs.tag }}-binaries.zip
+            KeePassNatMsg.plgx
