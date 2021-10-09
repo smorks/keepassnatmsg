@@ -23,9 +23,21 @@ namespace KeePassNatMsg.Protocol.Action
             Init(req, true);
         }
 
-        public byte[] Nonce => GetBytes("nonce");
+        public byte[] Nonce
+        {
+            get
+            {
+                return GetBytes("nonce");
+            }
+        }
 
-        public JsonBase Message => _msg;
+        public JsonBase Message
+        {
+            get
+            {
+                return _msg;
+            }
+        }
 
         public string GetEncryptedResponse()
         {

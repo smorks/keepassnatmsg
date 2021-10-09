@@ -43,7 +43,13 @@ namespace KeePassNatMsg.NativeMessaging
         protected Encoding _utf8 = new UTF8Encoding(false);
 
         public Form ParentForm { get; set; }
-        public string ProxyExePath => Path.Combine(ProxyPath, ProxyExecutable);
+        public string ProxyExePath
+        {
+            get
+            {
+                return Path.Combine(ProxyPath, ProxyExecutable);
+            }
+        }
 
         protected NativeMessagingHost()
         {
@@ -62,7 +68,7 @@ namespace KeePassNatMsg.NativeMessaging
                 case PlatformID.MacOSX:
                     return new MacOsxHost();
                 default:
-                    throw new PlatformNotSupportedException($"{Environment.OSVersion.Platform} is not a supported platform.");
+                    throw new PlatformNotSupportedException(string.Format("{0} is not a supported platform.", Environment.OSVersion.Platform));
             }
         }
 
@@ -89,7 +95,8 @@ namespace KeePassNatMsg.NativeMessaging
             if (File.Exists(ProxyExePath))
             {
                 var fvi = System.Diagnostics.FileVersionInfo.GetVersionInfo(ProxyExePath);
-                if (Version.TryParse(fvi.FileVersion, out Version exeVer))
+                Version exeVer;
+                if (Version.TryParse(fvi.FileVersion, out exeVer))
                 {
                     return exeVer;
                 }
@@ -100,9 +107,9 @@ namespace KeePassNatMsg.NativeMessaging
         public Version GetLatestProxyVersion()
         {
             var web = new System.Net.WebClient();
-            var latestVersion = web.DownloadString($"{GithubRepo}/raw/master/version.txt");
-
-            if (Version.TryParse(latestVersion, out Version lv))
+            var latestVersion = web.DownloadString(string.Format("{0}/raw/master/version.txt", GithubRepo));
+            Version lv;
+            if (Version.TryParse(latestVersion, out lv))
             {
                 return lv;
             }
@@ -120,14 +127,14 @@ namespace KeePassNatMsg.NativeMessaging
                 if (newVersion)
                 {
                     var web = new System.Net.WebClient();
-                    web.DownloadFile($"{GithubRepo}/releases/download/v{latestVersion}/{ProxyExecutable}", ProxyExePath);
+                    web.DownloadFile(string.Format("{0}/releases/download/v{1}/{2}", GithubRepo, latestVersion, ProxyExecutable), ProxyExePath);
                 }
 
                 return true;
             }
             catch (Exception ex)
             {
-                MessageBox.Show(ParentForm, $"An error occurred attempting to download the proxy application: {ex}", "Proxy Download Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show(ParentForm, "An error occurred attempting to download the proxy application: " + ex.ToString(), "Proxy Download Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
             return false;
         }

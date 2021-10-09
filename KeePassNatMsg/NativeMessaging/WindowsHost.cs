@@ -19,7 +19,13 @@ namespace KeePassNatMsg.NativeMessaging
             MozillaNmhKey,
         };
 
-        public override string ProxyPath => Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "KeePassNatMsg");
+        public override string ProxyPath
+        {
+            get
+            {
+                return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "KeePassNatMsg");
+            }
+        }
 
         public override void Install(Browsers browsers)
         {
@@ -31,7 +37,7 @@ namespace KeePassNatMsg.NativeMessaging
                     var key = Microsoft.Win32.Registry.CurrentUser.CreateSubKey(RegKeys[i]);
                     if (key != null)
                     {
-                        var nmhKey = key.CreateSubKey($"{NmhKey}\\{GetExtKey(b)}");
+                        var nmhKey = key.CreateSubKey(string.Format("{0}\\{1}", NmhKey, GetExtKey(b)));
                         if (nmhKey != null)
                         {
                             CreateRegKeyAndFile(b, nmhKey);
@@ -57,7 +63,7 @@ namespace KeePassNatMsg.NativeMessaging
                     if (key != null)
                     {
                         status = BrowserStatus.Detected;
-                        var nmhKey = key.OpenSubKey($"{NmhKey}\\{GetExtKey(b)}", false);
+                        var nmhKey = key.OpenSubKey(string.Format("{0}\\{1}", NmhKey, GetExtKey(b)), false);
                         if (nmhKey != null)
                         {
                             var jsonFile = (string)nmhKey.GetValue(string.Empty, string.Empty);
@@ -80,7 +86,7 @@ namespace KeePassNatMsg.NativeMessaging
         {
             try
             {
-                var jsonFile = Path.Combine(ProxyPath, $"kpnm_{b.ToString().ToLower()}.json");
+                var jsonFile = Path.Combine(ProxyPath, string.Format("kpnm_{0}.json", b.ToString().ToLower()));
                 key.SetValue(string.Empty, jsonFile, Microsoft.Win32.RegistryValueKind.String);
                 if (!Directory.Exists(ProxyPath))
                 {
@@ -90,7 +96,7 @@ namespace KeePassNatMsg.NativeMessaging
             }
             catch (Exception ex)
             {
-                MessageBox.Show(ParentForm, $"An error occurred attempting to install the native messaging host for KeePassNatMsg: {ex}", "Install Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show(ParentForm, "An error occurred attempting to install the native messaging host for KeePassNatMsg: " + ex.ToString(), "Install Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
     }

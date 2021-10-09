@@ -20,7 +20,7 @@ namespace KeePassNatMsg.Protocol.Listener
 
         public UnixSocketListener()
         {
-            var path = $"/tmp/{SocketName}";
+            var path = "/tmp/" + SocketName;
             var xdg = Environment.GetEnvironmentVariable("XDG_RUNTIME_DIR");
             if (!string.IsNullOrEmpty(xdg))
             {
@@ -89,7 +89,7 @@ namespace KeePassNatMsg.Protocol.Listener
                 }
                 catch (Exception ex)
                 {
-                    Debug.WriteLine($"Socket Error: {ex}");
+                    Debug.WriteLine("Socket Error: " + ex.ToString());
                 }
             }
         }
@@ -133,7 +133,8 @@ namespace KeePassNatMsg.Protocol.Listener
                 {
                     var data = new byte[bytes];
                     Array.Copy(srs.Data, data, bytes);
-                    MessageReceived?.BeginInvoke(this, new PipeMessageReceivedEventArgs(new SocketWriter(srs.Socket), data), null, null);
+                    if (MessageReceived != null)
+                        MessageReceived.BeginInvoke(this, new PipeMessageReceivedEventArgs(new SocketWriter(srs.Socket), data), null, null);
                 }
                 else if (bytes == 0)
                 {
@@ -153,7 +154,7 @@ namespace KeePassNatMsg.Protocol.Listener
                 }
                 catch (Exception ex)
                 {
-                    Debug.WriteLine($"Error Deleting Socket File ({_uep.Filename}): {ex}");
+                    Debug.WriteLine(string.Format("Error Deleting Socket File ({0}): {1}", _uep.Filename, ex));
                 }
             }
         }

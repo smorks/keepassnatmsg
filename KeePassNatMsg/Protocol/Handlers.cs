@@ -72,7 +72,10 @@ namespace KeePassNatMsg.Protocol
             }
         }
 
-        private RequestHandler GetHandler(string action) => _handlers.ContainsKey(action) ? _handlers[action] : null;
+        private RequestHandler GetHandler(string action)
+        {
+            return _handlers.ContainsKey(action) ? _handlers[action] : null;
+        }
 
         private Response GetDatabaseHash(Request req)
         {

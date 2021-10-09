@@ -11,7 +11,13 @@ namespace KeePassNatMsg.NativeMessaging
 
         private string _home = Environment.GetEnvironmentVariable("HOME");
 
-        public override string ProxyPath => Path.Combine(_home, PosixProxyPath);
+        public override string ProxyPath
+        {
+            get
+            {
+                return Path.Combine(_home, PosixProxyPath);
+            }
+        }
 
         protected abstract string[] BrowserPaths { get; }
 
@@ -30,7 +36,7 @@ namespace KeePassNatMsg.NativeMessaging
                 if (b != Browsers.None)
                 {
                     var status = BrowserStatus.NotInstalled;
-                    var jsonFile = Path.Combine(_home, BrowserPaths[i], $"{GetExtKey(b)}.json");
+                    var jsonFile = Path.Combine(_home, BrowserPaths[i], string.Format("{0}.json", GetExtKey(b)));
                     var jsonDir = Path.GetDirectoryName(jsonFile);
                     var jsonDirInfo = new DirectoryInfo(jsonDir);
                     var jsonParent = jsonDirInfo.Parent.FullName;
@@ -61,7 +67,8 @@ namespace KeePassNatMsg.NativeMessaging
             var monoScript = Path.Combine(ProxyPath, "run-proxy.sh");
             File.WriteAllText(monoScript, string.Format(PosixScript, ProxyExecutable), _utf8);
 
-            Mono.Unix.Native.Syscall.stat(monoScript, out Mono.Unix.Native.Stat st);
+            Mono.Unix.Native.Stat st;
+            Mono.Unix.Native.Syscall.stat(monoScript, out st);
             if (!st.st_mode.HasFlag(Mono.Unix.Native.FilePermissions.S_IXUSR))
             {
                 Mono.Unix.Native.Syscall.chmod(monoScript, Mono.Unix.Native.FilePermissions.S_IXUSR | st.st_mode);
@@ -73,7 +80,7 @@ namespace KeePassNatMsg.NativeMessaging
             {
                 if (b != Browsers.None && browsers.HasFlag(b))
                 {
-                    var jsonFile = Path.Combine(_home, BrowserPaths[i], $"{GetExtKey(b)}.json");
+                    var jsonFile = Path.Combine(_home, BrowserPaths[i], string.Format("{0}.json", GetExtKey(b)));
                     var jsonDir = Path.GetDirectoryName(jsonFile);
 
                     var jsonDirInfo = new DirectoryInfo(jsonDir);

@@ -11,6 +11,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Windows.Forms;
 using KeePassLib.Utility;
+using KeePassLib.Delegates;
 
 namespace KeePassNatMsg.Entry
 {
@@ -66,7 +67,7 @@ namespace KeePassNatMsg.Entry
             var items = FindMatchingEntries(url, null);
             if (items.ToList().Count > 0)
             {
-                bool filter(PwEntry e)
+                var filter = new GFunc<PwEntry, bool>((PwEntry e) =>
                 {
                     var c = _ext.GetEntryConfig(e);
 
@@ -77,7 +78,7 @@ namespace KeePassNatMsg.Entry
                         return (title != hostUri.Host && entryUrl != hostUri.Host && !c.Allow.Contains(hostUri.Host)) || (submitUri.Host != null && !c.Allow.Contains(submitUri.Host) && submitUri.Host != title && submitUri.Host != entryUrl);
                     }
                     return (title != hostUri.Host && entryUrl != hostUri.Host) || (submitUri.Host != null && title != submitUri.Host && entryUrl != submitUri.Host);
-                }
+                });
 
                 var configOpt = new ConfigOpt(_host.CustomConfig);
                 var needPrompting = from e in items where filter(e.entry) select e;
@@ -244,15 +245,21 @@ namespace KeePassNatMsg.Entry
             return SprEngine.Compile(placeholder, ctx);
         }
 
-        private static bool HasTotp(PwEntry entry) => entry.Strings.Any(x => x.Key.StartsWith(TotpKey));
+        private static bool HasTotp(PwEntry entry)
+        {
+            return entry.Strings.Any(x => x.Key.StartsWith(TotpKey));
+        }
 
         // KeeOtp support through keepassxc-browser
         // KeeOtp stores the TOTP config in a string field "otp" and provides a placeholder "{TOTP}"
         // KeeTrayTOTP uses by default a "TOTP Seed" string field, and the {TOTP} placeholder.
         // keepassxc-browser needs the value in a string field named "KPH: {TOTP}"
-        private static bool HasLegacyTotp(PwEntry entry) => entry.Strings.Any(x =>
+        private static bool HasLegacyTotp(PwEntry entry)
+        {
+            return entry.Strings.Any(x =>
             x.Key.Equals("otp", StringComparison.InvariantCultureIgnoreCase) ||
             x.Key.Equals("TOTP Seed", StringComparison.InvariantCultureIgnoreCase));
+        }
 
         private PwEntryDatabase FindEntry(string uuid)
         {
@@ -400,7 +407,7 @@ namespace KeePassNatMsg.Entry
                 //get all possible entries for given host-name
                 while (listResult.Count == listCount && (origSearchHost == searchHost || searchHost.IndexOf(".") != -1))
                 {
-                    parms.SearchString = $"^{searchHost}$|/{searchHost}/?";
+                    parms.SearchString = string.Format("^{0}$|/{0}/?", searchHost);
                     var listEntries = new PwObjectList<PwEntry>();
                     db.RootGroup.SearchEntries(parms, listEntries);
                     listResult.AddRange(listEntries.Select(x => new PwEntryDatabase(x, db)));
@@ -414,7 +421,7 @@ namespace KeePassNatMsg.Entry
                 listCount = listResult.Count;
             }
 
-            bool filter(PwEntry e)
+            var filter = new GFunc<PwEntry, bool>((PwEntry e) =>
             {
                 var title = e.Strings.ReadSafe(PwDefs.TitleField);
                 var entryUrl = e.Strings.ReadSafe(PwDefs.UrlField);
@@ -437,7 +444,7 @@ namespace KeePassNatMsg.Entry
 
                 if (searchUrls)
                 {
-                    foreach(var sf in e.Strings.Where(s => s.Key.StartsWith("URL", StringComparison.InvariantCultureIgnoreCase)))
+                    foreach (var sf in e.Strings.Where(s => s.Key.StartsWith("URL", StringComparison.InvariantCultureIgnoreCase)))
                     {
                         var sfv = e.Strings.ReadSafe(sf.Key);
 
@@ -453,25 +460,27 @@ namespace KeePassNatMsg.Entry
                 }
 
                 return formHost.Contains(title) || (!string.IsNullOrEmpty(entryUrl) && formHost.Contains(entryUrl));
-            }
+            });
 
-            bool filterSchemes(PwEntry e)
+            var filterSchemes = new GFunc<PwEntry, bool>((PwEntry e) =>
             {
                 var title = e.Strings.ReadSafe(PwDefs.TitleField);
                 var entryUrl = e.Strings.ReadSafe(PwDefs.UrlField);
+                Uri entryUri;
+                Uri titleUri;
 
-                if (entryUrl != null && Uri.TryCreate(entryUrl, UriKind.Absolute, out var entryUri) && entryUri.Scheme == hostUri.Scheme)
+                if (entryUrl != null && Uri.TryCreate(entryUrl, UriKind.Absolute, out entryUri) && entryUri.Scheme == hostUri.Scheme)
                 {
                     return true;
                 }
 
-                if (Uri.TryCreate(title, UriKind.Absolute, out var titleUri) && titleUri.Scheme == hostUri.Scheme)
+                if (Uri.TryCreate(title, UriKind.Absolute, out titleUri) && titleUri.Scheme == hostUri.Scheme)
                 {
                     return true;
                 }
 
                 return false;
-            }
+            });
 
             var result = listResult.Where(e => filter(e.entry));
 
@@ -505,7 +514,11 @@ namespace KeePassNatMsg.Entry
             }
         }
 
-        private bool IsValidUrl(string url, string host) => Uri.TryCreate(url, UriKind.Absolute, out var uri) && _allowedSchemes.Contains(uri.Scheme) && host.EndsWith(uri.Host);
+        private bool IsValidUrl(string url, string host)
+        {
+            Uri uri;
+            return Uri.TryCreate(url, UriKind.Absolute, out uri) && _allowedSchemes.Contains(uri.Scheme) && host.EndsWith(uri.Host);
+        }
 
         private static SearchParameters MakeSearchParameters(bool excludeExpired)
         {

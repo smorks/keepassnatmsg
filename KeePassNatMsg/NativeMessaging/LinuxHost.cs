@@ -4,15 +4,21 @@
     {
         private const string MozillaNmh = ".mozilla/native-messaging-hosts";
 
-        protected override string[] BrowserPaths => new[]
+        protected override string[] BrowserPaths
         {
-            string.Empty,
-            ".config/google-chrome/NativeMessagingHosts",
-            ".config/chromium/NativeMessagingHosts",
-            MozillaNmh,
-            ".config/vivaldi/NativeMessagingHosts",
-            ".config/microsoft edge/NativeMessagingHosts",
-            MozillaNmh,
-        };
+            get
+            {
+                return new[]
+                {
+                    string.Empty,
+                    ".config/google-chrome/NativeMessagingHosts",
+                    ".config/chromium/NativeMessagingHosts",
+                    MozillaNmh,
+                    ".config/vivaldi/NativeMessagingHosts",
+                    ".config/microsoft edge/NativeMessagingHosts",
+                    MozillaNmh,
+                };
+            }
+        }
     }
 }

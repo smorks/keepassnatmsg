@@ -18,5 +18,6 @@ jobs:
         uses: microsoft/setup-msbuild@v1.0.2
       - name: Extract KeePass and Build
         run: |
-          7z x -o"KeePassNatMsg\lib" ${{ steps.dlkp.outputs.filename }} KeePass.exe
+          mkdir build
+          7z x -o"build" ${{ steps.dlkp.outputs.filename }} KeePass.exe
           msbuild

@@ -64,7 +64,13 @@ namespace KeePassNatMsg
 
         private IListener _listener;
 
-        public override string UpdateUrl => "https://dev.brandt.tech/keepass-plugin.txt";
+        public override string UpdateUrl
+        {
+            get
+            {
+                return "https://dev.brandt.tech/keepass-plugin.txt";
+            }
+        }
 
         private Handlers _handlers;
         private bool _isLocked;
@@ -87,7 +93,10 @@ namespace KeePassNatMsg
             }
         }
 
-        internal static string GetDbKey(bool useKpxc) => useKpxc ? KeePassXcDbKey : KeePassNatMsgDbKey;
+        internal static string GetDbKey(bool useKpxc)
+        {
+            return useKpxc ? KeePassXcDbKey : KeePassNatMsgDbKey;
+        }
 
         private PwEntry GetConfigEntryLegacy(PwDatabase db)
         {
@@ -136,13 +145,13 @@ namespace KeePassNatMsg
                 {
                     notify.BalloonTipClicked -= clicked;
                     notify.BalloonTipClosed -= closed;
-                    onclick?.Invoke(notify, null);
+                    if (onclick != null) onclick.Invoke(notify, null);
                 };
                 closed = delegate
                 {
                     notify.BalloonTipClicked -= clicked;
                     notify.BalloonTipClosed -= closed;
-                    onclose?.Invoke(notify, null);
+                    if (onclose != null) onclose.Invoke(notify, null);
                 };
 
                 //notify.BalloonTipIcon = ToolTipIcon.Info;
@@ -185,7 +194,7 @@ namespace KeePassNatMsg
                 if (t == null)
                 {
                     // not Mono, assume Windows
-                    _listener = new NamedPipeListener($"keepassxc\\{Environment.UserName}\\{PipeName}");
+                    _listener = new NamedPipeListener(string.Format("keepassxc\\{0}\\{1}", Environment.UserName, PipeName));
                     _listener.MessageReceived += Listener_MessageReceived;
                     _listener.Start();
                 }
@@ -260,7 +269,8 @@ namespace KeePassNatMsg
 
         public override void Terminate()
         {
-            _listener?.Stop();
+            if (_listener != null)
+                _listener.Stop();
         }
 
         internal void UpdateUI(PwGroup group)
@@ -310,7 +320,10 @@ namespace KeePassNatMsg
             return new string[] { user, pass };
         }
 
-        internal string GetDbHash(PwDatabase db) => GetDbHash(db, true);
+        internal string GetDbHash(PwDatabase db)
+        {
+            return GetDbHash(db, true);
+        }
 
         private string GetDbHash(PwDatabase db, bool useNatMsg)
         {
@@ -472,7 +485,8 @@ namespace KeePassNatMsg
             {
                 // dispose managed resources
                 IDisposable disposable = (IDisposable)_listener;
-                disposable?.Dispose();
+                if (disposable != null)
+                    disposable.Dispose();
             }
             // free native resources
         }
@@ -509,7 +523,7 @@ namespace KeePassNatMsg
                     MigrateLegacyConfig(db);
                     MessageBox.Show(
                         HostInstance.MainWindow,
-                        $"Your settings have been migrated. Please manually remove the \"{KeePassNatMsgNameLegacy}\" entry once you have verified everything is working as intended.",
+                        string.Format("Your settings have been migrated. Please manually remove the \"{0}\" entry once you have verified everything is working as intended.", KeePassNatMsgNameLegacy),
                         "Migration Successful");
                 }
             }
