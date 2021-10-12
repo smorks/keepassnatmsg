@@ -305,7 +305,7 @@ namespace KeePassNatMsg.Options
             if (db.IsOpen)
             {
                 var keys = new List<DatabaseKeyItem>();
-                var dbKey = KeePassNatMsgExt.GetDbKey(chkUseKpxcSettingsKey.Checked);
+                var dbKey = KeePassNatMsgExt.GetDbKey(_config.UseKeePassXcSettings);
 
                 foreach (var cd in db.CustomData)
                 {
@@ -334,11 +334,11 @@ namespace KeePassNatMsg.Options
 
             if (db.IsOpen)
             {
-                var dbKey = KeePassNatMsgExt.GetDbKey(chkUseKpxcSettingsKey.Checked);
+                var dbKey = KeePassNatMsgExt.GetDbKey(_config.UseKeePassXcSettings);
 
                 var items = dgvKeys.SelectedRows
                     .OfType<DataGridViewRow>()
-                    .Select(x => dbKey + (x.DataBoundItem as DatabaseKeyItem) == null ? null : (x.DataBoundItem as DatabaseKeyItem).Name);
+                    .Select(x => dbKey + ((x.DataBoundItem as DatabaseKeyItem) == null ? string.Empty : (x.DataBoundItem as DatabaseKeyItem).Name));
 
                 var deleteKeys = db.CustomData
                     .Where(x => items.Contains(x.Key))
@@ -354,7 +354,7 @@ namespace KeePassNatMsg.Options
 
             if (db.IsOpen)
             {
-                var dbKey = KeePassNatMsgExt.GetDbKey(chkUseKpxcSettingsKey.Checked);
+                var dbKey = KeePassNatMsgExt.GetDbKey(_config.UseKeePassXcSettings);
 
                 var deleteKeys = db.CustomData
                     .Where(x => x.Key.StartsWith(dbKey))

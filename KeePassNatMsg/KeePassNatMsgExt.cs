@@ -624,7 +624,7 @@ namespace KeePassNatMsg
                 }
                 else
                 {
-                    dupeKeys.Add(cd.Key);
+                    dupeKeys.Add(id);
                 }
             }
 
@@ -641,6 +641,40 @@ namespace KeePassNatMsg
                 else
                 {
                     dupeEntries.Add(e);
+                }
+            }
+
+            if (dupeKeys.Count > 0 || dupeEntries.Count > 0)
+            {
+                var lines = new List<string>();
+
+                if (dupeKeys.Count > 0)
+                {
+                    lines.AddRange(new[] { string.Empty, "Duplicate Keys:", string.Empty });
+                    lines.AddRange(dupeKeys);
+                    lines.Add(string.Empty);
+                }
+
+                if (dupeEntries.Count > 0)
+                {
+                    lines.AddRange(new[] { string.Empty, "Duplicate Entry Configs:", string.Empty });
+                    lines.AddRange(dupeEntries.Select(x => x.Strings.ReadSafe(PwDefs.TitleField)));
+                    lines.Add(string.Empty);
+                }
+
+                var file = Path.Combine(Path.GetTempPath(), string.Format("KeePassNatMsg-Migration-{0}.log", DateTime.Now));
+
+                File.WriteAllLines(file, lines, new System.Text.UTF8Encoding(false));
+
+                var title = dupeKeys.Count > 0 && dupeEntries.Count > 0 ? "Duplicate Keys/Entries Found" : dupeKeys.Count > 0 ? "Duplicate Keys Found" : "Duplicate Entries Found";
+                var result = MessageBox.Show("There were duplicates found. Please check the log file for more information:\r\n\r\n" + file + "\r\n\r\nDo you want to open the log file now?", title, MessageBoxButtons.YesNo);
+
+                if (result == DialogResult.Yes)
+                {
+                    var psi = new System.Diagnostics.ProcessStartInfo(file);
+                    psi.UseShellExecute = true;
+                    psi.Verb = "open";
+                    System.Diagnostics.Process.Start(psi);
                 }
             }
 
