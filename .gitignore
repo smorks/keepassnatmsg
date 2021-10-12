@@ -11,3 +11,4 @@ create-plgx.bat
 .vs/
 /packages/
 /KeePassNatMsg/lib/KeePass.exe
+build/
