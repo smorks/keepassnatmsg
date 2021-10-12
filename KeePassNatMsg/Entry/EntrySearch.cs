@@ -41,7 +41,7 @@ namespace KeePassNatMsg.Entry
             var submitUrl = msg.GetString("submitUrl");
 
             Uri hostUri;
-            Uri submitUri;
+            Uri submitUri = null;
 
             if (!string.IsNullOrEmpty(url))
             {
@@ -56,10 +56,6 @@ namespace KeePassNatMsg.Entry
             {
                 submitUri = new Uri(submitUrl);
             }
-            else
-            {
-                submitUri = hostUri;
-            }
 
             var resp = req.GetResponse();
             resp.Message.Add("id", id);
@@ -71,19 +67,13 @@ namespace KeePassNatMsg.Entry
                 {
                     var c = _ext.GetEntryConfig(e);
 
-                    var title = e.Strings.ReadSafe(PwDefs.TitleField);
-                    var entryUrl = e.Strings.ReadSafe(PwDefs.UrlField);
-                    if (c != null)
-                    {
-                        return (title != hostUri.Host && entryUrl != hostUri.Host && !c.Allow.Contains(hostUri.Host)) || (submitUri.Host != null && !c.Allow.Contains(submitUri.Host) && submitUri.Host != title && submitUri.Host != entryUrl);
-                    }
-                    return (title != hostUri.Host && entryUrl != hostUri.Host) || (submitUri.Host != null && title != submitUri.Host && entryUrl != submitUri.Host);
+                    return c == null || (!c.Allow.Contains(hostUri.Authority)) || (submitUri != null && submitUri.Authority != null && !c.Allow.Contains(submitUri.Authority));
                 });
 
                 var configOpt = new ConfigOpt(_host.CustomConfig);
-                var needPrompting = from e in items where filter(e.entry) select e;
+                var needPrompting = items.Where(e => filter(e.entry)).ToList();
 
-                if (needPrompting.ToList().Count > 0 && !configOpt.AlwaysAllowAccess)
+                if (needPrompting.Count > 0 && !configOpt.AlwaysAllowAccess)
                 {
                     var win = _host.MainWindow;
 
@@ -94,9 +84,8 @@ namespace KeePassNatMsg.Entry
                             f.Icon = win.Icon;
                             f.Plugin = _ext;
                             f.StartPosition = win.Visible ? FormStartPosition.CenterParent : FormStartPosition.CenterScreen;
-                            f.Entries = (from e in items where filter(e.entry) select e.entry).ToList();
-                            //f.Entries = needPrompting.ToList();
-                            f.Host = submitUri.Host ?? hostUri.Host;
+                            f.Entries = needPrompting.Select(e => e.entry).ToList();
+                            f.Host = submitUri != null ? submitUri.Authority : hostUri.Authority;
                             f.Load += delegate { f.Activate(); };
                             f.ShowDialog(win);
                             if (f.Remember && (f.Allowed || f.Denied))
@@ -105,9 +94,9 @@ namespace KeePassNatMsg.Entry
                                 {
                                     var c = _ext.GetEntryConfig(e.entry) ?? new EntryConfig();
                                     var set = f.Allowed ? c.Allow : c.Deny;
-                                    set.Add(hostUri.Host);
-                                    if (submitUri.Host != null && submitUri.Host != hostUri.Host)
-                                        set.Add(submitUri.Host);
+                                    set.Add(hostUri.Authority);
+                                    if (submitUri != null && submitUri.Authority != null && submitUri.Authority != hostUri.Authority)
+                                        set.Add(submitUri.Authority);
                                     _ext.SetEntryConfig(e.entry, c);
                                 }
                             }
@@ -119,15 +108,17 @@ namespace KeePassNatMsg.Entry
                     }
                 }
 
+                var uri = submitUri != null ? submitUri : hostUri;
+
                 foreach (var entryDatabase in items)
                 {
-                    string entryUrl = String.Copy(entryDatabase.entry.Strings.ReadSafe(PwDefs.UrlField));
-                    if (String.IsNullOrEmpty(entryUrl))
+                    string entryUrl = string.Copy(entryDatabase.entry.Strings.ReadSafe(PwDefs.UrlField));
+                    if (string.IsNullOrEmpty(entryUrl))
                         entryUrl = entryDatabase.entry.Strings.ReadSafe(PwDefs.TitleField);
 
                     entryUrl = entryUrl.ToLower();
 
-                    entryDatabase.entry.UsageCount = (ulong)LevenshteinDistance(submitUri.ToString().ToLower(), entryUrl);
+                    entryDatabase.entry.UsageCount = (ulong)LevenshteinDistance(uri.ToString().ToLower(), entryUrl);
                 }
 
                 var itemsList = items.ToList();
