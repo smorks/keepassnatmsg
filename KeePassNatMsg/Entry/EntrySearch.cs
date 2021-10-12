@@ -516,6 +516,7 @@ namespace KeePassNatMsg.Entry
             return new SearchParameters
             {
                 SearchInTitles = true,
+                RegularExpression = true,
                 SearchInGroupNames = false,
                 SearchInNotes = false,
                 SearchInOther = true,
@@ -525,7 +526,6 @@ namespace KeePassNatMsg.Entry
                 SearchInUserNames = false,
                 SearchInUuids = false,
                 ExcludeExpired = excludeExpired,
-                SearchMode = PwSearchMode.Regular,
                 ComparisonMode = StringComparison.InvariantCultureIgnoreCase,
             };
         }
