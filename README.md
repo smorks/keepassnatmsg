@@ -40,6 +40,19 @@ This plugin is primarily intended for use with the [keepassxc-browser](https://g
  6. Click on "Install/Update Native Messaging Host", wait for message telling you it was installed.
  7. Install the [KeePassXC-Browser](https://github.com/keepassxreboot/keepassxc-browser) extension for your browser, and Connect to the database from within the extension.
 
+#### Chocolatey 📦 
+Or you can [use Chocolatey to install](https://community.chocolatey.org/packages/keepass-plugin-keepassnatmsg#install) it in a more automated manner:
+
+```
+choco install keepass-plugin-keepassnatmsg
+```
+
+To [upgrade KeePass Plugin KeePassNatMsg](https://community.chocolatey.org/packages/keepass-plugin-keepassnatmsg#upgrade) to the [latest release version](https://community.chocolatey.org/packages/keepass-plugin-keepassnatmsg#versionhistory) for enjoying the newest features, run the following command from the command line or from PowerShell:
+
+```
+choco upgrade keepass-plugin-keepassnatmsg
+```
+
 ### KeePassNatMsg on Linux and Mac
 
 KeePass needs Mono. You can find detailed [installation instructions on the official page of KeePass](http://keepass.info/help/v2/setup.html#mono).
