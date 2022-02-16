@@ -36,7 +36,7 @@ namespace KeePassNatMsg
                 0x34, 0x69, 0x7a, 0x40, 0x8a, 0x5b, 0x41, 0xc0,
                 0x9f, 0x36, 0x89, 0x7d, 0x62, 0x3e, 0xcb, 0x31
         };
-        
+
         /// <summary>
         /// an arbitrarily generated uuid for the keepassnatmsg new password group
         /// </summary>
@@ -417,6 +417,7 @@ namespace KeePassNatMsg
                         {
                             db.CustomData.Set(customKey, key);
                             id = f.KeyId;
+                            UpdateUI(null);
                         }
                     }
                 });

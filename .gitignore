@@ -12,3 +12,5 @@ create-plgx.bat
 /packages/
 /KeePassNatMsg/lib/KeePass.exe
 build/
+.idea/
+*.DotSettings.user
