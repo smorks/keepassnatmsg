@@ -663,7 +663,7 @@ namespace KeePassNatMsg
                     lines.Add(string.Empty);
                 }
 
-                var file = Path.Combine(Path.GetTempPath(), string.Format("KeePassNatMsg-Migration-{0}.log", DateTime.Now));
+                var file = Path.Combine(Path.GetTempPath(), string.Format("KeePassNatMsg-Migration-{0:yyyy-MM-dd-HH-mm-ss}.log", DateTime.Now));
 
                 File.WriteAllLines(file, lines, new System.Text.UTF8Encoding(false));
 
