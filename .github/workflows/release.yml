@@ -19,8 +19,6 @@ jobs:
         uses: smorks/keepass-download-action@v0.0.4
       - name: Add msbuild to PATH
         uses: microsoft/setup-msbuild@v1.1
-        with:
-          vs-version: '[16.11,16.12)'
       - name: Extract KeePass and Build
         run: |
           mkdir build
@@ -35,16 +33,14 @@ jobs:
           mv build\Release build\KeePassNatMsg
           $zip = 'KeePassNatMsg-${{ steps.tag.outputs.tag }}-binaries.zip'
           7z a $zip .\build\KeePassNatMsg\ "-xr!*.pdb"
-          $hasher = [System.Security.Cryptography.HashAlgorithm]::Create('sha256')
-          $hash = $hasher.ComputeHash([System.IO.File]::ReadAllBytes($zip))
-          $hashstr = [System.BitConverter]::ToString($hash).Replace("-","").ToLower()
-          Set-Content -Path 'release.txt' -Value ('### SHA256 Hash',('* '+$zip),('  * '+$hashstr))
+          $hash = (Get-FileHash '$zip' sha256).Hash.ToLower()
+          Set-Content -Path 'release.txt' -Value ('### SHA256 Hash',('* '+$zip),('  * '+$hash))
           git clean -fx KeePassNatMsg
           $p = Start-Process -FilePath ".\build\KeePass.exe" -ArgumentList "--plgx-create","$pwd\KeePassNatMsg" -PassThru
           $p.WaitForExit()
-          $hash = $hasher.ComputeHash([System.IO.File]::ReadAllBytes('KeePassNatMsg.plgx'))
-          $hashstr = [System.BitConverter]::ToString($hash).Replace("-","").ToLower()
-          Add-Content -Path 'release.txt' -Value ('* KeePassNatMsg.plgx',('  * '+$hashstr))
+          $plgx = 'KeePassNatMsg.plgx'
+          $hash = (Get-FileHash '$plgx' sha256).Hash.ToLower()
+          Add-Content -Path 'release.txt' -Value ('* '+$plgx,('  * '+$hash))
       - name: Publish Release
         uses: softprops/action-gh-release@v0.1.12
         with:

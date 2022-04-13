@@ -16,8 +16,6 @@ jobs:
         uses: smorks/keepass-download-action@v0.0.4
       - name: Add msbuild to PATH
         uses: microsoft/setup-msbuild@v1.1
-        with:
-          vs-version: '[16.11,16.12)'
       - name: Extract KeePass and Build
         run: |
           mkdir build
