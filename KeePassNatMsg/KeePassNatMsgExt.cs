@@ -9,7 +9,6 @@ using KeePassLib.Cryptography.PasswordGenerator;
 using KeePassLib.Security;
 using KeePassLib.Utility;
 using KeePassNatMsg.Entry;
-using KeePassNatMsg.Options;
 using KeePassNatMsg.Protocol;
 using KeePassNatMsg.Protocol.Action;
 using KeePassNatMsg.Protocol.Crypto;
@@ -23,6 +22,9 @@ using System.Linq;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using KeePass.Forms;
+using KeePassNatMsg.Ui;
+using OptionsForm = KeePassNatMsg.Options.OptionsForm;
 
 namespace KeePassNatMsg
 {
@@ -174,9 +176,12 @@ namespace KeePassNatMsg
             ExtInstance = this;
             CryptoHelper = new Helper();
 
+            GlobalWindowManager.WindowAdded += GlobalWindowManagerOnWindowAdded;
+            GlobalWindowManager.WindowRemoved += GlobalWindowManagerOnWindowRemoved;
+
             var optionsMenu = new ToolStripMenuItem("KeePassNatMsg Options...");
             optionsMenu.Click += OnOptions_Click;
-            optionsMenu.Image = KeePassNatMsg.Properties.Resources.earth_lock;
+            optionsMenu.Image = Properties.Resources.earth_lock;
             //optionsMenu.Image = global::KeePass.Properties.Resources.B16x16_File_Close;
             HostInstance.MainWindow.ToolsMenu.DropDownItems.Add(optionsMenu);
 
@@ -214,6 +219,36 @@ namespace KeePassNatMsg
             }
 
             return true;
+        }
+
+        private void GlobalWindowManagerOnWindowRemoved(object sender, GwmWindowEventArgs e)
+        {
+            var form = e.Form as PwEntryForm;
+            if (form == null) return;
+
+            form.Shown -= PwEntryForm_Shown;
+            form.Resize -= PwEntryForm_Resize;
+        }
+
+        private void GlobalWindowManagerOnWindowAdded(object sender, GwmWindowEventArgs e)
+        {
+            var form = e.Form as PwEntryForm;
+            if (form == null) return;
+
+            form.Shown += PwEntryForm_Shown;
+            form.Resize += PwEntryForm_Resize;
+        }
+
+        private void PwEntryForm_Resize(object sender, EventArgs e)
+        {
+        }
+
+        private void PwEntryForm_Shown(object sender, EventArgs e)
+        {
+            var form = sender as PwEntryForm;
+            if (form == null) return;
+
+            var _ = new PwEntryFormExt(form);
         }
 
         private void MainWindow_FileOpened(object sender, KeePass.Forms.FileOpenedEventArgs e)

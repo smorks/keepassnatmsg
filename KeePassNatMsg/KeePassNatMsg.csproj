@@ -75,6 +75,7 @@
       <DependentUpon>OptionsForm.cs</DependentUpon>
     </Compile>
     <Compile Include="Protocol\Listener\SocketReadState.cs" />
+    <Compile Include="Ui\PwEntryFormExt.cs" />
     <Compile Include="Utils\EnumExtension.cs" />
     <Compile Include="NativeMessaging\BrowserSelectForm.cs">
       <SubType>Form</SubType>
@@ -143,7 +144,6 @@
   <ItemGroup>
     <None Include="Resources\earth_lock.png" />
   </ItemGroup>
-  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
