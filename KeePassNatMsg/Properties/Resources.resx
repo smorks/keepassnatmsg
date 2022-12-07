@@ -124,6 +124,7 @@
   "path" : "{0}",
   "type": "stdio",
   "allowed_origins": [
+    "chrome-extension://dphoaaiomekdhacmfoblfblmncpnbahm/",
     "chrome-extension://iopaggbpplllidnfmcghoonnokmjoicf/",
     "chrome-extension://oboonakemofpalcgghocfoadofidjkkk/",
     "chrome-extension://pdffhmdngciaglkoonimfcmckehcpafo/"
@@ -141,6 +142,7 @@
   "path" : "{0}",
   "type": "stdio",
   "allowed_origins": [
+    "chrome-extension://dphoaaiomekdhacmfoblfblmncpnbahm/",
     "chrome-extension://iopaggbpplllidnfmcghoonnokmjoicf/",
     "chrome-extension://oboonakemofpalcgghocfoadofidjkkk/",
     "chrome-extension://pdffhmdngciaglkoonimfcmckehcpafo/"
