@@ -435,7 +435,7 @@ namespace KeePassNatMsg.Entry
 
                 if (searchUrls)
                 {
-                    foreach (var sf in e.Strings.Where(s => s.Key.StartsWith("URL", StringComparison.InvariantCultureIgnoreCase)))
+                    foreach (var sf in e.Strings.Where(s => s.Key.StartsWith("URL", StringComparison.InvariantCultureIgnoreCase) || s.Key.StartsWith("KP2A_URL_", StringComparison.InvariantCultureIgnoreCase)))
                     {
                         var sfv = e.Strings.ReadSafe(sf.Key);
 
