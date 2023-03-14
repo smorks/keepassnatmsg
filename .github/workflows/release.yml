@@ -16,7 +16,7 @@ jobs:
         uses: dawidd6/action-get-tag@v1.0.0
       - id: dlkp
         name: Download Keepass
-        uses: smorks/keepass-download-action@v0.0.4
+        uses: smorks/keepass-download-action@v0.0.5
       - name: Add msbuild to PATH
         uses: microsoft/setup-msbuild@v1.1
       - name: Extract KeePass and Build

@@ -10,12 +10,12 @@ jobs:
     runs-on: 'windows-2019'
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       - id: dlkp
         name: Download Keepass
         uses: smorks/keepass-download-action@v0.0.4
       - name: Add msbuild to PATH
-        uses: microsoft/setup-msbuild@v1.1
+        uses: microsoft/setup-msbuild@v1
       - name: Extract KeePass and Build
         run: |
           mkdir build
