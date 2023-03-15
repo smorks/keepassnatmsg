@@ -54,6 +54,7 @@ namespace KeePassNatMsg.Options
             txtKPXCVerOverride.Text = _config.OverrideKeePassXcVersion;
             chkSearchUrls.Checked = _config.SearchUrls;
             chkUseKpxcSettingsKey.Checked = _config.UseKeePassXcSettings;
+            chkUseLegacyHostMatching.Checked = _config.UseLegacyHostMatching;
 
             this.returnStringFieldsCheckbox_CheckedChanged(null, EventArgs.Empty);
 
@@ -83,6 +84,7 @@ namespace KeePassNatMsg.Options
             _config.OverrideKeePassXcVersion = txtKPXCVerOverride.Text;
             _config.ConnectionDatabaseHash = (comboBoxDatabases.SelectedItem as DatabaseItem) == null ? null : (comboBoxDatabases.SelectedItem as DatabaseItem).DbHash;
             _config.SearchUrls = chkSearchUrls.Checked;
+            _config.UseLegacyHostMatching = chkUseLegacyHostMatching.Checked;
 
             if (_config.UseKeePassXcSettings != chkUseKpxcSettingsKey.Checked)
             {
