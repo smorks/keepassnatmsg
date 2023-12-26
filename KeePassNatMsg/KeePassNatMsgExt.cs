@@ -509,6 +509,23 @@ namespace KeePassNatMsg
             }
         }
 
+        public PwDatabase GetSearchDatabase()
+        {
+            var options = new ConfigOpt(HostInstance.CustomConfig);
+            if (string.IsNullOrEmpty(options.SearchDatabaseHash))
+            {
+                return HostInstance.Database;
+            }
+            else
+            {
+                var document = HostInstance.MainWindow.DocumentManager.Documents.Find(p => GetDbHash(p.Database) == options.SearchDatabaseHash);
+                if (document != null)
+                    return document.Database;
+                else
+                    return HostInstance.Database;
+            }
+        }
+
         internal void PromptToMigrate(PwDatabase db)
         {
             if (db.IsOpen && HasLegacyConfig(db))

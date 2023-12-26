@@ -44,7 +44,19 @@ namespace KeePassNatMsg.Options
             unlockDatabaseCheckbox.Checked = _config.UnlockDatabaseRequest;
             credAllowAccessCheckbox.Checked = _config.AlwaysAllowAccess;
             credAllowUpdatesCheckbox.Checked = _config.AlwaysAllowUpdates;
-            credSearchInAllOpenedDatabases.Checked = _config.SearchInAllOpenedDatabases;
+            if (_config.SearchInAllOpenedDatabases)
+            {
+                // Only for backward compatibility
+                credSearchInAllOpenedDatabasesRadioButton.Checked = true;
+                _config.SearchInAllOpenedDatabases = false;
+            }
+            else
+            {
+                credOnlySearchInSelectedDatabaseRadioButton.Checked = (_config.AllowSearchDatabase == (ulong)AllowSearchDatabase.SearchInOnlySelectedDatabase);
+                credSearchInAllOpenedDatabasesRadioButton.Checked = (_config.AllowSearchDatabase == (ulong)AllowSearchDatabase.SearchInAllOpenedDatabases);
+                credRestrictSearchInSpecificDatabaseRadioButton.Checked = (_config.AllowSearchDatabase == (ulong)AllowSearchDatabase.RestrictSearchInSpecificDatabase);
+            }
+            comboBoxSearchDatabases.Enabled = credRestrictSearchInSpecificDatabaseRadioButton.Checked;
             hideExpiredCheckbox.Checked = _config.HideExpired;
             matchSchemesCheckbox.Checked = _config.MatchSchemes;
             returnStringFieldsCheckbox.Checked = _config.ReturnStringFields;
@@ -59,6 +71,13 @@ namespace KeePassNatMsg.Options
             this.returnStringFieldsCheckbox_CheckedChanged(null, EventArgs.Empty);
 
             InitDatabasesDropdown();
+            foreach (DatabaseItem item in comboBoxSearchDatabases.Items)
+            {
+                if (item.DbHash == _config.SearchDatabaseHash)
+                {
+                    comboBoxSearchDatabases.SelectedItem = item;
+                }
+            }
             foreach (DatabaseItem item in comboBoxDatabases.Items)
             {
                 if (item.DbHash == _config.ConnectionDatabaseHash)
@@ -75,7 +94,7 @@ namespace KeePassNatMsg.Options
             _config.UnlockDatabaseRequest = unlockDatabaseCheckbox.Checked;
             _config.AlwaysAllowAccess = credAllowAccessCheckbox.Checked;
             _config.AlwaysAllowUpdates = credAllowUpdatesCheckbox.Checked;
-            _config.SearchInAllOpenedDatabases = credSearchInAllOpenedDatabases.Checked;
+            _config.SearchDatabaseHash = (comboBoxSearchDatabases.SelectedItem as DatabaseItem) == null ? null : (comboBoxSearchDatabases.SelectedItem as DatabaseItem).DbHash;
             _config.HideExpired = hideExpiredCheckbox.Checked;
             _config.MatchSchemes = matchSchemesCheckbox.Checked;
             _config.ReturnStringFields = returnStringFieldsCheckbox.Checked;
@@ -293,6 +312,7 @@ namespace KeePassNatMsg.Options
                     dbIdentifier = item.Database.IOConnectionInfo.Path;
                 }
 
+                comboBoxSearchDatabases.Items.Add(new DatabaseItem { Id = dbIdentifier, DbHash = KeePassNatMsgExt.ExtInstance.GetDbHash(item.Database) });
                 comboBoxDatabases.Items.Add(new DatabaseItem { Id = dbIdentifier, DbHash = KeePassNatMsgExt.ExtInstance.GetDbHash(item.Database) });
             }
         }
@@ -469,6 +489,18 @@ namespace KeePassNatMsg.Options
             }
 
             return true;
+        }
+
+        private void rbSearchDatabase_CheckedChanged(object sender, EventArgs e)
+        {
+            if (credOnlySearchInSelectedDatabaseRadioButton.Checked)
+                _config.AllowSearchDatabase = (ulong)AllowSearchDatabase.SearchInOnlySelectedDatabase;
+            else if (credSearchInAllOpenedDatabasesRadioButton.Checked)
+                _config.AllowSearchDatabase = (ulong)AllowSearchDatabase.SearchInAllOpenedDatabases;
+             else 
+                _config.AllowSearchDatabase = (ulong)AllowSearchDatabase.RestrictSearchInSpecificDatabase;
+
+            this.comboBoxSearchDatabases.Enabled = this.credRestrictSearchInSpecificDatabaseRadioButton.Checked;
         }
     }
 }

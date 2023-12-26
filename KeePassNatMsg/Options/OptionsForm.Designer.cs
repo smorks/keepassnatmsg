@@ -44,6 +44,10 @@
             this.credMatchingCheckbox = new System.Windows.Forms.CheckBox();
             this.credNotifyCheckbox = new System.Windows.Forms.CheckBox();
             this.tabPage2 = new System.Windows.Forms.TabPage();
+            this.comboBoxSearchDatabases = new System.Windows.Forms.ComboBox();
+            this.credOnlySearchInSelectedDatabaseRadioButton = new System.Windows.Forms.RadioButton();
+            this.credRestrictSearchInSpecificDatabaseRadioButton = new System.Windows.Forms.RadioButton();
+            this.credSearchInAllOpenedDatabasesRadioButton = new System.Windows.Forms.RadioButton();
             this.btnMigrateSettings = new System.Windows.Forms.Button();
             this.chkUseKpxcSettingsKey = new System.Windows.Forms.CheckBox();
             this.btnCheckForLegacyConfig = new System.Windows.Forms.Button();
@@ -57,7 +61,6 @@
             this.label3 = new System.Windows.Forms.Label();
             this.returnStringFieldsCheckbox = new System.Windows.Forms.CheckBox();
             this.label2 = new System.Windows.Forms.Label();
-            this.credSearchInAllOpenedDatabases = new System.Windows.Forms.CheckBox();
             this.label1 = new System.Windows.Forms.Label();
             this.credAllowUpdatesCheckbox = new System.Windows.Forms.CheckBox();
             this.credAllowAccessCheckbox = new System.Windows.Forms.CheckBox();
@@ -84,7 +87,7 @@
             // 
             this.cancelButton.Anchor = ((System.Windows.Forms.AnchorStyles) ((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
             this.cancelButton.DialogResult = System.Windows.Forms.DialogResult.Cancel;
-            this.cancelButton.Location = new System.Drawing.Point(313, 497);
+            this.cancelButton.Location = new System.Drawing.Point(313, 553);
             this.cancelButton.Name = "cancelButton";
             this.cancelButton.Size = new System.Drawing.Size(88, 28);
             this.cancelButton.TabIndex = 2;
@@ -96,7 +99,7 @@
             // 
             this.okButton.Anchor = ((System.Windows.Forms.AnchorStyles) ((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
             this.okButton.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte) (0)));
-            this.okButton.Location = new System.Drawing.Point(219, 497);
+            this.okButton.Location = new System.Drawing.Point(219, 553);
             this.okButton.Name = "okButton";
             this.okButton.Size = new System.Drawing.Size(88, 28);
             this.okButton.TabIndex = 1;
@@ -113,7 +116,7 @@
             this.tabControl1.Location = new System.Drawing.Point(1, 3);
             this.tabControl1.Name = "tabControl1";
             this.tabControl1.SelectedIndex = 0;
-            this.tabControl1.Size = new System.Drawing.Size(410, 487);
+            this.tabControl1.Size = new System.Drawing.Size(410, 543);
             this.tabControl1.TabIndex = 3;
             this.tabControl1.Selected += new System.Windows.Forms.TabControlEventHandler(this.tabControl1_Selected);
             // 
@@ -254,6 +257,10 @@
             // 
             // tabPage2
             // 
+            this.tabPage2.Controls.Add(this.comboBoxSearchDatabases);
+            this.tabPage2.Controls.Add(this.credOnlySearchInSelectedDatabaseRadioButton);
+            this.tabPage2.Controls.Add(this.credRestrictSearchInSpecificDatabaseRadioButton);
+            this.tabPage2.Controls.Add(this.credSearchInAllOpenedDatabasesRadioButton);
             this.tabPage2.Controls.Add(this.btnMigrateSettings);
             this.tabPage2.Controls.Add(this.chkUseKpxcSettingsKey);
             this.tabPage2.Controls.Add(this.btnCheckForLegacyConfig);
@@ -267,21 +274,64 @@
             this.tabPage2.Controls.Add(this.label3);
             this.tabPage2.Controls.Add(this.returnStringFieldsCheckbox);
             this.tabPage2.Controls.Add(this.label2);
-            this.tabPage2.Controls.Add(this.credSearchInAllOpenedDatabases);
             this.tabPage2.Controls.Add(this.label1);
             this.tabPage2.Controls.Add(this.credAllowUpdatesCheckbox);
             this.tabPage2.Controls.Add(this.credAllowAccessCheckbox);
             this.tabPage2.Location = new System.Drawing.Point(4, 22);
             this.tabPage2.Name = "tabPage2";
             this.tabPage2.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage2.Size = new System.Drawing.Size(402, 461);
+            this.tabPage2.Size = new System.Drawing.Size(402, 517);
             this.tabPage2.TabIndex = 1;
             this.tabPage2.Text = "Advanced";
             this.tabPage2.UseVisualStyleBackColor = true;
             // 
+            // comboBoxSearchDatabases
+            // 
+            this.comboBoxSearchDatabases.DisplayMember = "Id";
+            this.comboBoxSearchDatabases.FormattingEnabled = true;
+            this.comboBoxSearchDatabases.Location = new System.Drawing.Point(42, 159);
+            this.comboBoxSearchDatabases.Name = "comboBoxSearchDatabases";
+            this.comboBoxSearchDatabases.Size = new System.Drawing.Size(250, 21);
+            this.comboBoxSearchDatabases.TabIndex = 43;
+            this.comboBoxSearchDatabases.ValueMember = "DbHash";
+            // 
+            // credOnlySearchInSelectedDatabaseRadioButton
+            // 
+            this.credOnlySearchInSelectedDatabaseRadioButton.AutoSize = true;
+            this.credOnlySearchInSelectedDatabaseRadioButton.Location = new System.Drawing.Point(11, 82);
+            this.credOnlySearchInSelectedDatabaseRadioButton.Name = "credOnlySearchInSelectedDatabaseRadioButton";
+            this.credOnlySearchInSelectedDatabaseRadioButton.Size = new System.Drawing.Size(182, 17);
+            this.credOnlySearchInSelectedDatabaseRadioButton.TabIndex = 42;
+            this.credOnlySearchInSelectedDatabaseRadioButton.Text = "Search only in &selected database";
+            this.credOnlySearchInSelectedDatabaseRadioButton.UseVisualStyleBackColor = true;
+            this.credOnlySearchInSelectedDatabaseRadioButton.CheckedChanged += new System.EventHandler(this.rbSearchDatabase_CheckedChanged);
+            // 
+            // credRestrictSearchInSpecificDatabaseRadioButton
+            // 
+            this.credRestrictSearchInSpecificDatabaseRadioButton.AutoSize = true;
+            this.credRestrictSearchInSpecificDatabaseRadioButton.Location = new System.Drawing.Point(11, 141);
+            this.credRestrictSearchInSpecificDatabaseRadioButton.Name = "credRestrictSearchInSpecificDatabaseRadioButton";
+            this.credRestrictSearchInSpecificDatabaseRadioButton.Size = new System.Drawing.Size(203, 17);
+            this.credRestrictSearchInSpecificDatabaseRadioButton.TabIndex = 41;
+            this.credRestrictSearchInSpecificDatabaseRadioButton.Text = "Restrict search to a s&pecific database";
+            this.credRestrictSearchInSpecificDatabaseRadioButton.UseVisualStyleBackColor = true;
+            this.credRestrictSearchInSpecificDatabaseRadioButton.CheckedChanged += new System.EventHandler(this.rbSearchDatabase_CheckedChanged);
+            // 
+            // credSearchInAllOpenedDatabasesRadioButton
+            // 
+            this.credSearchInAllOpenedDatabasesRadioButton.AutoSize = true;
+            this.credSearchInAllOpenedDatabasesRadioButton.Location = new System.Drawing.Point(11, 105);
+            this.credSearchInAllOpenedDatabasesRadioButton.Name = "credSearchInAllOpenedDatabasesRadioButton";
+            this.credSearchInAllOpenedDatabasesRadioButton.Size = new System.Drawing.Size(269, 17);
+            this.credSearchInAllOpenedDatabasesRadioButton.TabIndex = 40;
+            this.credSearchInAllOpenedDatabasesRadioButton.TabStop = true;
+            this.credSearchInAllOpenedDatabasesRadioButton.Text = "Search in all &opened databases for matching entries";
+            this.credSearchInAllOpenedDatabasesRadioButton.UseVisualStyleBackColor = true;
+            this.credSearchInAllOpenedDatabasesRadioButton.CheckedChanged += new System.EventHandler(this.rbSearchDatabase_CheckedChanged);
+            // 
             // btnMigrateSettings
             // 
-            this.btnMigrateSettings.Location = new System.Drawing.Point(11, 417);
+            this.btnMigrateSettings.Location = new System.Drawing.Point(11, 475);
             this.btnMigrateSettings.Name = "btnMigrateSettings";
             this.btnMigrateSettings.Size = new System.Drawing.Size(191, 28);
             this.btnMigrateSettings.TabIndex = 39;
@@ -292,7 +342,7 @@
             // chkUseKpxcSettingsKey
             // 
             this.chkUseKpxcSettingsKey.AutoSize = true;
-            this.chkUseKpxcSettingsKey.Location = new System.Drawing.Point(11, 394);
+            this.chkUseKpxcSettingsKey.Location = new System.Drawing.Point(11, 452);
             this.chkUseKpxcSettingsKey.Name = "chkUseKpxcSettingsKey";
             this.chkUseKpxcSettingsKey.Size = new System.Drawing.Size(166, 17);
             this.chkUseKpxcSettingsKey.TabIndex = 38;
@@ -302,7 +352,7 @@
             // btnCheckForLegacyConfig
             // 
             this.btnCheckForLegacyConfig.Anchor = ((System.Windows.Forms.AnchorStyles) (((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) | System.Windows.Forms.AnchorStyles.Right)));
-            this.btnCheckForLegacyConfig.Location = new System.Drawing.Point(208, 417);
+            this.btnCheckForLegacyConfig.Location = new System.Drawing.Point(208, 475);
             this.btnCheckForLegacyConfig.Name = "btnCheckForLegacyConfig";
             this.btnCheckForLegacyConfig.Size = new System.Drawing.Size(186, 28);
             this.btnCheckForLegacyConfig.TabIndex = 37;
@@ -313,7 +363,7 @@
             // chkSearchUrls
             // 
             this.chkSearchUrls.AutoSize = true;
-            this.chkSearchUrls.Location = new System.Drawing.Point(11, 134);
+            this.chkSearchUrls.Location = new System.Drawing.Point(11, 192);
             this.chkSearchUrls.Name = "chkSearchUrls";
             this.chkSearchUrls.Size = new System.Drawing.Size(340, 17);
             this.chkSearchUrls.TabIndex = 36;
@@ -323,7 +373,7 @@
             // label6
             // 
             this.label6.AutoSize = true;
-            this.label6.Location = new System.Drawing.Point(7, 335);
+            this.label6.Location = new System.Drawing.Point(7, 393);
             this.label6.Name = "label6";
             this.label6.Size = new System.Drawing.Size(296, 26);
             this.label6.TabIndex = 35;
@@ -333,7 +383,7 @@
             // 
             this.comboBoxDatabases.DisplayMember = "Id";
             this.comboBoxDatabases.FormattingEnabled = true;
-            this.comboBoxDatabases.Location = new System.Drawing.Point(11, 364);
+            this.comboBoxDatabases.Location = new System.Drawing.Point(42, 422);
             this.comboBoxDatabases.Name = "comboBoxDatabases";
             this.comboBoxDatabases.Size = new System.Drawing.Size(250, 21);
             this.comboBoxDatabases.TabIndex = 34;
@@ -341,7 +391,7 @@
             // 
             // txtKPXCVerOverride
             // 
-            this.txtKPXCVerOverride.Location = new System.Drawing.Point(161, 304);
+            this.txtKPXCVerOverride.Location = new System.Drawing.Point(161, 362);
             this.txtKPXCVerOverride.Name = "txtKPXCVerOverride";
             this.txtKPXCVerOverride.Size = new System.Drawing.Size(100, 20);
             this.txtKPXCVerOverride.TabIndex = 33;
@@ -349,7 +399,7 @@
             // label5
             // 
             this.label5.AutoSize = true;
-            this.label5.Location = new System.Drawing.Point(8, 307);
+            this.label5.Location = new System.Drawing.Point(8, 365);
             this.label5.Name = "label5";
             this.label5.Size = new System.Drawing.Size(147, 13);
             this.label5.TabIndex = 32;
@@ -358,7 +408,7 @@
             // returnStringFieldsWithKphOnlyCheckBox
             // 
             this.returnStringFieldsWithKphOnlyCheckBox.AutoSize = true;
-            this.returnStringFieldsWithKphOnlyCheckBox.Location = new System.Drawing.Point(55, 230);
+            this.returnStringFieldsWithKphOnlyCheckBox.Location = new System.Drawing.Point(55, 288);
             this.returnStringFieldsWithKphOnlyCheckBox.Name = "returnStringFieldsWithKphOnlyCheckBox";
             this.returnStringFieldsWithKphOnlyCheckBox.Size = new System.Drawing.Size(300, 30);
             this.returnStringFieldsWithKphOnlyCheckBox.TabIndex = 31;
@@ -369,7 +419,7 @@
             // 
             this.label4.AutoSize = true;
             this.label4.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte) (0)));
-            this.label4.Location = new System.Drawing.Point(52, 263);
+            this.label4.Location = new System.Drawing.Point(52, 321);
             this.label4.Name = "label4";
             this.label4.Size = new System.Drawing.Size(277, 26);
             this.label4.TabIndex = 22;
@@ -377,7 +427,7 @@
             // 
             // label3
             // 
-            this.label3.Location = new System.Drawing.Point(39, 187);
+            this.label3.Location = new System.Drawing.Point(39, 245);
             this.label3.Name = "label3";
             this.label3.Size = new System.Drawing.Size(355, 46);
             this.label3.TabIndex = 21;
@@ -386,7 +436,7 @@
             // returnStringFieldsCheckbox
             // 
             this.returnStringFieldsCheckbox.AutoSize = true;
-            this.returnStringFieldsCheckbox.Location = new System.Drawing.Point(11, 167);
+            this.returnStringFieldsCheckbox.Location = new System.Drawing.Point(11, 225);
             this.returnStringFieldsCheckbox.Name = "returnStringFieldsCheckbox";
             this.returnStringFieldsCheckbox.Size = new System.Drawing.Size(186, 17);
             this.returnStringFieldsCheckbox.TabIndex = 20;
@@ -397,21 +447,11 @@
             // label2
             // 
             this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(52, 108);
+            this.label2.Location = new System.Drawing.Point(39, 125);
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(299, 13);
             this.label2.TabIndex = 19;
             this.label2.Text = "Only the selected database has to be connected with a client!";
-            // 
-            // credSearchInAllOpenedDatabases
-            // 
-            this.credSearchInAllOpenedDatabases.AutoSize = true;
-            this.credSearchInAllOpenedDatabases.Location = new System.Drawing.Point(11, 88);
-            this.credSearchInAllOpenedDatabases.Name = "credSearchInAllOpenedDatabases";
-            this.credSearchInAllOpenedDatabases.Size = new System.Drawing.Size(270, 17);
-            this.credSearchInAllOpenedDatabases.TabIndex = 18;
-            this.credSearchInAllOpenedDatabases.Text = "Searc&h in all opened databases for matching entries";
-            this.credSearchInAllOpenedDatabases.UseVisualStyleBackColor = true;
             // 
             // label1
             // 
@@ -541,7 +581,7 @@
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.CancelButton = this.cancelButton;
-            this.ClientSize = new System.Drawing.Size(411, 534);
+            this.ClientSize = new System.Drawing.Size(411, 590);
             this.Controls.Add(this.tabControl1);
             this.Controls.Add(this.okButton);
             this.Controls.Add(this.cancelButton);
@@ -583,7 +623,6 @@
         private System.Windows.Forms.CheckBox credMatchingCheckbox;
         private System.Windows.Forms.CheckBox credNotifyCheckbox;
         private System.Windows.Forms.TabPage tabPage2;
-        private System.Windows.Forms.CheckBox credSearchInAllOpenedDatabases;
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.CheckBox credAllowUpdatesCheckbox;
         private System.Windows.Forms.CheckBox credAllowAccessCheckbox;
@@ -612,5 +651,9 @@
         private System.Windows.Forms.CheckBox chkUseKpxcSettingsKey;
         private System.Windows.Forms.Label lblVersion;
         private System.Windows.Forms.Button btnMigrateSettings;
+        private System.Windows.Forms.RadioButton credRestrictSearchInSpecificDatabaseRadioButton;
+        private System.Windows.Forms.RadioButton credSearchInAllOpenedDatabasesRadioButton;
+        private System.Windows.Forms.RadioButton credOnlySearchInSelectedDatabaseRadioButton;
+        private System.Windows.Forms.ComboBox comboBoxSearchDatabases;
     }
 }
