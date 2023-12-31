@@ -387,6 +387,7 @@ namespace KeePassNatMsg.Entry
             var formHost = hostUri.Host;
             var searchHost = hostUri.Host;
             var origSearchHost = hostUri.Host;
+            var schemeHost = hostUri.Scheme;
 
             List<PwDatabase> listDatabases = new List<PwDatabase>();
 
@@ -416,7 +417,14 @@ namespace KeePassNatMsg.Entry
                 //get all possible entries for given host-name
                 while (listResult.Count == listCount && (origSearchHost == searchHost || searchHost.IndexOf(".") != -1))
                 {
-                    parms.SearchString = string.Format("^{0}$|/{0}/?", searchHost);
+                    if (configOpt.MatchSchemes)
+                    {
+                        parms.SearchString = string.Format("^{0}$|{1}://{0}/?", searchHost, schemeHost);
+                    }
+                    else
+                    {
+                        parms.SearchString = string.Format("^{0}$|/{0}/?", searchHost);
+                    }
                     var listEntries = new PwObjectList<PwEntry>();
                     db.RootGroup.SearchEntries(parms, listEntries);
                     listResult.AddRange(listEntries.Select(x => new PwEntryDatabase(x, db)));
@@ -471,32 +479,7 @@ namespace KeePassNatMsg.Entry
                 return formHost.Contains(title) || (!string.IsNullOrEmpty(entryUrl) && formHost.Contains(entryUrl));
             });
 
-            var filterSchemes = new GFunc<PwEntry, bool>((PwEntry e) =>
-            {
-                var title = e.Strings.ReadSafe(PwDefs.TitleField);
-                var entryUrl = e.Strings.ReadSafe(PwDefs.UrlField);
-                Uri entryUri;
-                Uri titleUri;
-
-                if (entryUrl != null && Uri.TryCreate(entryUrl, UriKind.Absolute, out entryUri) && entryUri.Scheme == hostUri.Scheme)
-                {
-                    return true;
-                }
-
-                if (Uri.TryCreate(title, UriKind.Absolute, out titleUri) && titleUri.Scheme == hostUri.Scheme)
-                {
-                    return true;
-                }
-
-                return false;
-            });
-
             var result = listResult.Where(e => filter(e.entry));
-
-            if (configOpt.MatchSchemes)
-            {
-                result = result.Where(e => filterSchemes(e.entry));
-            }
 
             if (configOpt.HideExpired)
             {
