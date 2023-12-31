@@ -387,7 +387,7 @@ namespace KeePassNatMsg.Entry
             var formHost = hostUri.Host;
             var searchHost = hostUri.Host;
             var origSearchHost = hostUri.Host;
-            var schemeHost = hostUri.Scheme;
+            var searchScheme = hostUri.Scheme;
 
             List<PwDatabase> listDatabases = new List<PwDatabase>();
 
@@ -419,7 +419,7 @@ namespace KeePassNatMsg.Entry
                 {
                     if (configOpt.MatchSchemes)
                     {
-                        parms.SearchString = string.Format("^{0}$|{1}://{0}/?", searchHost, schemeHost);
+                        parms.SearchString = string.Format("^{0}$|{1}://{0}/?", searchHost, searchScheme);
                     }
                     else
                     {
