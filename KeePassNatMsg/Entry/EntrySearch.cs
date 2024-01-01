@@ -57,7 +57,16 @@ namespace KeePassNatMsg.Entry
             if (!string.IsNullOrEmpty(submitUrl))
             {
                 submitUri = new Uri(submitUrl);
-                uris.Add(submitUri);
+                // Exclude if "submitUrl" is Javascript (or anything else)
+                if (_allowedSchemes.Contains(submitUri.Scheme) && submitUri.Authority != null)
+                {
+                    uris.Add(submitUri);
+                }
+                else
+                {
+                    submitUrl = null;
+                    submitUri = null;
+                }
             }
 
             var resp = req.GetResponse();
@@ -86,7 +95,7 @@ namespace KeePassNatMsg.Entry
                         return (c == null && !hostMatch) || (c != null && !hostMatch && !isAllowed);
                     }
 
-                    return c == null || (!c.Allow.Contains(hostUri.Authority)) || (submitUri != null && submitUri.Authority != null && !c.Allow.Contains(submitUri.Authority));
+                    return c == null || (!c.Allow.Contains(hostUri.Authority)) || (submitUri != null && !c.Allow.Contains(submitUri.Authority));
                 });
 
                 var needPrompting = items.Where(e => filter(e.entry)).ToList();
@@ -113,7 +122,7 @@ namespace KeePassNatMsg.Entry
                                     var c = _ext.GetEntryConfig(e.entry) ?? new EntryConfig();
                                     var set = f.Allowed ? c.Allow : c.Deny;
                                     set.Add(hostUri.Authority);
-                                    if (submitUri != null && submitUri.Authority != null && submitUri.Authority != hostUri.Authority)
+                                    if (submitUri != null && submitUri.Authority != hostUri.Authority)
                                         set.Add(submitUri.Authority);
                                     _ext.SetEntryConfig(e.entry, c);
                                 }
