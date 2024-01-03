@@ -4,6 +4,8 @@ on:
   push:
     paths-ignore:
       - '**.md'
+  pull_request:
+    types: [opened, reopened, review_requested]
 
 jobs:
   build:
