@@ -40,7 +40,7 @@ jobs:
           $p.WaitForExit()
           $plgx = 'KeePassNatMsg.plgx'
           $hash = (Get-FileHash "$plgx" sha256).Hash.ToLower()
-          Add-Content -Path 'release.txt' -Value ('* '+$plgx,('  * '+$hash))
+          Add-Content -Path 'release.txt' -Value (('* '+$plgx),('  * '+$hash))
       - name: Publish Release
         uses: softprops/action-gh-release@v0.1.15
         with:
