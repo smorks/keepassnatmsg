@@ -68,6 +68,7 @@
             this.EntriesBox.Location = new System.Drawing.Point(12, 12);
             this.EntriesBox.Name = "EntriesBox";
             this.EntriesBox.Size = new System.Drawing.Size(320, 108);
+            this.EntriesBox.Sorted = true;
             this.EntriesBox.TabIndex = 0;
             // 
             // RememberCheck
