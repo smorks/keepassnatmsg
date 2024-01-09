@@ -27,7 +27,7 @@ namespace KeePassNatMsg.Entry
             PwUuid id = new PwUuid(MemUtil.HexStringToByteArray(uuid));
             PwDatabase db = null;
             var configOpt = new ConfigOpt(_host.CustomConfig);
-            if (configOpt.SearchInAllOpenedDatabases)
+            if (configOpt.AllowSearchDatabase == (ulong)AllowSearchDatabase.SearchInAllOpenedDatabases)
             {
                 foreach (PwDocument doc in _host.MainWindow.DocumentManager.Documents)
                 {
@@ -41,6 +41,11 @@ namespace KeePassNatMsg.Entry
                         }
                     }
                 }
+            }
+            else if (configOpt.AllowSearchDatabase == (ulong)AllowSearchDatabase.RestrictSearchInSpecificDatabase)
+            {
+                entry = _ext.GetSearchDatabase().RootGroup.FindEntry(id, true);
+                db = _ext.GetSearchDatabase();
             }
             else
             {

@@ -276,7 +276,7 @@ namespace KeePassNatMsg.Entry
 
             var configOpt = new ConfigOpt(_host.CustomConfig);
 
-            if (configOpt.SearchInAllOpenedDatabases)
+            if (configOpt.AllowSearchDatabase == (ulong)AllowSearchDatabase.SearchInAllOpenedDatabases)
             {
                 foreach (var doc in _host.MainWindow.DocumentManager.Documents)
                 {
@@ -287,6 +287,12 @@ namespace KeePassNatMsg.Entry
                             return new PwEntryDatabase(entry, doc.Database);
                     }
                 }
+            }
+            else if (configOpt.AllowSearchDatabase == (ulong)AllowSearchDatabase.RestrictSearchInSpecificDatabase)
+            {
+                var entry = _ext.GetSearchDatabase().RootGroup.FindEntry(id, true);
+                if (entry != null)
+                    return new PwEntryDatabase(entry, _ext.GetSearchDatabase());
             }
             else
             {
@@ -391,7 +397,7 @@ namespace KeePassNatMsg.Entry
             List<PwDatabase> listDatabases = new List<PwDatabase>();
 
             var configOpt = new ConfigOpt(_host.CustomConfig);
-            if (configOpt.SearchInAllOpenedDatabases)
+            if (configOpt.AllowSearchDatabase == (ulong)AllowSearchDatabase.SearchInAllOpenedDatabases)
             {
                 foreach (PwDocument doc in _host.MainWindow.DocumentManager.Documents)
                 {
@@ -400,6 +406,10 @@ namespace KeePassNatMsg.Entry
                         listDatabases.Add(doc.Database);
                     }
                 }
+            }
+            else if (configOpt.AllowSearchDatabase == (ulong)AllowSearchDatabase.RestrictSearchInSpecificDatabase)
+            {
+                listDatabases.Add(_ext.GetSearchDatabase());
             }
             else
             {
