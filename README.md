@@ -1,5 +1,9 @@
 [![Main workflow](https://github.com/smorks/keepassnatmsg/actions/workflows/workflow.yml/badge.svg)](https://github.com/smorks/keepassnatmsg/actions/workflows/workflow.yml)
 
+# *** KeePassNatMsg is in maintenance only mode ***
+
+I don't personally use this plugin anymore, therefore it is currently in maintenance mode, which means I will fix critical bugs, and will still accept PR's. I'm also open to passing this project on to a new maintainer, see the [relevant discussion topic](https://github.com/smorks/keepassnatmsg/discussions/104).
+
 # KeePassNatMsg
 
 is a plugin for KeePass 2.x and provides a secure means of exposing KeePass credentials to a browser via [Native Messaging](https://developer.mozilla.org/en-US/Add-ons/WebExtensions/Native_messaging).
